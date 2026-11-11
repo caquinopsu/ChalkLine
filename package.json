@@ -7,6 +7,7 @@
     "dev:py": ".venv\\Scripts\\python.exe scripts/dev_py.py",
     "presets": "node scripts/generate-presets.mjs",
     "test:steps": "node scripts/test-steps.mjs",
+    "test:work": "node scripts/test-work.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

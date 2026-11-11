@@ -8,7 +8,7 @@ export type Attempt = {
   stepId: string | null; // which reference step it was aiming at
   correct: boolean; // was the step accepted?
   hintUsed: boolean; // had they asked for a hint (or "show me") on this step?
-  mode: "practice" | "walkthrough"; // where it happened
+  mode: "practice" | "walkthrough" | "check"; // where it happened ("check" = a line in Check my work)
 };
 
 const KEY = "chalkline.attempts"; // the storage slot name

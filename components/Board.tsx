@@ -100,7 +100,7 @@ function Row({ n, line, size, opacity }: { n: number; line: BoardLine; size: num
   return (
     <div className="flex min-w-0 items-center gap-4" style={{ opacity }}>
       <span className="w-[22px] shrink-0 font-mono text-[13px] text-muted">{n}</span>
-      <FitTex latex={line.latex} size={size} min={16} />
+      <FitTex latex={line.latex} size={size} min={16} grow={false} />
       <Mark mark={line.mark} size={size} />
     </div>
   );
@@ -130,7 +130,8 @@ function Current({ line }: { line: CurrentLine }) {
 }
 
 // Math that shrinks (down to `min` px) instead of wrapping or overflowing (DESIGN.md "shrink-to-fit").
-export function FitTex({ latex, size, min }: { latex: string; size: number; min: number }) {
+// grow = take all the free width (false = only as wide as the math, so a mark can sit right after it).
+export function FitTex({ latex, size, min, grow = true }: { latex: string; size: number; min: number; grow?: boolean }) {
   const box = useRef<HTMLSpanElement>(null); // the space we're allowed to use
   const inner = useRef<HTMLSpanElement>(null); // the rendered math
   const [fontSize, setFontSize] = useState(size);
@@ -150,7 +151,7 @@ export function FitTex({ latex, size, min }: { latex: string; size: number; min:
   }, [latex, size, min, fontSize]);
 
   return (
-    <span ref={box} className="min-w-0 flex-1 overflow-hidden whitespace-nowrap">
+    <span ref={box} className={`min-w-0 overflow-hidden whitespace-nowrap ${grow ? "flex-1" : "flex-initial"}`}>
       <span ref={inner} className="inline-block" style={{ fontSize }}>
         <Tex latex={latex} />
       </span>

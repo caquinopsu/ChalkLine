@@ -9,18 +9,20 @@ export type MathInputHandle = {
   insert: (latex: string) => void; // insert a snippet at the cursor (used by the math keys)
   clear: () => void; // empty the box
   focus: () => void; // put the cursor in the box
+  set: (latex: string) => void; // replace the contents (used to edit an existing line)
 };
 
 type Props = {
   onChange: (latex: string) => void; // called on every edit with the current LaTeX
   onSubmit?: () => void; // called when the user presses Enter
   placeholder?: string; // gray hint text when empty (LaTeX)
+  initialValue?: string; // starting contents (e.g. a problem read from a photo)
   ariaLabel: string; // name for screen readers
   className?: string;
 };
 
 export const MathInput = forwardRef<MathInputHandle, Props>(function MathInput(
-  { onChange, onSubmit, placeholder, ariaLabel, className },
+  { onChange, onSubmit, placeholder, initialValue, ariaLabel, className },
   handle,
 ) {
   const ref = useRef<MathfieldElement>(null); // the <math-field> element on the page
@@ -51,6 +53,10 @@ export const MathInput = forwardRef<MathInputHandle, Props>(function MathInput(
     if (!ready || !mf) return;
     mf.mathVirtualKeyboardPolicy = "manual"; // don't pop up MathLive's on-screen keyboard; we have our own keys
     mf.menuItems = []; // hide MathLive's right-click menu
+    if (initialValue) {
+      mf.value = initialValue; // start with the given contents
+      onChangeRef.current(initialValue);
+    }
     const handleInput = () => onChangeRef.current(mf.value); // mf.value is the LaTeX
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Enter") {
@@ -64,6 +70,7 @@ export const MathInput = forwardRef<MathInputHandle, Props>(function MathInput(
       mf.removeEventListener("input", handleInput);
       mf.removeEventListener("keydown", handleKey, { capture: true });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initialValue only matters once, when the field loads
   }, [ready]);
 
   // The actions the parent can call.
@@ -80,6 +87,12 @@ export const MathInput = forwardRef<MathInputHandle, Props>(function MathInput(
       onChangeRef.current("");
     },
     focus: () => ref.current?.focus(),
+    set: (latex) => {
+      if (!ref.current) return;
+      ref.current.value = latex;
+      onChangeRef.current(latex);
+      ref.current.focus();
+    },
   }));
 
   return (

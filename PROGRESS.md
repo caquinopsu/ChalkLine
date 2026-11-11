@@ -20,11 +20,30 @@ Live: https://chalk-line-five.vercel.app · Repo: https://github.com/caquinopsu/
 - Mode chip switches modes mid-problem. Every step attempt is logged to localStorage.
 - `npm run test:steps`: 14/14 right/wrong sample steps across all 6 presets judged correctly.
 
+## Phase 2: Vision + Check my work + similar problem ✅ (Nov 11, 2026)
+- **Upload a photo** (`/api/read-photo`, Sonnet vision): camera or photo library on a phone, file picker,
+  drag-and-drop or Ctrl+V on a laptop. The browser shrinks the photo to 1568 px first. Shows
+  "We read this as" + Edit / Retake photo, and pre-solving starts as soon as the problem is read.
+  Photos are never stored.
+- **Check my work (Mode B)** (`/api/check-work`): type a solution line by line or photograph it
+  (lines can be edited before checking). Sonnet marks it, SymPy re-checks each line and can overrule,
+  plus the + C rule. Board: ✓ lines, first slip ringed in pink with the teal fix, later lines faded.
+  Tray: First slip + Why?, tally, **Redo step n myself** (Step practice from there, with your correct
+  lines kept), **Show me the rest** (Walkthrough), Resubmit.
+- **Give me a similar problem** (`/api/similar`): Sonnet writes a new problem with the same technique,
+  it is pre-solved and only shown if SymPy rejects none of its lines (about 15-20 s). Pick a mode and it
+  starts instantly.
+- `npm run test:work`: 9/9 sample solutions get the first slip on the right line (or no slip).
+- Tested with generated textbook and handwriting images; real phone photos still to be tested by hand.
+
 ## Next
-Phase 2: Vision (photo → problem), Check my work (Mode B), "Give me a similar problem".
+Phase 3: Think-aloud voice (push-to-talk), spoken feedback, Read aloud in Walkthrough.
 
 ## Known issues
 - MathLive's typing shortcuts (`^`, `/`) weren't testable by automation; check them by hand.
 - Series problems (ratio test) are judged by the AI alone for most lines (SymPy can't compare them).
-- No rate limiting yet (Phase 5). Each step check costs about $0.001, a typed problem about $0.05.
+- No rate limiting yet (Phase 5). Rough costs: step check $0.001, typed problem $0.05, photo read
+  $0.01, Check my work $0.02, similar problem $0.06.
+- Real phone photos (glare, slanted pages, messy handwriting) not tested yet; generated images read perfectly.
+- Layout is desktop-first; phone layout comes in Phase 5.
 - `/api/check` has no rate limiting, and a deliberately huge expression could be slow (8 s cap per comparison).

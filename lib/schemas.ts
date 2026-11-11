@@ -72,6 +72,82 @@ export type CheckResult = AiCheck & {
   finished: boolean; // true when this step completes the problem
 };
 
+// ---------- Phase 2: photos, Check my work, similar problems ----------
+
+// What Sonnet returns after reading a photo (of a problem, of handwritten work, or both).
+export const PhotoReadSchema = z.object({
+  readable: z.boolean(), // false if there's no math in the photo or it can't be read
+  problem_latex: z.string().nullable(), // the problem statement, typeset (null if the photo has none)
+  lines: z.array(
+    z.object({
+      latex: z.string(), // one line of the student's work, exactly as written (mistakes kept)
+      unclear: z.boolean(), // true if some of it was hard to read
+    }),
+  ),
+  note: z.string(), // a short message for the student (what was unclear, or why it couldn't be read)
+});
+export type PhotoRead = z.infer<typeof PhotoReadSchema>;
+
+// What Sonnet returns when it checks a whole written solution (Mode B).
+export const AiWorkCheckSchema = z.object({
+  lines: z.array(
+    z.object({
+      interpreted_latex: z.string(), // clean LaTeX of the line (their math unchanged)
+      student_sympy: z.string().nullable(), // the line in SymPy syntax, exactly as written
+      matched_step_id: z.string().nullable(), // furthest reference step this line reaches
+      ok: z.boolean(), // is this line itself correct (given the line before it)?
+    }),
+  ),
+  first_error_index: z.number().int().nullable(), // 0-based index of the first wrong line, or null
+  error_kind: z.enum(["none", "algebra", "reasoning", "notation", "incomplete"]),
+  error_latex: z.string().nullable(), // the wrong piece of that line, to ring in pink
+  title: z.string(), // 3-6 words, e.g. "A constant slipped away"
+  explanation: z.string(), // 1-2 sentences, may contain $math$
+  fix_latex: z.string().nullable(), // the corrected version of the wrong line
+  fix_note: z.string(), // 2-5 words for the margin, e.g. "keep the 1/2"
+  complete: z.boolean(), // does the solution reach a complete final answer?
+  praise: z.string(), // when everything is right: what they did well
+});
+export type AiWorkCheck = z.infer<typeof AiWorkCheckSchema>;
+
+// One checked line, as the board draws it.
+export type WorkLine = {
+  latex: string; // the line (clean LaTeX)
+  sympy: string | null;
+  verdict: "correct" | "slip" | "after"; // before the slip, the slip itself, or after it (redo)
+};
+
+// What /api/check-work sends back.
+export type WorkResult = {
+  lines: WorkLine[];
+  slipIndex: number | null; // which line is the first slip (null = no mistakes)
+  errorKind: AiWorkCheck["error_kind"];
+  errorLatex: string | null;
+  title: string;
+  explanation: string;
+  fixLatex: string | null;
+  fixNote: string;
+  complete: boolean; // reaches a correct final answer with no slips
+  praise: string;
+  resumeIndex: number; // reference step to continue from (for "Redo" / "Show me the rest")
+  sympy: "confirmed" | "overruled" | "unchecked";
+};
+
+// A solution the student is about to submit in Check my work (typed, or read from a photo).
+export type Submission = {
+  source: "photo" | "typed";
+  thumb: string | null; // the photo (as a data URL) for the thumbnail
+  lines: string[]; // one LaTeX string per line
+  unclear: boolean[]; // per line: was the handwriting hard to read?
+  note: string; // what the photo reader wanted to tell the student
+};
+
+// What Sonnet returns when asked for a similar problem.
+export const SimilarSchema = z.object({
+  problem_latex: z.string(), // the new problem, typeset
+  problem_text: z.string(), // the same problem as an instruction, e.g. "Evaluate \\int x e^{2x}\\,dx"
+});
+
 // What the browser sends to /api/check-step.
 export type CheckRequest = {
   pkg: SolutionPackage; // the reference package
