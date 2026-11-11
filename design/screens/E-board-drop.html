@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chalkline · Board dropping down</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=STIX+Two+Text:ital,wght@0,400;0,500;1,400;1,500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0F1216}
+.rm{font-family:Inter,system-ui,sans-serif;color:#ECE8DD;background:#111419}
+.dsp{font-family:'Space Grotesk',Inter,sans-serif}
+.m{font-family:'STIX Two Text',Georgia,serif;white-space:nowrap}
+.v{font-style:italic}
+.in{font-size:1.45em;vertical-align:-.2em;margin-right:.04em;font-style:normal}
+.mu{color:#A3ACB6}
+.hand{font-family:'Caveat',cursive}
+.idea{display:inline-flex;align-items:flex-start;gap:8px;font:500 11px/1.4 'JetBrains Mono',monospace;color:#CDBEFF;border:1px dashed rgba(205,190,255,.55);border-radius:10px;padding:7px 10px;background:rgba(15,18,22,.92);max-width:320px}
+.idea b{font-weight:500;color:#E9E2FF;white-space:nowrap}
+.board{position:relative;box-sizing:border-box;background-color:#1C2624;background-image:radial-gradient(rgba(236,232,221,.045) 1px,transparent 1.3px),radial-gradient(rgba(236,232,221,.03) 1px,transparent 1.3px);background-size:5px 5px,11px 11px;background-position:0 0,3px 6px;border:12px solid #3A2F27;border-top-width:0;border-radius:0 0 8px 8px;box-shadow:0 30px 60px rgba(0,0,0,.6),inset 0 0 90px rgba(0,0,0,.4)}
+</style>
+</helmet>
+<div class="rm" style="width: 1440px; height: 900px; box-sizing: border-box; position: relative; overflow: hidden">
+  <div aria-hidden="true" style="position: absolute; inset: 0; opacity: .22; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px; padding-top: 60px">
+    <span class="dsp" style="font-size: 56px; font-weight: 600">What are we solving today?</span>
+    <div style="display: flex; gap: 32px"><span style="width: 475px; height: 78px; border-radius: 18px; background: #1A1F26"></span><span style="width: 450px; height: 96px; border-radius: 22px; border: 1.5px solid #F2C94C"></span></div>
+  </div>
+
+  <header style="position: relative; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 48px">
+    <div style="display: flex; align-items: center; gap: 10px"><svg width="30" height="30" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="8" stroke="#ECE8DD" stroke-opacity=".25"></rect><path d="M7 18c3-1 4-8 7-8s3 6 7 5" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"></path></svg><span class="dsp" style="font-size: 21px; font-weight: 700">Chalkline</span></div>
+  </header>
+
+  <div style="position: absolute; left: 80px; right: 80px; top: 72px">
+    <div aria-hidden="true" style="height: 16px; border-radius: 4px; background: #3A2F27; box-shadow: 0 6px 14px rgba(0,0,0,.4)"></div>
+    <div class="board" style="height: 420px; margin: 0 12px; padding: 28px 56px">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(236,232,221,.14); padding-bottom: 14px">
+        <span class="m" style="font-size: 30px; color: #EDEAE0"><span class="in">∫</span> <span class="v">x</span> ln(<span class="v">x</span>) <span class="v">dx</span></span>
+        <span class="hand" style="font-size: 26px; color: #C9C3B5">Walkthrough</span>
+      </div>
+    </div>
+    <div aria-hidden="true" style="height: 22px; margin: 0 4px; border-radius: 0 0 10px 10px; background: linear-gradient(#4A3C31, #3A2F27); box-shadow: 0 10px 20px rgba(0,0,0,.4)"></div>
+  </div>
+
+  <div style="position: absolute; left: 80px; bottom: 64px; display: flex; gap: 16px; align-items: flex-start">
+    <span class="idea"><b>Idea 1</b>The board unrolls from the rail (≈0.5s ease-out), with a slight bounce when it settles. The start screen fades back underneath.</span>
+    <span class="idea"><b>Idea 2</b>The problem is chalked across the top first. The tray then slides up from the bottom, and step 1 starts writing.</span>
+    <span class="idea"><b>Idea 3</b>"New problem" rolls the board back up, so the board is the only thing that moves in or out.</span>
+  </div>
+  <div style="position: absolute; right: 80px; bottom: 64px; font: 600 13px Inter, sans-serif" class="mu">Frame shows the board ~60% down</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

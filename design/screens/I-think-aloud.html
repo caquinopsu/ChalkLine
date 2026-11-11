@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chalkline · Think-aloud board</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=STIX+Two+Text:ital,wght@0,400;0,500;1,400;1,500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0F1216}
+a{color:#8FDCEE}a:hover{color:#C4EEF7}
+.rm{font-family:Inter,system-ui,sans-serif;color:#ECE8DD;background:#111419}
+.dsp{font-family:'Space Grotesk',Inter,sans-serif}
+.m{font-family:'STIX Two Text',Georgia,serif;white-space:nowrap}
+.v{font-style:italic}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.78em;line-height:1.05;margin:0 .1em}
+.fr>span:first-child{border-bottom:1.4px solid currentColor;padding:0 .18em .05em}
+.fr>span:last-child{padding-top:.08em}
+.in{font-size:1.45em;vertical-align:-.2em;margin-right:.04em;font-style:normal}
+.b{color:#6CCDE3}.g{color:#F2C94C}.t{color:#4FD1B5}.mu{color:#A3ACB6}
+.hand{font-family:'Caveat',cursive}
+.idea{display:inline-flex;align-items:flex-start;gap:8px;font:500 11px/1.4 'JetBrains Mono',monospace;color:#CDBEFF;border:1px dashed rgba(205,190,255,.55);border-radius:10px;padding:7px 10px;background:rgba(15,18,22,.92);max-width:300px}
+.idea b{font-weight:500;color:#E9E2FF;white-space:nowrap}
+.btn{font:600 14px/1 Inter,sans-serif;border-radius:12px;padding:0 16px;height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:1px solid rgba(236,232,221,.18);background:transparent;color:#ECE8DD;text-decoration:none;box-sizing:border-box}
+.board{position:relative;box-sizing:border-box;background-color:#1C2624;background-image:radial-gradient(rgba(236,232,221,.045) 1px,transparent 1.3px),radial-gradient(rgba(236,232,221,.03) 1px,transparent 1.3px);background-size:5px 5px,11px 11px;background-position:0 0,3px 6px;border:12px solid #3A2F27;border-top-width:0;border-radius:0 0 8px 8px;box-shadow:0 24px 50px rgba(0,0,0,.5),inset 0 0 90px rgba(0,0,0,.4);color:#EDEAE0}
+.sn{font:500 13px 'JetBrains Mono',monospace;color:#A3ACB6;width:22px;flex:0 0 auto}
+.card{background:#1A1F26;border:1px solid rgba(236,232,221,.09);border-radius:16px;box-sizing:border-box}
+.wv{display:flex;align-items:center;gap:3px;height:40px}
+.wv span{width:3px;border-radius:2px;background:#58C4DD}
+.opt{flex:1;font:400 22px 'STIX Two Text',serif;height:56px;border-radius:12px;border:1px solid rgba(88,196,221,.45);background:rgba(88,196,221,.08);color:#ECE8DD;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px}
+.opt kbd{font:500 11px 'JetBrains Mono',monospace;color:#A3ACB6;border:1px solid rgba(236,232,221,.25);border-radius:5px;padding:2px 6px}
+.st{font:500 11px 'JetBrains Mono',monospace;color:#7F8893}
+.st.on{color:#58C4DD}
+</style>
+</helmet>
+<div class="rm" style="width: 1440px; height: 900px; box-sizing: border-box; position: relative; overflow: hidden">
+  <header style="height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <a href="V2Start.dc.html" aria-label="Chalkline home" style="display: flex"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="8" stroke="#ECE8DD" stroke-opacity=".25"></rect><path d="M7 18c3-1 4-8 7-8s3 6 7 5" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"></path></svg></a>
+      <span style="display: inline-flex; align-items: center; gap: 8px; font: 600 13px Inter, sans-serif; color: #14181D; background: #F2C94C; padding: 7px 12px; border-radius: 999px"><span style="width: 7px; height: 7px; border-radius: 50%; background: #C0392B"></span>Think-aloud</span>
+      <span class="mu" style="font: 500 13px 'JetBrains Mono', monospace">06:42</span>
+    </div>
+    <a class="btn" href="V2Summary.dc.html" style="height: 40px">End session</a>
+  </header>
+
+  <div style="position: absolute; left: 40px; right: 40px; top: 64px">
+    <div aria-hidden="true" style="height: 12px; border-radius: 4px; background: #3A2F27"></div>
+    <div class="board" style="height: 560px; margin: 0 10px; padding: 24px 56px; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(236,232,221,.14); padding-bottom: 12px">
+        <span class="m" style="font-size: 28px"><span class="in">∫</span> <span class="v">x</span> ln(<span class="v">x</span>) <span class="v">dx</span></span>
+        <span class="hand" style="font-size: 24px; color: #A3ACB6">step 3 · listening</span>
+      </div>
+
+      <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 26px; padding-bottom: 20px">
+        <div style="display: flex; align-items: center; gap: 16px; opacity: .45">
+          <span class="sn">1</span>
+          <span class="m" style="font-size: 22px"><span class="b"><span class="v">u</span> = ln <span class="v">x</span></span>,&#160;&#160;<span class="g"><span class="v">dv</span> = <span class="v">x dx</span></span></span>
+          <svg width="20" height="16" viewBox="0 0 30 24" role="img" aria-label="Correct"><path d="M3 13l8 7L27 3" stroke="#4FD1B5" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px; opacity: .7">
+          <span class="sn">2</span>
+          <span class="m" style="font-size: 28px"><span class="g"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span></span><span class="b">ln <span class="v">x</span></span> − <span class="in">∫</span> <span class="g"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span></span>·<span class="b"><span class="fr"><span>1</span><span><span class="v">x</span></span></span></span> <span class="v">dx</span></span>
+          <svg width="22" height="18" viewBox="0 0 30 24" role="img" aria-label="Correct"><path d="M3 13l8 7L27 3" stroke="#4FD1B5" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        </div>
+        <div style="display: flex; align-items: center; gap: 22px; padding: 18px 24px; margin-left: -24px; border-radius: 14px; background: rgba(88,196,221,.05); box-shadow: inset 0 0 0 1.5px rgba(88,196,221,.3)">
+          <span style="flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; background: #58C4DD; color: #14181D; font: 600 15px 'JetBrains Mono', monospace; display: flex; align-items: center; justify-content: center">3</span>
+          <span class="m" style="font-size: 50px"><span style="border-bottom: 3px dotted #58C4DD; padding-bottom: 2px"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span>ln <span class="v">x</span></span> − <span class="in">∫</span> <span class="v">x dx</span></span>
+          <svg width="30" height="30" viewBox="0 0 22 22" role="img" aria-label="Not checked yet"><circle cx="11" cy="11" r="9.5" fill="none" stroke="#A3ACB6" stroke-width="1.5" stroke-dasharray="3 3"></circle></svg>
+          <span class="hand" style="font-size: 24px; color: #6CCDE3; margin-left: auto">which one? ↓</span>
+        </div>
+      </div>
+
+      <div style="position: absolute; right: 28px; top: 84px"><span class="idea"><b>Idea</b>Words become chalk as you speak. Low-confidence parts get a dotted blue underline until you confirm them.</span></div>
+      <div style="position: absolute; right: 28px; bottom: 22px"><span class="idea" style="max-width: 380px"><b>Idea</b>One control, every mic state: blue glow + waveform (listening), dots (writing), gold arc (checking), teal waveform (tutor). The labels under it stay as a quiet legend.</span></div>
+    </div>
+    <div aria-hidden="true" style="height: 18px; margin: 0 2px; border-radius: 0 0 8px 8px; background: #4A3C31; display: flex; align-items: center; gap: 12px; padding-left: 60px"><span style="width: 34px; height: 6px; border-radius: 3px; background: #E9E5DA"></span><span style="width: 22px; height: 6px; border-radius: 3px; background: #F2C94C"></span><span style="width: 26px; height: 6px; border-radius: 3px; background: #6CCDE3"></span></div>
+  </div>
+
+  <section aria-label="Tray" style="position: absolute; left: 40px; right: 40px; top: 676px; bottom: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+    <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <span style="font: 500 11px 'JetBrains Mono', monospace; letter-spacing: .08em; color: #6CCDE3">STEP 3 · HEARD</span>
+      <span style="font: 400 15px/1.5 'JetBrains Mono', monospace; color: #C9C3B5">“x squared over two log x, minus the integral of x dx”</span>
+      <div style="display: flex; gap: 8px; margin-top: auto"><button class="btn" type="button" style="height: 40px">Type instead</button><button class="btn" type="button" style="height: 40px">Side work</button></div>
+    </div>
+
+    <div class="card" style="padding: 14px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; border-color: rgba(88,196,221,.35)">
+      <div style="display: flex; align-items: center; gap: 16px">
+        <div class="wv" aria-hidden="true"><span style="height: 10px"></span><span style="height: 22px"></span><span style="height: 32px"></span><span style="height: 18px"></span><span style="height: 36px"></span><span style="height: 14px"></span><span style="height: 26px"></span></div>
+        <button type="button" aria-label="Listening. Release to stop" style="width: 84px; height: 84px; border-radius: 50%; border: 1.5px solid #58C4DD; background: rgba(88,196,221,.18); color: #58C4DD; box-shadow: 0 0 0 10px rgba(88,196,221,.1), 0 0 40px rgba(88,196,221,.3); display: flex; align-items: center; justify-content: center; cursor: pointer"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg></button>
+        <div class="wv" aria-hidden="true"><span style="height: 26px"></span><span style="height: 14px"></span><span style="height: 34px"></span><span style="height: 20px"></span><span style="height: 30px"></span><span style="height: 12px"></span><span style="height: 8px"></span></div>
+      </div>
+      <div style="display: flex; gap: 10px" aria-label="Mic state: listening">
+        <span class="st">idle</span><span class="st on">● listening</span><span class="st">writing</span><span class="st">checking</span><span class="st">tutor</span>
+      </div>
+    </div>
+
+    <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font-weight: 600; font-size: 16px">Did you mean…?</span>
+      <div style="display: flex; gap: 10px">
+        <button class="opt" type="button"><span><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span>ln <span class="v">x</span></span><kbd>1</kbd></button>
+        <button class="opt" type="button"><span class="fr"><span><span class="v">x</span>²</span><span>2 ln <span class="v">x</span></span></span><kbd>2</kbd></button>
+      </div>
+      <span class="mu" style="font-size: 13px">Or just say “the first one”.</span>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chalkline · Solved</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@500&amp;family=STIX+Two+Text:ital,wght@0,400;0,500;1,400;1,500&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap">
+<style>
+body{margin:0;background:#0F1216}
+a{color:#8FDCEE}a:hover{color:#C4EEF7}
+.rm{font-family:Inter,system-ui,sans-serif;color:#ECE8DD;background:#111419}
+.dsp{font-family:'Space Grotesk',Inter,sans-serif}
+.m{font-family:'STIX Two Text',Georgia,serif;white-space:nowrap}
+.v{font-style:italic}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;font-size:.78em;line-height:1.05;margin:0 .1em}
+.fr>span:first-child{border-bottom:1.4px solid currentColor;padding:0 .18em .05em}
+.fr>span:last-child{padding-top:.08em}
+.in{font-size:1.45em;vertical-align:-.2em;margin-right:.04em;font-style:normal}
+.b{color:#6CCDE3}.g{color:#F2C94C}.t{color:#4FD1B5}.mu{color:#A3ACB6}
+.hand{font-family:'Caveat',cursive}
+.idea{display:inline-flex;align-items:flex-start;gap:8px;font:500 11px/1.4 'JetBrains Mono',monospace;color:#CDBEFF;border:1px dashed rgba(205,190,255,.55);border-radius:10px;padding:7px 10px;background:rgba(15,18,22,.92);max-width:320px}
+.idea b{font-weight:500;color:#E9E2FF;white-space:nowrap}
+.btn{font:600 14px/1 Inter,sans-serif;border-radius:12px;padding:0 16px;height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:1px solid rgba(236,232,221,.18);background:transparent;color:#ECE8DD;text-decoration:none;box-sizing:border-box}
+.btn.pri{background:#F2C94C;color:#14181D;border-color:#F2C94C}
+.board{position:relative;box-sizing:border-box;background-color:#1C2624;background-image:radial-gradient(rgba(236,232,221,.045) 1px,transparent 1.3px),radial-gradient(rgba(236,232,221,.03) 1px,transparent 1.3px);background-size:5px 5px,11px 11px;background-position:0 0,3px 6px;border:12px solid #3A2F27;border-top-width:0;border-radius:0 0 8px 8px;box-shadow:0 24px 50px rgba(0,0,0,.5),inset 0 0 90px rgba(0,0,0,.4);color:#EDEAE0}
+.sn{font:500 12px 'JetBrains Mono',monospace;color:#A3ACB6;width:20px;flex:0 0 auto}
+.card{background:#1A1F26;border:1px solid rgba(236,232,221,.09);border-radius:16px;box-sizing:border-box}
+.tag{font:500 13px/1 Inter,sans-serif;padding:8px 12px;border-radius:999px;background:rgba(88,196,221,.13);color:#8FDCEE;white-space:nowrap}
+.tag.gd{background:rgba(242,201,76,.13);color:#F2C94C}.tag.tl{background:rgba(79,209,181,.13);color:#6FE0C6}
+</style>
+</helmet>
+<div class="rm" style="width: 1440px; height: 900px; box-sizing: border-box; position: relative; overflow: hidden">
+  <header style="height: 64px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px">
+    <div style="display: flex; align-items: center; gap: 14px">
+      <a href="V2Start.dc.html" aria-label="Chalkline home" style="display: flex"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="8" stroke="#ECE8DD" stroke-opacity=".25"></rect><path d="M7 18c3-1 4-8 7-8s3 6 7 5" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"></path></svg></a>
+      <span style="font: 600 13px Inter, sans-serif; color: #6FE0C6; background: rgba(79,209,181,.13); padding: 7px 11px; border-radius: 999px">Solved</span>
+      <span class="mu" style="font: 500 13px 'JetBrains Mono', monospace">Think-aloud · 8:15</span>
+    </div>
+    <a class="btn" href="V2Start.dc.html" style="height: 40px">New problem</a>
+  </header>
+
+  <div style="position: absolute; left: 40px; right: 40px; top: 64px">
+    <div aria-hidden="true" style="height: 12px; border-radius: 4px; background: #3A2F27"></div>
+    <div class="board" style="height: 560px; margin: 0 10px; padding: 24px 56px; display: flex; flex-direction: column">
+      <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(236,232,221,.14); padding-bottom: 12px">
+        <span class="m" style="font-size: 28px"><span class="in">∫</span> <span class="v">x</span> ln(<span class="v">x</span>) <span class="v">dx</span></span>
+        <span class="hand" style="font-size: 24px; color: #A3ACB6">the whole solution</span>
+      </div>
+
+      <div style="flex: 1; display: flex; align-items: center; gap: 56px">
+        <div style="flex: 0 0 auto; display: flex; flex-direction: column; gap: 18px; padding-right: 48px; border-right: 1px dashed rgba(236,232,221,.15)">
+          <div style="display: flex; align-items: center; gap: 12px; opacity: .75"><span class="sn">1</span><span class="m" style="font-size: 20px"><span class="b"><span class="v">u</span> = ln <span class="v">x</span></span>, <span class="g"><span class="v">dv</span> = <span class="v">x dx</span></span></span><svg width="16" height="13" viewBox="0 0 30 24" role="img" aria-label="Correct"><path d="M3 13l8 7L27 3" stroke="#4FD1B5" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div style="display: flex; align-items: center; gap: 12px; opacity: .75"><span class="sn">2</span><span class="m" style="font-size: 20px"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span>ln <span class="v">x</span> − <span class="in">∫</span><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span>·<span class="fr"><span>1</span><span><span class="v">x</span></span></span><span class="v">dx</span></span><svg width="16" height="13" viewBox="0 0 30 24" role="img" aria-label="Correct"><path d="M3 13l8 7L27 3" stroke="#4FD1B5" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+          <div style="display: flex; align-items: center; gap: 12px; opacity: .75"><span class="sn">3</span><span class="m" style="font-size: 20px"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span>ln <span class="v">x</span> − <span class="t">½</span><span class="in">∫</span><span class="v">x dx</span></span><svg width="18" height="18" viewBox="0 0 22 22" role="img" aria-label="Fixed after a hint"><path d="M11 2.5L20.5 19h-19z" fill="rgba(242,201,76,.15)" stroke="#F2C94C" stroke-width="1.6" stroke-linejoin="round"></path><path d="M11 8.5v5" stroke="#F2C94C" stroke-width="2" stroke-linecap="round"></path></svg><span class="hand g" style="font-size: 20px">fixed</span></div>
+          <div style="display: flex; align-items: center; gap: 12px; opacity: .75"><span class="sn">4</span><span class="m" style="font-size: 20px"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span>ln <span class="v">x</span> − <span class="fr"><span><span class="v">x</span>²</span><span>4</span></span> + <span class="v">C</span></span><svg width="16" height="13" viewBox="0 0 30 24" role="img" aria-label="Correct"><path d="M3 13l8 7L27 3" stroke="#4FD1B5" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"></path></svg></div>
+        </div>
+
+        <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 18px">
+          <span class="hand" style="font-size: 30px; color: #6FE0C6">answer</span>
+          <div style="border: 2.5px solid #4FD1B5; border-radius: 18px; padding: 26px 40px; transform: rotate(-1deg)">
+            <span class="m" style="font-size: 54px"><span class="g"><span class="fr"><span><span class="v">x</span>²</span><span>2</span></span></span><span class="b">ln <span class="v">x</span></span> − <span class="t"><span class="fr"><span><span class="v">x</span>²</span><span>4</span></span></span> + <span class="v">C</span></span>
+          </div>
+        </div>
+      </div>
+
+      <div style="position: absolute; right: 28px; top: 84px"><span class="idea"><b>Idea</b>When it's solved, every step slides into one tidy column at the same size. The answer is rewritten big and boxed in teal chalk.</span></div>
+    </div>
+    <div aria-hidden="true" style="height: 18px; margin: 0 2px; border-radius: 0 0 8px 8px; background: #4A3C31; display: flex; align-items: center; gap: 12px; padding-left: 60px"><span style="width: 34px; height: 6px; border-radius: 3px; background: #E9E5DA"></span><span style="width: 22px; height: 6px; border-radius: 3px; background: #4FD1B5"></span><span style="width: 26px; height: 6px; border-radius: 3px; background: #F2C94C"></span></div>
+  </div>
+
+  <section aria-label="Tray" style="position: absolute; left: 40px; right: 40px; top: 676px; bottom: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+    <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 12px">
+      <span style="font: 500 11px 'JetBrains Mono', monospace; letter-spacing: .08em; color: #A3ACB6">TECHNIQUES USED</span>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px"><span class="tag">Integration by parts</span><span class="tag tl">Pull out a constant</span><span class="tag gd">Power rule</span></div>
+    </div>
+    <div class="card" style="padding: 18px 20px; display: flex; align-items: center; justify-content: space-around">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span class="dsp" style="font-size: 32px; font-weight: 600">4</span><span class="mu" style="font-size: 13px">steps</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span class="dsp" style="font-size: 32px; font-weight: 600; color: #4FD1B5">3</span><span class="mu" style="font-size: 13px">right first try</span></div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px"><span class="dsp" style="font-size: 32px; font-weight: 600; color: #F2C94C">1</span><span class="mu" style="font-size: 13px">hint · step 3</span></div>
+    </div>
+    <div class="card" style="padding: 18px 20px; display: flex; flex-direction: column; justify-content: center; gap: 10px">
+      <a class="btn pri" href="V2ThinkAloud.dc.html" style="height: 52px; font-size: 15px">Give me a similar problem</a>
+      <span class="mu" style="font-size: 13px; text-align: center">Next up: <span class="m" style="color: #ECE8DD">∫ <span class="v">x</span>² ln <span class="v">x</span> <span class="v">dx</span></span>, same method</span>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
