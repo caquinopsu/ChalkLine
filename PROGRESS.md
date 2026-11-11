@@ -1,11 +1,13 @@
 # Progress
 
-## Phase 0: Skeleton and deploy (in progress)
-- Done: Next.js 16 (App Router, TypeScript, Tailwind) app in this folder.
-- Done: `api/check.py` SymPy function (`/api/check` self-test, `?a=&b=` equivalence check). Self-test passes locally.
-- Done: `/api/health` reports whether each API key is set (never the value).
-- Done: `.env.local` (git-ignored) and `.env.example`. Test page with two buttons.
-- To do: push to GitHub (`ChalkLine` repo), deploy on Vercel, check that the public URL loads and `/api/check` responds.
+Live: https://chalk-line-five.vercel.app · Repo: https://github.com/caquinopsu/ChalkLine (every push to `main` redeploys)
+
+## Phase 0: Skeleton and deploy ✅ (Nov 11, 2026)
+- Next.js 16 (App Router, TypeScript, Tailwind) app.
+- `api/check.py` SymPy function: `/api/check` self-test and `?a=&b=` equivalence check. Verified on the live site.
+- `/api/health` reports whether each API key is set (never the value). Both keys show `true` on Vercel.
+- `.env.local` (git-ignored) and `.env.example`. Test page with two buttons.
+- `CODE_GUIDE.md`: file-by-file tour for learning.
 
 ## Next
 Phase 1: text-only engine, Walkthrough (Mode A) and Step practice (Mode C), 6 preset problems.
