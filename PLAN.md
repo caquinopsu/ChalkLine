@@ -187,6 +187,10 @@ Clean, minimal UI chrome so the math is the star. Smooth, unhurried motion.
 - Respect `prefers-reduced-motion`.
 - If I attach screenshots of a mockup made in Claude Design, match it closely
   in Phase 6. Otherwise follow the theme above.
+- **The mockup is done:** `design/DESIGN.md` is the UI spec (static board + tray
+  layout, tokens, mapping to the data contracts in section 5), with reference
+  screens in `design/screens/`. Build the screen structure from it starting in
+  Phase 1, and apply the full look and motion in Phases 4 and 6.
 
 ## 8. Build phases (stop and let me test after each)
 
