@@ -1,0 +1,176 @@
+{
+  "problem_latex": "\\int x\\ln x\\,dx",
+  "problem_sympy": "Integral(x*log(x), x)",
+  "topic": "Integration by parts",
+  "techniques": [
+    "Integration by parts",
+    "Power rule"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "u=\\htmlClass{role-a}{\\ln x},\\ dv=\\htmlClass{role-b}{x\\,dx}",
+      "plain_latex": "u=\\ln x,\\ dv=x\\,dx",
+      "sympy": null,
+      "chain": false,
+      "rule": "Choose u and dv",
+      "summary": "Pick u = ln x and dv = x dx for integration by parts.",
+      "why": "ln x gets simpler when differentiated, while x is easy to integrate. This is the usual choice when a log is multiplied by a power.",
+      "hint": "Which factor becomes simpler when you differentiate it?",
+      "side_work": {
+        "title": "Find du and v",
+        "lines": [
+          "du=\\frac{1}{x}\\,dx",
+          "v=\\frac{x^2}{2}"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Choosing u = x and dv = ln x dx",
+          "hint": "Can you integrate ln x easily right now?"
+        }
+      ],
+      "parts": [
+        {
+          "id": "u",
+          "latex": "\\ln x",
+          "role": "a"
+        },
+        {
+          "id": "dv",
+          "latex": "x\\,dx",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\htmlClass{role-b}{\\frac{x^2}{2}}\\htmlClass{role-a}{\\ln x}-\\int \\htmlClass{role-b}{\\frac{x^2}{2}}\\cdot\\htmlClass{role-a}{\\frac{1}{x}}\\,dx",
+      "plain_latex": "\\frac{x^2}{2}\\ln x-\\int \\frac{x^2}{2}\\cdot\\frac{1}{x}\\,dx",
+      "sympy": "x**2/2*log(x) - Integral(x**2/2*(1/x), x)",
+      "chain": true,
+      "rule": "Integration by parts",
+      "summary": "Apply the formula uv minus the integral of v du.",
+      "why": "Integration by parts says $\\int u\\,dv = uv - \\int v\\,du$. Plug in u, v and du from your side work.",
+      "hint": "Write uv, then subtract the integral of v times du.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting the minus sign before the integral",
+          "hint": "Recheck the sign in the by parts formula."
+        },
+        {
+          "mistake": "Using dx instead of du = (1/x) dx",
+          "hint": "What did you get when you differentiated ln x?"
+        }
+      ],
+      "parts": [
+        {
+          "id": "v",
+          "latex": "\\frac{x^2}{2}",
+          "role": "b"
+        },
+        {
+          "id": "u",
+          "latex": "\\ln x",
+          "role": "a"
+        },
+        {
+          "id": "du",
+          "latex": "\\frac{1}{x}",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\frac{x^2}{2}\\ln x-\\int \\htmlClass{role-c}{\\frac{1}{2}}x\\,dx",
+      "plain_latex": "\\frac{x^2}{2}\\ln x-\\int \\frac{1}{2}x\\,dx",
+      "sympy": "x**2/2*log(x) - Integral(x/2, x)",
+      "chain": true,
+      "rule": "Simplify the integrand",
+      "summary": "Cancel one x to make the new integral simple.",
+      "why": "$\\frac{x^2}{2}\\cdot\\frac1x=\\frac{x}{2}$, which is a basic power-rule integral.",
+      "hint": "Multiply the two factors in the integrand and cancel.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Getting x^3/2 in the integrand",
+          "hint": "Dividing by x lowers the power."
+        }
+      ],
+      "parts": [
+        {
+          "id": "half",
+          "latex": "\\frac{1}{2}",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{x^2}{2}\\ln x-\\htmlClass{role-c}{\\frac{1}{2}}\\cdot\\frac{x^2}{2}+\\htmlClass{role-c}{C}",
+      "plain_latex": "\\frac{x^2}{2}\\ln x-\\frac{1}{2}\\cdot\\frac{x^2}{2}+C",
+      "sympy": "x**2/2*log(x) - x**2/4 + C",
+      "chain": true,
+      "rule": "Power rule",
+      "summary": "Integrate x with the power rule and add C.",
+      "why": "$\\int x\\,dx=\\frac{x^2}{2}$, and the constant 1/2 stays out front. Indefinite integrals need + C.",
+      "hint": "Integrate x, keeping the 1/2 in front.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving out + C",
+          "hint": "Is this an indefinite integral?"
+        }
+      ],
+      "parts": [
+        {
+          "id": "half",
+          "latex": "\\frac{1}{2}",
+          "role": "c"
+        },
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "latex": "\\frac{x^2}{2}\\ln x-\\frac{x^2}{4}+\\htmlClass{role-c}{C}",
+      "plain_latex": "\\frac{x^2}{2}\\ln x-\\frac{x^2}{4}+C",
+      "sympy": "x**2/2*log(x) - x**2/4 + C",
+      "chain": true,
+      "rule": "Simplify",
+      "summary": "Multiply the fractions to get the final answer.",
+      "why": "$\\frac12\\cdot\\frac{x^2}{2}=\\frac{x^2}{4}$.",
+      "hint": "Combine the two fractions.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing x^2/2 for the second term",
+          "hint": "Multiply 1/2 by x^2/2."
+        }
+      ],
+      "parts": [
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Factor out x^2/4",
+      "summary": "Write the answer as $\\frac{x^2}{4}(2\\ln x-1)+C$, which is equivalent."
+    }
+  ],
+  "final_answer_latex": "\\frac{x^2}{2}\\ln x-\\frac{x^2}{4}+C",
+  "final_answer_sympy": "x**2/2*log(x) - x**2/4 + C"
+}

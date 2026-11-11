@@ -1,0 +1,182 @@
+{
+  "problem_latex": "\\int\\frac{5x-1}{x^2-x-2}\\,dx",
+  "problem_sympy": "Integral((5*x-1)/(x**2-x-2), x)",
+  "topic": "Integration by partial fractions",
+  "techniques": [
+    "partial fractions",
+    "factoring",
+    "pull out a constant",
+    "logarithm integral"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\int \\frac{5x-1}{(x-2)(x+1)}\\,dx",
+      "plain_latex": "\\int \\frac{5x-1}{(x-2)(x+1)}\\,dx",
+      "sympy": "Integral((5*x-1)/((x-2)*(x+1)), x)",
+      "chain": true,
+      "rule": "Factor the denominator",
+      "summary": "Factor the bottom into two linear pieces.",
+      "why": "Partial fractions needs the denominator split into factors. Here $x^2-x-2=(x-2)(x+1)$.",
+      "hint": "Find two numbers that multiply to -2 and add to -1.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing (x+2)(x-1)",
+          "hint": "Multiply your factors back out. Does the middle term come out as -x?"
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "\\frac{5x-1}{(x-2)(x+1)}=\\frac{\\htmlClass{role-c}{A}}{x-2}+\\frac{\\htmlClass{role-c}{B}}{x+1}",
+      "plain_latex": "\\frac{5x-1}{(x-2)(x+1)}=\\frac{A}{x-2}+\\frac{B}{x+1}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Set up partial fractions",
+      "summary": "Write the fraction as a sum of two simpler fractions with unknown numerators.",
+      "why": "Each distinct linear factor gets its own fraction with a constant on top. Simple fractions like these are easy to integrate.",
+      "hint": "Give each factor of the denominator its own constant numerator.",
+      "side_work": {
+        "title": "Solve for A and B",
+        "lines": [
+          "5x-1=A(x+1)+B(x-2)",
+          "x=2:\\ 9=3A\\Rightarrow A=3",
+          "x=-1:\\ -6=-3B\\Rightarrow B=2"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Putting x in the numerators, like (Ax+B)/(x^2-x-2)",
+          "hint": "With two distinct linear factors, what is the simplest numerator for each?"
+        }
+      ],
+      "parts": [
+        {
+          "id": "A",
+          "latex": "A",
+          "role": "c"
+        },
+        {
+          "id": "B",
+          "latex": "B",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\int \\left(\\frac{\\htmlClass{role-c}{3}}{x-2}+\\frac{\\htmlClass{role-c}{2}}{x+1}\\right)dx",
+      "plain_latex": "\\int \\left(\\frac{3}{x-2}+\\frac{2}{x+1}\\right)dx",
+      "sympy": "Integral(3/(x-2)+2/(x+1), x)",
+      "chain": true,
+      "rule": "Substitute coefficients",
+      "summary": "Replace the original fraction with the decomposition using A = 3 and B = 2.",
+      "why": "The two expressions are equal, so the integral doesn't change. The new integrand is much easier to handle.",
+      "hint": "Put the values of A and B you found into the decomposition.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Swapping A and B",
+          "hint": "Check which value of x gave each constant, and which factor it kills."
+        }
+      ],
+      "parts": [
+        {
+          "id": "A",
+          "latex": "3",
+          "role": "c"
+        },
+        {
+          "id": "B",
+          "latex": "2",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\htmlClass{role-c}{3}\\int \\frac{1}{x-2}\\,dx+\\htmlClass{role-c}{2}\\int \\frac{1}{x+1}\\,dx",
+      "plain_latex": "3\\int \\frac{1}{x-2}\\,dx+2\\int \\frac{1}{x+1}\\,dx",
+      "sympy": "3*Integral(1/(x-2), x)+2*Integral(1/(x+1), x)",
+      "chain": true,
+      "rule": "Split and pull out constants",
+      "summary": "Split into two integrals and move the constants outside.",
+      "why": "Integrals respect sums and constant multiples, so each piece can be done separately.",
+      "hint": "Break the sum into two integrals and move the numbers out front.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping the constants 3 and 2",
+          "hint": "Constants multiply the integral. They don't disappear."
+        }
+      ],
+      "parts": [
+        {
+          "id": "A",
+          "latex": "3",
+          "role": "c"
+        },
+        {
+          "id": "B",
+          "latex": "2",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "latex": "\\htmlClass{role-c}{3}\\ln|x-2|+\\htmlClass{role-c}{2}\\ln|x+1|+\\htmlClass{role-c}{C}",
+      "plain_latex": "3\\ln|x-2|+2\\ln|x+1|+C",
+      "sympy": "3*log(Abs(x-2))+2*log(Abs(x+1))+C",
+      "chain": true,
+      "rule": "Integrate 1/u",
+      "summary": "Each integral of 1 over a linear piece is a natural log.",
+      "why": "Since $\\int \\frac{1}{u}\\,du=\\ln|u|$ and $x-2$ and $x+1$ have derivative 1, the logs work directly. Add $+C$ at the end.",
+      "hint": "What function has derivative 1/(x-2)? Don't forget absolute values.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving out the absolute value bars",
+          "hint": "The log's input could be negative. How do you handle that?"
+        },
+        {
+          "mistake": "Forgetting + C",
+          "hint": "This is an indefinite integral, so what's missing?"
+        }
+      ],
+      "parts": [
+        {
+          "id": "A",
+          "latex": "3",
+          "role": "c"
+        },
+        {
+          "id": "B",
+          "latex": "2",
+          "role": "c"
+        },
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Cover-up method",
+      "summary": "Find A and B quickly by plugging x = 2 and x = -1 into the numerator, after covering the matching factor."
+    },
+    {
+      "label": "Compare coefficients",
+      "summary": "Expand A(x+1)+B(x-2) and match coefficients of x and the constants to get a 2-by-2 system."
+    }
+  ],
+  "final_answer_latex": "3\\ln|x-2|+2\\ln|x+1|+C",
+  "final_answer_sympy": "3*log(Abs(x-2))+2*log(Abs(x+1))+C"
+}

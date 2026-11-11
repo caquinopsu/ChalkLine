@@ -1,26 +1,115 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens from design/DESIGN.md section 2. Tailwind turns each --color-X into classes like
+   bg-X, text-X and border-X (e.g. bg-panel, text-muted, border-gold). */
+@theme {
+  --color-room: #111419; /* app background */
+  --color-panel: #1a1f26; /* tray cards, dropdown panels */
+  --color-panel-2: #20262e; /* buttons/cards inside panels */
+  --color-panel-3: #262d36; /* active/open button */
+  --color-text: #ece8dd; /* UI text */
+  --color-muted: #a3acb6; /* secondary text */
+  --color-subtle: #7f8893; /* tertiary labels */
+  --color-board: #1c2624; /* slate board */
+  --color-wood: #3a2f27; /* rail and frame */
+  --color-ledge: #4a3c31; /* chalk ledge */
+  --color-chalk: #edeae0; /* math on the board */
+  --color-blue: #58c4dd; /* first role, listening */
+  --color-blue-chalk: #6ccde3;
+  --color-gold: #f2c94c; /* second role, hints, primary buttons */
+  --color-teal: #4fd1b5; /* correct, fixes */
+  --color-pink: #ff7a85; /* errors */
 }
 
+/* Fonts come from next/font (app/layout.tsx), which sets these CSS variables on <html>. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-hand: var(--font-caveat);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-room);
+  color: var(--color-text);
+}
+
+/* The slate board surface with faint chalk dust (DESIGN.md "Board texture"). */
+.board-surface {
+  background-color: var(--color-board);
+  background-image:
+    radial-gradient(rgba(236, 232, 221, 0.045) 1px, transparent 1.3px),
+    radial-gradient(rgba(236, 232, 221, 0.03) 1px, transparent 1.3px);
+  background-size: 5px 5px, 11px 11px;
+  background-position: 0 0, 3px 6px;
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5), inset 0 0 90px rgba(0, 0, 0, 0.4);
+  color: var(--color-chalk);
+}
+
+/* Role colors for parts of an expression (the AI wraps them in \htmlClass{role-a}{...}). */
+.role-a { color: var(--color-blue-chalk); } /* first role: u, du */
+.role-b { color: var(--color-gold); } /* second role: dv, v */
+.role-c { color: var(--color-teal); } /* constants/terms that matter */
+
+/* A hand-drawn pink ring around the wrong part of a line. */
+.part-error {
+  border: 2.5px solid var(--color-pink);
+  border-radius: 50%;
+  padding: 2px 14px 6px;
+  transform: rotate(-3deg);
+  display: inline-block;
+}
+.part-unclear { border-bottom: 3px dotted var(--color-blue); }
+
+/* Buttons used across the app (DESIGN.md: radius 12, min 44px touch target). */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(236, 232, 221, 0.18);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { background: var(--color-panel-2); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--color-gold); color: #14181d; border-color: var(--color-gold); }
+.btn-primary:hover:not(:disabled) { background: #f5d46b; }
+
+/* Small uppercase label above a card ("STEP 3 · FOCUS"). */
+.eyebrow {
+  font-family: var(--font-jetbrains-mono), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* MathLive input: blend into the dark tray and hide its built-in menu/keyboard toggles. */
+math-field {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 12px;
+  font-size: 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(236, 232, 221, 0.25);
+  background: #12161b;
+  color: var(--color-text);
+  --caret-color: var(--color-gold);
+  --selection-background-color: rgba(242, 201, 76, 0.25);
+  --contains-highlight-background-color: transparent;
+}
+math-field:focus-within { outline: 2px solid rgba(242, 201, 76, 0.5); }
+math-field::part(menu-toggle),
+math-field::part(virtual-keyboard-toggle) { display: none; }
+
+/* Respect people who ask their system for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
 }

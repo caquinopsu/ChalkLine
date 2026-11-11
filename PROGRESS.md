@@ -3,16 +3,28 @@
 Live: https://chalk-line-five.vercel.app · Repo: https://github.com/caquinopsu/ChalkLine (every push to `main` redeploys)
 
 ## Phase 0: Skeleton and deploy ✅ (Nov 11, 2026)
-- Next.js 16 (App Router, TypeScript, Tailwind) app.
-- `api/check.py` SymPy function: `/api/check` self-test and `?a=&b=` equivalence check. Verified on the live site.
-- `/api/health` reports whether each API key is set (never the value). Both keys show `true` on Vercel.
-- `.env.local` (git-ignored) and `.env.example`. Test page with two buttons.
-- `CODE_GUIDE.md`: file-by-file tour for learning.
+- Next.js 16 app, `api/check.py` SymPy function, `/api/health` key check, env setup, `CODE_GUIDE.md`.
+
+## Phase 1: Text engine + Walkthrough + Step practice ✅ (Nov 11, 2026)
+- **Screens** (structure from `design/DESIGN.md`, plain-ish styling): start screen with Type it and
+  Practice dropdowns; session screen with board + 3-card tray; finish board.
+- **Pre-solve** (`/api/presolve`, Sonnet): reference solution package, every line double-checked by
+  SymPy, one automatic retry if SymPy rejects a line. Typed problems take about 15 s.
+- **6 presets** pre-solved and saved in `public/presets/` (instant, free). SymPy confirmed every
+  checkable line.
+- **Walkthrough (Mode A):** previous / next / autoplay, Why? (with follow-up questions via `/api/why`),
+  Side work, "Let me try the next step".
+- **Step practice (Mode C):** MathLive input with live chalk preview, `/api/check-step` (Haiku verdict,
+  SymPy can overrule on the algebra, fixed rule for a missing + C), pink ring + hint on wrong steps,
+  fix shown after a second miss or on request, Hint, "Stuck? Show me this step".
+- Mode chip switches modes mid-problem. Every step attempt is logged to localStorage.
+- `npm run test:steps`: 14/14 right/wrong sample steps across all 6 presets judged correctly.
 
 ## Next
-Phase 1: text-only engine, Walkthrough (Mode A) and Step practice (Mode C), 6 preset problems.
+Phase 2: Vision (photo → problem), Check my work (Mode B), "Give me a similar problem".
 
 ## Known issues
-- `npm run dev` doesn't run Python, so "Test SymPy" only works on the deployed site.
-- `/api/check` has no rate limiting yet, and a deliberately huge expression could be slow. Planned for Phase 5.
-- Unknown multi-letter names are split into single letters (e.g. `abc` means a*b*c). Fine for calculus; will revisit in Phase 1.
+- MathLive's typing shortcuts (`^`, `/`) weren't testable by automation; check them by hand.
+- Series problems (ratio test) are judged by the AI alone for most lines (SymPy can't compare them).
+- No rate limiting yet (Phase 5). Each step check costs about $0.001, a typed problem about $0.05.
+- `/api/check` has no rate limiting, and a deliberately huge expression could be slow (8 s cap per comparison).

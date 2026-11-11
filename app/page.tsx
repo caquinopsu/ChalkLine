@@ -1,48 +1,63 @@
-"use client"; // this page runs in the browser (it has buttons and state), not only on the server
+"use client"; // the whole app is interactive, so this page runs in the browser
 
-import { useState } from "react"; // React "state": a variable that re-draws the page when it changes
+import { useState } from "react";
+import { Session } from "@/components/Session";
+import { StartScreen, type StartChoice } from "@/components/StartScreen";
+import { PRESETS, loadPreset } from "@/lib/presets";
+import type { SolutionPackage } from "@/lib/schemas";
+
+// Everything the session screen needs to know about the problem being worked on.
+type Active = {
+  key: number; // changes for every new problem, so the session starts fresh
+  problemId: string; // preset id or "custom"
+  problemLatex: string; // shown on the board right away
+  mode: "walkthrough" | "practice";
+  pkg: SolutionPackage | null; // null while loading
+  error: string | null; // set if loading failed
+};
 
 export default function Home() {
-  // `result` holds the text we show in the box; `setResult` changes it (and re-draws the page)
-  const [result, setResult] = useState("Click a button to test a server route.");
+  const [active, setActive] = useState<Active | null>(null); // null = show the start screen
 
-  // Calls one of our server routes and shows its JSON reply in the box.
-  async function callRoute(path: string) {
-    setResult(`Calling ${path} ...`); // show progress right away
+  // Called when the student picks a problem and a mode on the start screen.
+  async function start(choice: StartChoice) {
+    const key = Date.now(); // a fresh id for this session
+    const preset = choice.kind === "preset" ? PRESETS.find((p) => p.id === choice.presetId) : null;
+    const problemLatex = preset ? preset.latex : choice.kind === "typed" ? choice.latex : "";
+    setActive({ key, problemId: preset?.id ?? "custom", problemLatex, mode: choice.mode, pkg: null, error: null });
+
     try {
-      const res = await fetch(path); // ask the server (await = wait for the reply)
-      const text = await res.text(); // read the reply as text
-      try {
-        setResult(`${path}  (HTTP ${res.status})\n\n${JSON.stringify(JSON.parse(text), null, 2)}`); // pretty-print JSON
-      } catch {
-        // Not JSON: locally this usually means the Python route isn't running (next dev only runs TypeScript)
-        setResult(
-          `${path}  (HTTP ${res.status})\n\nNo JSON reply. If you're running locally with "npm run dev", ` +
-            `this is expected for /api/check: Python routes only run on Vercel.`,
-        );
+      let pkg: SolutionPackage;
+      if (choice.kind === "preset") {
+        pkg = await loadPreset(choice.presetId); // saved file: instant
+      } else {
+        const res = await fetch("/api/presolve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ problem: choice.latex }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        pkg = data.pkg;
       }
+      // Only apply the result if the student hasn't moved on to another problem meanwhile.
+      setActive((a) => (a && a.key === key ? { ...a, pkg } : a));
     } catch (err) {
-      setResult(`${path} failed: ${String(err)}`); // network error, server down, etc.
+      const message = err instanceof Error ? err.message : "Couldn't prepare this problem.";
+      setActive((a) => (a && a.key === key ? { ...a, error: message } : a));
     }
   }
 
+  if (!active) return <StartScreen onStart={start} />;
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 p-8">
-      <h1 className="text-3xl font-semibold">Chalkline: Phase 0</h1>
-      <p>Skeleton check. These buttons call the two server routes.</p>
-
-      <div className="flex gap-3">
-        {/* onClick runs our function when the button is clicked */}
-        <button className="rounded border px-4 py-2" onClick={() => callRoute("/api/check")}>
-          Test SymPy
-        </button>
-        <button className="rounded border px-4 py-2" onClick={() => callRoute("/api/health")}>
-          Check keys
-        </button>
-      </div>
-
-      {/* <pre> keeps the line breaks and spacing of the JSON */}
-      <pre className="whitespace-pre-wrap rounded border p-4 text-sm">{result}</pre>
-    </main>
+    <Session
+      key={active.key}
+      pkg={active.pkg}
+      problemId={active.problemId}
+      problemLatex={active.problemLatex}
+      initialMode={active.mode}
+      loadError={active.error}
+      onNewProblem={() => setActive(null)}
+    />
   );
 }

@@ -1,7 +1,7 @@
 # Chalkline code guide
 
 A tour of every file in the project: what it does, how the pieces connect, and the
-web-development ideas behind them. I'll update this at the end of every phase.
+web-development ideas behind them. Updated at the end of every phase (last: **Phase 1**).
 
 > **Tip:** In VS Code, press `Ctrl+Shift+V` while this file is open to see it nicely formatted.
 
@@ -9,166 +9,130 @@ web-development ideas behind them. I'll update this at the end of every phase.
 
 ## 1. The big picture
 
-Chalkline has three parts:
-
 ```
- Your browser                         Vercel (the server, in the cloud)
-┌─────────────────────┐   fetch()   ┌──────────────────────────────────────┐
-│ app/page.tsx        │ ──────────► │ app/api/health/route.ts  (TypeScript)│
-│ (the page you see)  │             │                                      │
-│                     │ ──────────► │ api/check.py             (Python)    │
-│                     │ ◄────────── │                                      │
-└─────────────────────┘    JSON     └──────────────────────────────────────┘
+ Your browser (React)                    Server (Vercel)
+┌──────────────────────────┐          ┌───────────────────────────────────────────────┐
+│ app/page.tsx             │          │ /api/presolve  ─► Claude Sonnet: write the     │
+│  ├ StartScreen           │  fetch   │                   reference solution           │
+│  └ Session               │ ───────► │                └► SymPy: double-check each line│
+│     ├ Board  (chalk)     │          │ /api/check-step ─► Claude Haiku: judge a step  │
+│     └ Tray   (3 cards)   │ ◄─────── │                 └► SymPy: verify the algebra   │
+│                          │   JSON   │ /api/why        ─► Claude Sonnet: follow-ups   │
+│ public/presets/*.json    │          │ /api/check (Python) = SymPy itself             │
+└──────────────────────────┘          └───────────────────────────────────────────────┘
 ```
 
-- **Frontend:** the page in your browser. Built with **React** (a library for building
-  pages out of reusable pieces called *components*) inside **Next.js** (a framework that
-  adds routing, server code and deployment on top of React).
-- **TypeScript server routes:** code that runs on the server, never in the browser. This
-  is where secret API keys can be used safely. Later phases put the Claude and ElevenLabs
-  calls here.
-- **Python server route:** runs SymPy to check math, because Python has the best
-  symbolic-math library.
+- **Frontend:** the page you see, built with **React** (a library for building pages out of
+  reusable pieces called *components*) inside **Next.js** (a framework that adds routing, server
+  code and deployment on top of React).
+- **Server routes:** code that runs on the server, never in the browser, so the secret API key is
+  safe there.
+- **Two "brains" that check each other:** Claude understands what a student *meant* and writes
+  friendly hints. **SymPy** (Python) is exact at algebra. When they disagree about whether a line
+  keeps the same value, SymPy wins.
 
-The browser and the server talk by sending **JSON**, a text format for data that looks
-like a Python dict: `{"equivalent": true}`.
+### The key idea: the "reference solution package"
+When a problem loads, Sonnet writes one JSON "package": every step of the solution, with a rule
+name, a "why", a hint, common mistakes, colored parts, and a SymPy version of each line. Every mode
+reuses it. Walkthrough *shows* it, and Step practice *checks your lines against it*. The 6 demo
+problems' packages are saved as files, so they load instantly and cost nothing.
 
 ---
 
-## 2. Which files to read (and which to ignore)
-
-**Read these. They're our code, in suggested order:**
+## 2. Which files to read (suggested order)
 
 | # | File | What it is |
 |---|------|------------|
-| 1 | `api/check.py` | Python SymPy math checker. Start here: it's Python, which you know. |
-| 2 | `app/api/health/route.ts` | Tiny TypeScript server route. Your first look at TypeScript. |
-| 3 | `app/page.tsx` | The page you see, with buttons that call the two routes above. |
-| 4 | `app/layout.tsx` | The frame that wraps every page (tab title, fonts). |
-| 5 | `app/globals.css` | Site-wide styles (loads Tailwind). |
+| 1 | `lib/schemas.ts` | **Start here.** The shapes of all the data (package, step, check result). |
+| 2 | `api/check.py` | Python SymPy checker. "Are these two expressions equal?" |
+| 3 | `lib/prompts.ts` | The instructions we give Claude. Plain English, worth reading. |
+| 4 | `lib/presolve.ts` | Sonnet writes a package, SymPy verifies it. |
+| 5 | `lib/checkStep.ts` | Haiku judges a step, SymPy can overrule it. |
+| 6 | `app/api/*/route.ts` | Thin wrappers that turn web requests into calls to the files above. |
+| 7 | `app/page.tsx` | Top of the UI: start screen or session. |
+| 8 | `components/StartScreen.tsx` | Start screen + "Type it" and "Practice" dropdowns. |
+| 9 | `components/Session.tsx` | The session: all the state for Walkthrough / Step practice / finish. |
+| 10 | `components/Board.tsx` | The chalkboard and its shrinking step stack. |
+| 11 | `components/Tex.tsx`, `MathInput.tsx` | Math display (KaTeX) and math typing (MathLive). |
 
-**Settings files.** Skim them once, then rarely touch them:
+**Smaller helpers:** `lib/anthropic.ts` (the Claude client), `lib/sympy.ts` (calls the Python
+checker), `lib/routeHelpers.ts` (friendly error messages), `lib/presets.ts` (the 6 demo problems),
+`lib/attempts.ts` (logs every attempt in your browser for the future Skills dashboard),
+`components/Logo.tsx`, `types/math-field.d.ts` (tells TypeScript about MathLive's `<math-field>` tag).
+
+**Data and scripts:**
 
 | File | What it's for |
 |------|---------------|
-| `package.json` | The JavaScript project's ID card: name, the commands (`npm run dev`, `npm run build`), and the libraries it depends on. Like `requirements.txt` for JavaScript. |
-| `requirements.txt` | Python libraries the server must install (just `sympy`). |
-| `.env.local` | **Your secret API keys.** Only on your computer; git ignores it. |
-| `.env.example` | Same variable names with no values, so anyone knows which keys are needed. Safe to share. |
-| `.gitignore` | List of files git must never upload (keys, `node_modules`, `.venv`, build output). |
-| `vercel.json` | Tells Vercel to leave the big `node_modules` folder out of the Python function's bundle. |
-| `next.config.ts` | Next.js settings (generated; we haven't changed it). |
-| `tsconfig.json` | TypeScript settings (generated). |
-| `eslint.config.mjs` | Settings for ESLint, a tool that flags likely mistakes in code (`npm run lint`). |
+| `data/preset-list.json` | The 6 demo problems: id, tag, LaTeX, and the text sent to Sonnet. |
+| `public/presets/*.json` | Their saved solution packages (made by `npm run presets`). |
+| `scripts/dev_py.py` | Runs the Python checker locally on port 8000 (Vercel does this in the cloud). |
+| `scripts/generate-presets.mjs` | Re-generates the preset packages. |
+| `scripts/test-steps.mjs` | Sends sample right and wrong steps for every preset and prints the verdicts. |
 
-**Planning and notes:** `CLAUDE.md`, `PLAN.md`, `design-brief.md` (yours), `PROGRESS.md`
-(status, updated every phase), `README.md` (public description on GitHub), `AGENTS.md`
-(generated by Next.js, notes for AI assistants).
+**Settings:** `package.json` (libraries + commands), `requirements.txt` (Python libraries),
+`next.config.ts` (forwards `/api/check` to the local Python server during development),
+`vercel.json`, `tsconfig.json`, `eslint.config.mjs`, `.env.local` (**your secret keys**, never
+uploaded), `.env.example`, `.gitignore`.
 
-**Ignore these. They're generated or downloaded, never edited by hand:**
-
-| Folder/file | What it is |
-|-------------|------------|
-| `node_modules/` | Thousands of downloaded JavaScript libraries (recreated by `npm install`). |
-| `.next/` | Build output (recreated by `npm run build` / `npm run dev`). |
-| `.venv/` | Your private Python environment with SymPy installed. |
-| `package-lock.json` | Exact versions of every library, so installs are reproducible. |
-| `next-env.d.ts` | Type hints Next.js generates. |
-| `public/` | Static images (the default Next.js logos; we'll replace them later). |
-| `.git/` | Git's history database (hidden in VS Code). |
+**Ignore:** `node_modules/`, `.next/`, `.venv/`, `package-lock.json`, `next-env.d.ts`, `.git/`.
 
 ---
 
-## 3. File-by-file walkthrough
+## 3. How a step check works (Step practice)
 
-### `api/check.py`: the SymPy math checker
-- **Where it lives:** Vercel turns every `.py` file in the root `api/` folder into its own
-  **serverless function**: code that runs on demand in the cloud when a URL is visited.
-  This file answers at `/api/check`.
-- **`parse()`** turns text like `x^2 + 2x` into a SymPy expression. It first runs **safety
-  checks**, because SymPy's parser can run Python code, and this URL is public:
-  - a length limit,
-  - an allowed-characters list (no quotes or underscores),
-  - `SAFE_NAMES`: the only function names allowed. `"__builtins__": {}` removes Python's
-    dangerous built-ins like `open` and `eval`.
-- **`equivalent(a, b)`** is the core math idea: two expressions are equal if `a − b`
-  simplifies to `0`.
-- **`self_test()`** differentiates e^(x²)/2 and checks that it equals x·e^(x²) (preset
-  problem 3).
-- **`class handler(BaseHTTPRequestHandler)`** is the part Vercel calls. `do_GET` runs on
-  every visit, reads `?a=...&b=...` from the URL, and replies with JSON via `_send`.
-- **`if __name__ == "__main__":`** runs only when you start the file yourself
-  (`.venv\Scripts\python api\check.py`). That's how we test the math without a server.
-
-### `app/api/health/route.ts`: the key check
-- In Next.js, a file named **`route.ts`** inside `app/` is a **server route**. Its folder
-  path becomes the URL: `app/api/health/route.ts` → `/api/health`.
-- `export async function GET()` handles visits to that URL.
-  - `export`: makes the function visible to Next.js.
-  - `async`: the function can `await` (wait for slow things) without freezing the server.
-- `process.env.ANTHROPIC_API_KEY` reads an **environment variable**, a setting stored
-  outside the code (in `.env.local` on your computer, in Vercel's settings online).
-- `Boolean(...)` turns the key into `true` or `false`, so the key itself is never sent anywhere.
-- `await connection()` tells Next.js to run this on every request, not just once at build time.
-
-### `app/page.tsx`: the page you see
-- In Next.js, a file named **`page.tsx`** in `app/` is a page. `app/page.tsx` is the home page `/`.
-- **`.tsx`** means TypeScript plus **JSX**: HTML-like tags written inside code. `<button>`,
-  `<pre>` and so on describe what appears on screen.
-- **`"use client"`** (first line) means this component also runs in the browser, which is
-  needed for anything interactive like buttons.
-- **`function Home()`** is a **React component**: a function that returns what to draw.
-- **`useState`** creates **state**, a variable React watches. Calling `setResult(...)`
-  updates the value and React redraws the page automatically.
-- **`callRoute(path)`** uses **`fetch`** (the browser's built-in way to call a URL),
-  waits for the reply with `await`, then shows the JSON.
-- **`try { } catch { }`** is JavaScript's version of Python's `try/except`.
-- **`className="rounded border px-4 py-2"`** are **Tailwind** classes: tiny styling
-  shortcuts (`rounded` = rounded corners, `px-4` = horizontal padding, and so on).
-  `className` is JSX's name for HTML's `class`.
-- **`{result}`** puts a JavaScript value inside the HTML-like JSX.
-
-### `app/layout.tsx`: the frame around every page
-- Wraps every page in `<html>` and `<body>`. `{children}` is where the page goes.
-- `metadata` sets the browser tab title ("Chalkline").
-- Loads the Geist fonts from Google Fonts.
-
-### `app/globals.css`: global styles
-- `@import "tailwindcss"` turns Tailwind on. Also defines light and dark background colors.
+1. You type in the MathLive box. Every edit calls `setDraft(...)`, so React redraws the board with
+   your line in big chalk.
+2. **Check this step** → `Session.tsx` sends `{ package, lines on the board, your LaTeX, attempt }`
+   to `/api/check-step`.
+3. `lib/checkStep.ts` asks **Haiku**: what did they write (in SymPy form), is it correct, which
+   reference step does it match, where is the mistake, and what hint to give.
+4. It then asks **SymPy** whether your line has the same value as the problem (for integrals, "same up
+   to + C"). If Haiku and SymPy disagree on the algebra, SymPy's answer is used.
+5. A fixed rule catches a missing **+ C** on indefinite integrals.
+6. Back in the browser: correct → the line moves up the board with a ✓. Wrong → pink ring + hint.
+   After a second miss, the fix is written in teal.
 
 ---
 
-## 4. What happens when you click "Test SymPy"
+## 4. Web-development ideas used (one line each)
 
-1. The browser runs `callRoute("/api/check")` in `page.tsx`.
-2. `fetch` sends a request to the server at `/api/check`.
-3. Vercel sees the URL matches `api/check.py` and runs Python: `handler.do_GET` →
-   `self_test()` → SymPy does the math.
-4. Python replies with JSON: `{"ok": true, "equivalent": true, ...}`.
-5. Back in the browser, `setResult(...)` stores the text and React redraws the box.
-
-"Check keys" follows the same flow, except step 3 runs `route.ts` (TypeScript) instead.
+- **Component:** a function that returns what to draw (`function Board(...) { return <div>…</div> }`).
+- **Props:** inputs passed to a component, like function arguments (`<Tex latex="x^2" />`).
+- **State (`useState`):** a variable React watches. Changing it redraws the page.
+- **Effect (`useEffect`):** code that runs *after* drawing, e.g. to start a timer (autoplay) or load MathLive.
+- **Ref (`useRef`):** a handle to a real element on the page (used to insert math keys into the input).
+- **`"use client"`:** this file runs in the browser (needed for anything interactive).
+- **`import "server-only"`:** this file must never reach the browser (it touches the API key).
+- **`fetch` + `await`:** call a URL and wait for the reply without freezing the page.
+- **JSON:** the text format the browser and server use to exchange data.
+- **Schema (zod):** a description of a data shape, used to force Claude's reply into that exact shape.
+- **Structured outputs:** Claude is *required* to return JSON matching the schema, so parsing never breaks.
+- **Prompt caching:** the parts of a request that never change (instructions, the package) are cached
+  by the API, which makes repeat calls cheaper and faster.
+- **Tailwind classes:** styling shortcuts in `className` (`rounded` = rounded corners, `px-4` =
+  horizontal padding, `bg-panel` = our panel color from `globals.css`).
+- **KaTeX / LaTeX:** LaTeX is a text language for math (`\frac{x^2}{2}`), and KaTeX draws it.
+  `\htmlClass{role-a}{u}` adds a CSS class, which is how parts get their blue/gold/teal colors.
 
 ---
 
-## 5. Commands you'll use
-
-Run these in VS Code's terminal (**View → Terminal**) inside the project folder.
+## 5. Commands
 
 | Command | What it does |
 |---------|--------------|
-| `npm install` | Downloads the JavaScript libraries into `node_modules/`. |
-| `npm run dev` | Starts a local development server at http://localhost:3000. It reloads when files change. Stop it with `Ctrl+C`. |
-| `npm run build` | Builds the production version, the same thing Vercel does. Good for catching errors. |
-| `npm run lint` | Checks the code for common mistakes. |
-| `.venv\Scripts\python api\check.py` | Runs the SymPy self-test locally. |
+| `npm run dev` | Starts the app at http://localhost:3000 **and** the Python checker. Stop with `Ctrl+C`. |
+| `npm run build` | Builds the production version (what Vercel does). Good for catching errors. |
+| `npm run lint` | Checks for common mistakes. |
+| `npm run presets` | Re-generates the 6 demo solutions (needs `npm run dev` running; costs about $0.40). |
+| `npm run test:steps` | Runs the 14 sample step checks (needs `npm run dev`; costs about $0.02). |
+| `.venv\Scripts\python api\check.py` | Runs the SymPy self-tests. |
 
 ---
 
-## 6. VS Code tips for exploring
+## 6. VS Code tips
 
-- **`Ctrl+P`**, then type a file name: jump to any file (including `.env.local`).
+- **`Ctrl+P`**, then type a file name: jump to any file.
 - **`Ctrl+Click`** a function name: jump to where it's defined.
 - **Hover** over a name: shows its type and documentation.
-- **Source Control panel** (`Ctrl+Shift+G`): see exactly what changed since the last commit.
-- Greyed-out files in the Explorer are ones git ignores (like `.env.local`, `node_modules`).
+- **Source Control** (`Ctrl+Shift+G`): see exactly what changed since the last commit.
