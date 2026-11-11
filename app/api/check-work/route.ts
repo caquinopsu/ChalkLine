@@ -4,7 +4,7 @@ import { checkWork, MAX_WORK_LINES } from "@/lib/checkWork";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 import { PackageSchema } from "@/lib/schemas";
 
-export const maxDuration = 90;
+export const maxDuration = 150;
 
 export async function POST(req: Request) {
   try {

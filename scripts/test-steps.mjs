@@ -1,5 +1,5 @@
 // Sends sample student steps (one right, one wrong per preset) through /api/check-step and prints the verdicts.
-// Usage: start `npm run dev`, then run `npm run test:steps` in another terminal. Costs a few cents of Haiku.
+// Usage: start `npm run dev`, then run `npm run test:steps` in another terminal. Uses about 14 Gemini requests.
 
 import { readFile } from "node:fs/promises";
 

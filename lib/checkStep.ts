@@ -1,44 +1,36 @@
-// Checks one student line: Claude Haiku judges it, then SymPy verifies the algebra and can overrule.
+// Checks one student line: Gemini (the fast model) judges it, then SymPy verifies the algebra and can overrule.
 import "server-only";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod"; // zod schema -> required JSON format
-import { claude, HAIKU } from "./anthropic";
+import { askJson, FAST, ThinkingLevel } from "./gemini";
 import { CHECK_SYSTEM } from "./prompts";
 import { AiCheckSchema, type AiCheck, type CheckRequest, type CheckResult } from "./schemas";
 import { sympyCompare } from "./sympy";
 
-// Step 1: ask Haiku for its verdict.
-async function askHaiku(req: CheckRequest): Promise<AiCheck> {
+// Step 1: ask the fast model for its verdict.
+async function askModel(req: CheckRequest): Promise<AiCheck> {
   const { pkg, expectedIndex, board, studentLatex, attempt } = req;
   const expected = pkg.steps[expectedIndex]; // the reference line we expect next (may be undefined at the end)
   const boardText = board.length ? board.map((l, i) => `${i + 1}. ${l.latex}`).join("\n") : "(nothing yet)";
-  const response = await claude().messages.parse({
-    model: HAIKU,
-    max_tokens: 4000,
-    output_config: { effort: "low", format: zodOutputFormat(AiCheckSchema) }, // low effort = fast; reply must match the schema
-    system: [
-      { type: "text", text: CHECK_SYSTEM }, // instructions (same every time)
-      // The package is the same for every step of this problem, so we mark it for caching.
-      { type: "text", text: `Reference solution package:\n${JSON.stringify(pkg)}`, cache_control: { type: "ephemeral" } },
-    ],
-    messages: [
-      {
-        role: "user",
-        content:
-          `Lines on the board so far:\n${boardText}\n\n` +
-          `Expected next reference step: ${expected ? `${expected.id}: ${expected.plain_latex}` : "(the solution is complete)"}\n` +
-          `Attempt number at this step: ${attempt}\n\n` +
-          `Student's new line (LaTeX):\n${studentLatex}`,
-      },
-    ],
-  }, { timeout: 20_000, maxRetries: 1 }); // a check normally takes 1-5 s; never leave the student waiting minutes
-  if (!response.parsed_output) throw new Error("The checker's answer wasn't in the expected format.");
-  return response.parsed_output;
+  return askJson({
+    models: FAST,
+    // Instructions + the package. They stay the same for every step of a problem, which lets Gemini
+    // reuse its work automatically ("implicit caching"), making repeat checks cheaper.
+    system: `${CHECK_SYSTEM}\n\nReference solution package:\n${JSON.stringify(pkg)}`,
+    contents:
+      `Lines on the board so far:\n${boardText}\n\n` +
+      `Expected next reference step: ${expected ? `${expected.id}: ${expected.plain_latex}` : "(the solution is complete)"}\n` +
+      `Attempt number at this step: ${attempt}\n\n` +
+      `Student's new line (LaTeX):\n${studentLatex}`,
+    schema: AiCheckSchema,
+    thinking: ThinkingLevel.LOW, // a little thinking keeps it fast
+    timeoutMs: 15_000, // per model; a check normally takes a few seconds
+    maxOutputTokens: 6000,
+  });
 }
 
-// Step 2: combine Haiku's verdict with SymPy's. SymPy wins on whether the algebra is right.
+// Step 2: combine the AI's verdict with SymPy's. SymPy wins on whether the algebra is right.
 export async function checkStep(req: CheckRequest, origin: string): Promise<CheckResult> {
   const { pkg, expectedIndex } = req;
-  const ai = await askHaiku(req);
+  const ai = await askModel(req);
   const result: CheckResult = { ...ai, sympy: "unchecked", finished: false }; // start from the AI's verdict
   const matched = pkg.steps.find((s) => s.id === ai.matched_step_id); // the reference step it matched, if any
   const expected = pkg.steps[expectedIndex];

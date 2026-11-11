@@ -1,41 +1,32 @@
 // Mode B, "Check my work": finds the first wrong line in a whole solution.
-// Claude Sonnet marks the solution like a teacher, then SymPy double-checks the algebra line by line.
+// Gemini marks the solution like a teacher, then SymPy double-checks the algebra line by line.
 import "server-only";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { claude, SONNET } from "./anthropic";
+import { askJson, SMART, ThinkingLevel } from "./gemini";
 import { CHECK_WORK_SYSTEM } from "./prompts";
 import { AiWorkCheckSchema, type AiWorkCheck, type SolutionPackage, type WorkResult } from "./schemas";
 import { sympyCompare, type Verdict } from "./sympy";
 
 export const MAX_WORK_LINES = 12; // longest solution we check (also the SymPy batch limit)
 
-// Step 1: Sonnet's verdict on the whole solution.
-async function askSonnet(pkg: SolutionPackage, lines: string[]): Promise<AiWorkCheck> {
+// Step 1: the AI's verdict on the whole solution.
+async function askModel(pkg: SolutionPackage, lines: string[]): Promise<AiWorkCheck> {
   const numbered = lines.map((l, i) => `${i}. ${l}`).join("\n"); // 0-based, matching first_error_index
-  const response = await claude().beta.messages.parse({
-    model: SONNET, // not a live check, so we use the more careful model
-    max_tokens: 10000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low", format: betaZodOutputFormat(AiWorkCheckSchema) },
-    system: [
-      { type: "text", text: CHECK_WORK_SYSTEM },
-      // The package is the same for every check of this problem, so it's cached.
-      { type: "text", text: `Reference solution package:\n${JSON.stringify(pkg)}`, cache_control: { type: "ephemeral" } },
-    ],
-    messages: [{ role: "user", content: `Problem: ${pkg.problem_latex}\n\nStudent's solution, one line each:\n${numbered}` }],
-  }, { timeout: 60_000, maxRetries: 1 });
-  if (response.stop_reason === "refusal") throw new Error("The tutor declined to check this.");
-  if (!response.parsed_output) throw new Error("The checker's answer wasn't in the expected format.");
-  return response.parsed_output;
+  return askJson({
+    models: SMART, // not a live check, so we use the more careful model
+    system: `${CHECK_WORK_SYSTEM}\n\nReference solution package:\n${JSON.stringify(pkg)}`,
+    contents: `Problem: ${pkg.problem_latex}\n\nStudent's solution, one line each:\n${numbered}`,
+    schema: AiWorkCheckSchema,
+    thinking: ThinkingLevel.LOW,
+    timeoutMs: 40_000, // per model
+  });
 }
 
 // Does a line look like a setup line ("u = ln x", "dv = x dx") rather than a value?
 const isSetupLine = (latex: string) => /^\s*d?[a-zA-Z]\s*=/.test(latex);
 
-// Step 2: combine Sonnet's marking with SymPy's checks and find the first real slip.
+// Step 2: combine the AI's marking with SymPy's checks and find the first real slip.
 export async function checkWork(pkg: SolutionPackage, rawLines: string[], origin: string): Promise<WorkResult> {
-  const ai = await askSonnet(pkg, rawLines);
+  const ai = await askModel(pkg, rawLines);
   const n = rawLines.length;
   // Line up the AI's lines with ours (if it returned a different count, fall back to the raw text).
   const aiLines = rawLines.map(

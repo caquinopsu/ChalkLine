@@ -1,6 +1,6 @@
 // Sends whole sample solutions (some right, some with a planted mistake) through /api/check-work
 // and checks that the first slip lands on the right line.
-// Usage: start `npm run dev`, then run `npm run test:work` in another terminal. Costs about 15 cents of Sonnet.
+// Usage: start `npm run dev`, then run `npm run test:work` in another terminal. Uses about 9 Gemini requests.
 
 import { readFile } from "node:fs/promises";
 

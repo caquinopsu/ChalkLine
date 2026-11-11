@@ -3,7 +3,7 @@ import { badRequest, errorResponse } from "@/lib/routeHelpers";
 import { PackageSchema } from "@/lib/schemas";
 import { similarProblem } from "@/lib/similar";
 
-export const maxDuration = 180; // writing + pre-solving + verifying, possibly twice
+export const maxDuration = 300; // writing + pre-solving + verifying, possibly twice
 
 export async function POST(req: Request) {
   try {

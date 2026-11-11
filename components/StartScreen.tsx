@@ -126,7 +126,7 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const fileInput = useRef<HTMLInputElement>(null); // the hidden <input type="file">
   const input = useRef<MathInputHandle>(null);
 
-  // Reads one photo: shrink it, show it, send it to Sonnet, then start pre-solving right away.
+  // Reads one photo: shrink it, show it, send it to the AI, then start pre-solving right away.
   async function handleFile(file: File) {
     setStatus("reading");
     setEditing(false);

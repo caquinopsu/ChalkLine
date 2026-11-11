@@ -148,7 +148,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     workInput.current?.clear();
   }
 
-  // A photo of handwritten work: Sonnet transcribes it into lines the student can review before checking.
+  // A photo of handwritten work: the AI transcribes it into lines the student can review before checking.
   async function uploadWork(file: File) {
     if (!pkg) return;
     setWorkBusy("reading");

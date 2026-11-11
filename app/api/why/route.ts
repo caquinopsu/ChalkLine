@@ -1,6 +1,6 @@
 // POST /api/why  { pkg, stepIndex, question }  ->  { ok, answer }
 // Answers a follow-up "why?" question about one step (the basic "why" text comes free with the package).
-import { claude, SONNET } from "@/lib/anthropic";
+import { askText, SMART, ThinkingLevel } from "@/lib/gemini";
 import { WHY_SYSTEM } from "@/lib/prompts";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 import { PackageSchema } from "@/lib/schemas";
@@ -17,25 +17,16 @@ export async function POST(req: Request) {
     const question = typeof body.question === "string" ? body.question.trim().slice(0, 500) : "";
     if (!question) return badRequest("Ask a question first.");
 
-    const response = await claude().beta.messages.create({
-      model: SONNET,
-      max_tokens: 2000,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default", // retry on a fallback model if a safety filter wrongly declines
-      output_config: { effort: "low" }, // short answers don't need deep thinking
+    const answer = await askText({
+      models: SMART,
       system: WHY_SYSTEM,
-      messages: [
-        {
-          role: "user",
-          content:
-            `Problem: ${pkg.data.problem_latex}\n` +
-            `Line ${body.stepIndex + 1}: ${step.plain_latex}\nRule: ${step.rule}\nExplanation shown: ${step.why}\n\n` +
-            `Student's question: ${question}`,
-        },
-      ],
-    }, { timeout: 30_000, maxRetries: 1 }); // short answers; don't hang
-    // Collect the text parts of the reply (skipping thinking blocks).
-    const answer = response.content.map((b) => (b.type === "text" ? b.text : "")).join("").trim();
+      thinking: ThinkingLevel.LOW, // short answers don't need deep thinking
+      timeoutMs: 15_000, // per model; short answers
+      contents:
+        `Problem: ${pkg.data.problem_latex}\n` +
+        `Line ${body.stepIndex + 1}: ${step.plain_latex}\nRule: ${step.rule}\nExplanation shown: ${step.why}\n\n` +
+        `Student's question: ${question}`,
+    });
     return Response.json({ ok: true, answer: answer || "Sorry, I couldn't come up with an answer. Try rephrasing." });
   } catch (err) {
     return errorResponse(err);

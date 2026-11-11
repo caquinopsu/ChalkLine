@@ -35,12 +35,13 @@ one-line explanation.
 - Never put API keys in code, commits, the README, logs or screenshots. Use
   environment variables only (`.env.local` locally, Vercel project settings when
   deployed). Make sure `.env.local` is in `.gitignore`.
-- All Anthropic and ElevenLabs calls go through server-side routes, never the browser.
-- Models: `claude-sonnet-5-5` (vision, pre-solving, explanations) and
-  `claude-haiku-5-5` (live step checks, speech-to-LaTeX).
+- All Gemini and ElevenLabs calls go through server-side routes, never the browser.
+- AI provider: Google Gemini only, via `GEMINI_API_KEY` (switched from Anthropic on Nov 11, 2026).
+  Models with automatic fallback in `lib/gemini.ts`: SMART = 3.6 Flash (vision, pre-solving,
+  explanations), FAST = 3.5 Flash-Lite (live step checks, speech-to-LaTeX).
 - The deployed app must work with no login, in a private browser window.
 
 ## Stack
 Next.js (App Router) + TypeScript + Tailwind, Framer Motion, KaTeX, a Python
-SymPy serverless function, deployed on Vercel. Anthropic API + ElevenLabs
+SymPy serverless function, deployed on Vercel. Google Gemini API + ElevenLabs
 (Scribe speech-to-text + text-to-speech).

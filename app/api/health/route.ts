@@ -7,7 +7,7 @@ export async function GET() {
   await connection(); // wait for a real request, so the answer reflects the env vars set right now
   return Response.json({
     ok: true, // the Next.js server itself is up
-    anthropic: Boolean(process.env.ANTHROPIC_API_KEY), // true if the key exists, false if missing/empty
+    gemini: Boolean(process.env.GEMINI_API_KEY), // true if the key exists, false if missing/empty
     elevenlabs: Boolean(process.env.ELEVENLABS_API_KEY), // same check for ElevenLabs
   });
 }

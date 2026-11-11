@@ -1,5 +1,5 @@
 // Data shapes ("schemas") shared by the server routes and the UI.
-// zod describes the shape once; we use it to (1) tell Claude exactly what JSON to return and
+// zod describes the shape once; we use it to (1) tell the AI exactly what JSON to return and
 // (2) get TypeScript types for free via z.infer<...>.
 
 import { z } from "zod"; // the schema library
@@ -46,7 +46,7 @@ export const PackageSchema = z.object({
   final_answer_sympy: z.string().nullable(),
 });
 
-// What Claude Haiku returns when it checks a student's step.
+// What the AI returns when it checks a student's step.
 export const AiCheckSchema = z.object({
   interpreted_latex: z.string(), // clean LaTeX of what the student wrote
   student_sympy: z.string().nullable(), // the student's line in SymPy syntax (null if not an expression)
@@ -74,7 +74,7 @@ export type CheckResult = AiCheck & {
 
 // ---------- Phase 2: photos, Check my work, similar problems ----------
 
-// What Sonnet returns after reading a photo (of a problem, of handwritten work, or both).
+// What the AI returns after reading a photo (of a problem, of handwritten work, or both).
 export const PhotoReadSchema = z.object({
   readable: z.boolean(), // false if there's no math in the photo or it can't be read
   problem_latex: z.string().nullable(), // the problem statement, typeset (null if the photo has none)
@@ -88,7 +88,7 @@ export const PhotoReadSchema = z.object({
 });
 export type PhotoRead = z.infer<typeof PhotoReadSchema>;
 
-// What Sonnet returns when it checks a whole written solution (Mode B).
+// What the AI returns when it checks a whole written solution (Mode B).
 export const AiWorkCheckSchema = z.object({
   lines: z.array(
     z.object({
@@ -142,7 +142,7 @@ export type Submission = {
   note: string; // what the photo reader wanted to tell the student
 };
 
-// What Sonnet returns when asked for a similar problem.
+// What the AI returns when asked for a similar problem.
 export const SimilarSchema = z.object({
   problem_latex: z.string(), // the new problem, typeset
   problem_text: z.string(), // the same problem as an instruction, e.g. "Evaluate \\int x e^{2x}\\,dx"

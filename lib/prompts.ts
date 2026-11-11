@@ -1,5 +1,5 @@
-// The instructions ("system prompts") we give Claude. Kept in one file so they're easy to read and tune.
-// They never change between requests, which lets the API cache them (cheaper and faster).
+// The instructions ("system prompts") we give the AI (Gemini). Kept in one file so they're easy to read and tune.
+// They never change between requests, which lets Gemini cache them automatically (cheaper and faster).
 import "server-only";
 
 // Rules for writing expressions in SymPy syntax. Shared by the pre-solver and the step checker,

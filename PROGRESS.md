@@ -36,14 +36,27 @@ Live: https://chalk-line-five.vercel.app · Repo: https://github.com/caquinopsu/
 - `npm run test:work`: 9/9 sample solutions get the first slip on the right line (or no slip).
 - Tested with generated textbook and handwriting images; real phone photos still to be tested by hand.
 
+## Switch to Google Gemini ✅ (Nov 11, 2026)
+- Every AI call now uses Gemini (`GEMINI_API_KEY`); the Anthropic SDK and key are no longer used.
+- `lib/gemini.ts`: SMART = Gemini 3.6 Flash (photos, pre-solving, Check my work, similar, Why?),
+  FAST = Gemini 3.5 Flash-Lite (step checks). Replies are forced into our zod schemas as JSON.
+- Free-tier models are sometimes busy (503) or slow (504), so each request automatically falls back
+  to the next model in its list. 3.7 / 3.8 Flash timed out on this key, so they aren't used.
+- Re-tested on Gemini: step checks 14/14, Check my work 9/9, photo reading, pre-solve (all lines
+  SymPy-confirmed), similar problems, Why?. Step checks now take about 1-3 s.
+- The 6 preset solutions were made by Claude earlier; they're saved files and still work as-is.
+
 ## Next
 Phase 3: Think-aloud voice (push-to-talk), spoken feedback, Read aloud in Walkthrough.
 
 ## Known issues
 - MathLive's typing shortcuts (`^`, `/`) weren't testable by automation; check them by hand.
 - Series problems (ratio test) are judged by the AI alone for most lines (SymPy can't compare them).
-- No rate limiting yet (Phase 5). Rough costs: step check $0.001, typed problem $0.05, photo read
-  $0.01, Check my work $0.02, similar problem $0.06.
+- No rate limiting yet (Phase 5). On Gemini's free tier there is no cost, but there are request
+  limits per minute and per day (shown in Google AI Studio), and Google may use free-tier data to
+  improve its products.
+- Free-tier models were often busy during testing (the fallback handled it, but it can add
+  10-45 s to a request). If that hurts the demo, enabling billing on the Gemini key fixes it.
 - Real phone photos (glare, slanted pages, messy handwriting) not tested yet; generated images read perfectly.
 - Layout is desktop-first; phone layout comes in Phase 5.
 - `/api/check` has no rate limiting, and a deliberately huge expression could be slow (8 s cap per comparison).

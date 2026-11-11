@@ -3,7 +3,7 @@ import type { PhotoRead } from "./schemas";
 
 export type PreparedPhoto = { base64: string; mediaType: "image/jpeg"; thumb: string }; // thumb = a data URL to show
 
-const MAX_SIDE = 1568; // Claude reads images up to about this size; bigger only makes the upload slower
+const MAX_SIDE = 1568; // plenty for reading math; bigger only makes the upload slower and costs more
 
 // Shrinks a photo to at most 1568 px on its longest side and re-saves it as a JPEG.
 export async function preparePhoto(file: File): Promise<PreparedPhoto> {
@@ -26,7 +26,7 @@ export async function preparePhoto(file: File): Promise<PreparedPhoto> {
   return { base64: dataUrl.split(",")[1], mediaType: "image/jpeg", thumb: dataUrl };
 }
 
-// Sends a prepared photo to the server and returns what Sonnet read.
+// Sends a prepared photo to the server and returns what the AI read.
 export async function readPhoto(photo: PreparedPhoto, knownProblem?: string): Promise<PhotoRead> {
   const res = await fetch("/api/read-photo", {
     method: "POST",

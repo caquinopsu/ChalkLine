@@ -12,16 +12,16 @@ web-development ideas behind them. Updated at the end of every phase (last: **Ph
 ```
  Your browser (React)                    Server (Vercel)
 ┌──────────────────────────┐          ┌───────────────────────────────────────────────┐
-│ app/page.tsx             │          │ /api/presolve  ─► Claude Sonnet: write the     │
+│ app/page.tsx             │          │ /api/presolve  ─► Gemini (smart): write the    │
 │  ├ StartScreen           │  fetch   │                   reference solution           │
 │  └ Session               │ ───────► │                └► SymPy: double-check each line│
-│     ├ Board  (chalk)     │          │ /api/check-step ─► Claude Haiku: judge a step  │
+│     ├ Board  (chalk)     │          │ /api/check-step ─► Gemini (fast): judge a step │
 │     └ Tray   (3 cards)   │ ◄─────── │                 └► SymPy: verify the algebra   │
-│     └ WorkBoard (Mode B) │   JSON   │ /api/why        ─► Claude Sonnet: follow-ups   │
-│                          │          │ /api/read-photo ─► Claude Sonnet: read a photo │
-│ public/presets/*.json    │          │ /api/check-work ─► Sonnet marks a solution     │
+│     └ WorkBoard (Mode B) │   JSON   │ /api/why        ─► Gemini (smart): follow-ups  │
+│                          │          │ /api/read-photo ─► Gemini (smart): read photo  │
+│ public/presets/*.json    │          │ /api/check-work ─► Gemini marks a solution     │
 │                          │          │                 └► SymPy: re-check every line  │
-│                          │          │ /api/similar    ─► Sonnet: new problem, then   │
+│                          │          │ /api/similar    ─► Gemini: new problem, then   │
 │                          │          │                    presolve + SymPy check      │
 │                          │          │ /api/check (Python) = SymPy itself             │
 └──────────────────────────┘          └───────────────────────────────────────────────┘
@@ -32,12 +32,12 @@ web-development ideas behind them. Updated at the end of every phase (last: **Ph
   code and deployment on top of React).
 - **Server routes:** code that runs on the server, never in the browser, so the secret API key is
   safe there.
-- **Two "brains" that check each other:** Claude understands what a student *meant* and writes
+- **Two "brains" that check each other:** the AI (Google Gemini) understands what a student *meant* and writes
   friendly hints. **SymPy** (Python) is exact at algebra. When they disagree about whether a line
   keeps the same value, SymPy wins.
 
 ### The key idea: the "reference solution package"
-When a problem loads, Sonnet writes one JSON "package": every step of the solution, with a rule
+When a problem loads, Gemini writes one JSON "package": every step of the solution, with a rule
 name, a "why", a hint, common mistakes, colored parts, and a SymPy version of each line. Every mode
 reuses it. Walkthrough *shows* it, Step practice *checks your lines against it one at a time*, and
 Check my work *compares your whole solution with it*. The 6 demo
@@ -51,10 +51,10 @@ problems' packages are saved as files, so they load instantly and cost nothing.
 |---|------|------------|
 | 1 | `lib/schemas.ts` | **Start here.** The shapes of all the data (package, step, check result). |
 | 2 | `api/check.py` | Python SymPy checker. "Are these two expressions equal?" |
-| 3 | `lib/prompts.ts` | The instructions we give Claude. Plain English, worth reading. |
-| 4 | `lib/presolve.ts` | Sonnet writes a package, SymPy verifies it. |
-| 5 | `lib/checkStep.ts` | Haiku judges a step, SymPy can overrule it. |
-| 6 | `lib/checkWork.ts` | Check my work: Sonnet marks a whole solution, SymPy finds slips it missed. |
+| 3 | `lib/prompts.ts` | The instructions we give the AI. Plain English, worth reading. |
+| 4 | `lib/presolve.ts` | Gemini writes a package, SymPy verifies it. |
+| 5 | `lib/checkStep.ts` | Gemini (fast model) judges a step, SymPy can overrule it. |
+| 6 | `lib/checkWork.ts` | Check my work: Gemini marks a whole solution, SymPy finds slips it missed. |
 | 7 | `lib/readPhoto.ts`, `lib/similar.ts` | Reading photos (vision) and writing similar problems. |
 | 8 | `app/api/*/route.ts` | Thin wrappers that turn web requests into calls to the files above. |
 | 9 | `app/page.tsx` | Top of the UI: start screen or session. |
@@ -63,7 +63,7 @@ problems' packages are saved as files, so they load instantly and cost nothing.
 | 12 | `components/Board.tsx`, `WorkBoard.tsx` | The chalkboard; WorkBoard is its Check my work version. |
 | 13 | `components/Tex.tsx`, `MathInput.tsx` | Math display (KaTeX) and math typing (MathLive). |
 
-**Smaller helpers:** `lib/anthropic.ts` (the Claude client), `lib/sympy.ts` (calls the Python
+**Smaller helpers:** `lib/gemini.ts` (the Gemini client: which models to use, JSON replies, and automatic fallback to another model when one is busy), `lib/sympy.ts` (calls the Python
 checker), `lib/routeHelpers.ts` (friendly error messages), `lib/presets.ts` (the 6 demo problems),
 `lib/attempts.ts` (logs every attempt in your browser for the future Skills dashboard),
 `lib/photo.ts` (shrinks a photo in the browser and sends it), `lib/packages.ts` (remembers solution
@@ -74,7 +74,7 @@ packages in the browser so pre-solving can start early),
 
 | File | What it's for |
 |------|---------------|
-| `data/preset-list.json` | The 6 demo problems: id, tag, LaTeX, and the text sent to Sonnet. |
+| `data/preset-list.json` | The 6 demo problems: id, tag, LaTeX, and the text sent to the AI. |
 | `public/presets/*.json` | Their saved solution packages (made by `npm run presets`). |
 | `scripts/dev_py.py` | Runs the Python checker locally on port 8000 (Vercel does this in the cloud). |
 | `scripts/generate-presets.mjs` | Re-generates the preset packages. |
@@ -96,22 +96,22 @@ uploaded), `.env.example`, `.gitignore`.
    your line in big chalk.
 2. **Check this step** → `Session.tsx` sends `{ package, lines on the board, your LaTeX, attempt }`
    to `/api/check-step`.
-3. `lib/checkStep.ts` asks **Haiku**: what did they write (in SymPy form), is it correct, which
+3. `lib/checkStep.ts` asks **Gemini's fast model**: what did they write (in SymPy form), is it correct, which
    reference step does it match, where is the mistake, and what hint to give.
 4. It then asks **SymPy** whether your line has the same value as the problem (for integrals, "same up
-   to + C"). If Haiku and SymPy disagree on the algebra, SymPy's answer is used.
+   to + C"). If the AI and SymPy disagree on the algebra, SymPy's answer is used.
 5. A fixed rule catches a missing **+ C** on indefinite integrals.
 6. Back in the browser: correct → the line moves up the board with a ✓. Wrong → pink ring + hint.
    After a second miss, the fix is written in teal.
 
 ### How Check my work works (Mode B)
 1. Your lines come from typing (one per line) or from a photo: the browser shrinks the photo
-   (`lib/photo.ts`), and `/api/read-photo` asks **Sonnet** to copy each handwritten line *exactly*,
+   (`lib/photo.ts`), and `/api/read-photo` asks **Gemini** to copy each handwritten line *exactly*,
    mistakes included. You can tap any line to fix a misread before checking.
-2. `/api/check-work` → `lib/checkWork.ts` asks **Sonnet** to mark the solution: is each line OK, which
+2. `/api/check-work` → `lib/checkWork.ts` asks **Gemini** to mark the solution: is each line OK, which
    is the *first* wrong line, what went wrong, and what the line should have been.
-3. **SymPy** then re-checks every line it can. If Sonnet flagged a line whose value SymPy proves is
-   fine, that flag is dropped. If SymPy proves a line changed value and Sonnet missed it, that line
+3. **SymPy** then re-checks every line it can. If the AI flagged a line whose value SymPy proves is
+   fine, that flag is dropped. If SymPy proves a line changed value and the AI missed it, that line
    becomes the slip. The + C rule runs last.
 4. The board shows ✓, the pink ring + teal fix on the slip, and fades everything after it.
    "Redo step n myself" puts your correct lines into Step practice and lets you continue from there.
@@ -134,10 +134,10 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **`import "server-only"`:** this file must never reach the browser (it touches the API key).
 - **`fetch` + `await`:** call a URL and wait for the reply without freezing the page.
 - **JSON:** the text format the browser and server use to exchange data.
-- **Schema (zod):** a description of a data shape, used to force Claude's reply into that exact shape.
-- **Structured outputs:** Claude is *required* to return JSON matching the schema, so parsing never breaks.
-- **Prompt caching:** the parts of a request that never change (instructions, the package) are cached
-  by the API, which makes repeat calls cheaper and faster.
+- **Schema (zod):** a description of a data shape, used to force the AI's reply into that exact shape.
+- **Structured outputs:** Gemini is *required* to return JSON matching the schema (`responseJsonSchema`), and we double-check the shape with zod.
+- **Fallback:** if a free-tier model is busy or slow, `lib/gemini.ts` quietly retries the request on the next model in its list.
+- **Implicit caching:** Gemini automatically reuses work when requests start with the same text (our instructions + the package), which makes repeat checks faster and cheaper.
 - **Tailwind classes:** styling shortcuts in `className` (`rounded` = rounded corners, `px-4` =
   horizontal padding, `bg-panel` = our panel color from `globals.css`).
 - **Canvas:** an invisible drawing surface in the browser; we draw the photo on it smaller and save it as a JPEG.
@@ -155,9 +155,9 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 | `npm run dev` | Starts the app at http://localhost:3000 **and** the Python checker. Stop with `Ctrl+C`. |
 | `npm run build` | Builds the production version (what Vercel does). Good for catching errors. |
 | `npm run lint` | Checks for common mistakes. |
-| `npm run presets` | Re-generates the 6 demo solutions (needs `npm run dev` running; costs about $0.40). |
-| `npm run test:steps` | Runs the 14 sample step checks (needs `npm run dev`; costs about $0.02). |
-| `npm run test:work` | Runs the 9 sample Check my work solutions (needs `npm run dev`; costs about $0.15). |
+| `npm run presets` | Re-generates the 6 demo solutions (needs `npm run dev` running; uses 6 big AI requests). |
+| `npm run test:steps` | Runs the 14 sample step checks (needs `npm run dev`; 14 AI requests). |
+| `npm run test:work` | Runs the 9 sample Check my work solutions (needs `npm run dev`; 9 AI requests). |
 | `.venv\Scripts\python api\check.py` | Runs the SymPy self-tests. |
 
 ---

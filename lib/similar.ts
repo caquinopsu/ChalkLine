@@ -1,31 +1,22 @@
-// "Give me a similar problem": Sonnet writes a new problem with the same technique, then we pre-solve it
+// "Give me a similar problem": Gemini writes a new problem with the same technique, then we pre-solve it
 // and only hand it over if SymPy confirms a clean, correct solution.
 import "server-only";
-import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import { claude, SONNET } from "./anthropic";
+import { askJson, SMART, ThinkingLevel } from "./gemini";
 import { presolve } from "./presolve";
 import { SIMILAR_SYSTEM } from "./prompts";
 import { SimilarSchema, type SolutionPackage } from "./schemas";
 
 async function askForProblem(pkg: SolutionPackage, avoid: string[]) {
-  const response = await claude().beta.messages.parse({
-    model: SONNET,
-    max_tokens: 3000,
-    betas: ["server-side-fallback-2026-07-01"],
-    fallbacks: "default",
-    output_config: { effort: "low", format: betaZodOutputFormat(SimilarSchema) },
-    system: [{ type: "text", text: SIMILAR_SYSTEM, cache_control: { type: "ephemeral" } }],
-    messages: [
-      {
-        role: "user",
-        content:
-          `Original problem: ${pkg.problem_latex}\nTopic: ${pkg.topic}\nTechniques: ${pkg.techniques.join(", ")}` +
-          (avoid.length ? `\nDon't reuse these problems: ${avoid.join(" ; ")}` : ""),
-      },
-    ],
-  }, { timeout: 30_000, maxRetries: 1 });
-  if (!response.parsed_output) throw new Error("Couldn't write a new problem.");
-  return response.parsed_output;
+  return askJson({
+    models: SMART,
+    system: SIMILAR_SYSTEM,
+    contents:
+      `Original problem: ${pkg.problem_latex}\nTopic: ${pkg.topic}\nTechniques: ${pkg.techniques.join(", ")}` +
+      (avoid.length ? `\nDon't reuse these problems: ${avoid.join(" ; ")}` : ""),
+    schema: SimilarSchema,
+    thinking: ThinkingLevel.LOW,
+    timeoutMs: 20_000, // per model
+  });
 }
 
 // Returns a ready-to-use solution package for a new, verified problem (tries twice).
