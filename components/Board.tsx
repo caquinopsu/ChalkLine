@@ -72,11 +72,11 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
   return (
     <div className="flex h-full flex-col">
       <div aria-hidden className="h-3 rounded bg-wood" /> {/* the rail */}
-      <div className="board-surface relative mx-2.5 flex min-h-0 flex-1 flex-col rounded-b-lg border-x-[12px] border-b-[12px] border-wood px-14 py-6">
+      <div className="board-surface relative mx-2.5 flex min-h-0 flex-1 flex-col rounded-b-lg border-x-[6px] border-b-[6px] border-wood px-4 py-3 md:border-x-[12px] md:border-b-[12px] md:px-14 md:py-6">
         {/* Header row: the problem and a handwritten status */}
         <div className="flex items-center justify-between border-b border-[rgba(236,232,221,.14)] pb-3">
-          <span className="text-[28px]"><Tex latex={problemLatex} /></span>
-          <span className="font-hand text-2xl text-muted">{status}</span>
+          <span className="min-w-0 truncate text-[20px] md:text-[28px]"><Tex latex={problemLatex} /></span>
+          <span className="shrink-0 pl-3 font-hand text-lg text-muted md:text-2xl">{status}</span>
         </div>
 
         {children ?? (
@@ -107,13 +107,13 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
             ))}
             {/* key = step number, so a new step mounts fresh and inks in (typing doesn't re-ink) */}
             {current && <Current key={current.number} line={current} />}
-            {ghost && <span className="pl-10 font-hand text-[26px] text-[rgba(236,232,221,.35)]">{ghost}</span>}
+            {ghost && <span className="truncate pl-10 font-hand text-xl md:text-[26px] text-[rgba(236,232,221,.35)]">{ghost}</span>}
           </div>
         )}
         {overlay}
       </div>
       {/* The chalk ledge with a few decorative chalk sticks */}
-      <div aria-hidden className="mx-0.5 flex h-[18px] items-center gap-3 rounded-b-lg bg-ledge pl-14">
+      <div aria-hidden className="mx-0.5 flex h-[18px] items-center gap-3 rounded-b-lg bg-ledge pl-6 md:pl-14">
         <span className="h-1.5 w-[34px] rounded bg-[#E9E5DA]" />
         <span className="h-1.5 w-[22px] rounded bg-gold" />
         <span className="h-1.5 w-[26px] rounded bg-blue-chalk" />
@@ -158,13 +158,13 @@ function Current({ line }: { line: CurrentLine }) {
     );
   }, [wrong, line.latex]);
   return (
-    <div ref={el} data-current className="-ml-6 flex min-w-0 items-center gap-5 rounded-[14px] bg-white/[.04] px-6 py-4 shadow-[inset_0_0_0_1.5px_rgba(236,232,221,.10)]">
+    <div ref={el} data-current className="-ml-2 flex min-w-0 items-center gap-3 rounded-[14px] bg-white/[.04] px-3 py-3 md:-ml-6 md:gap-5 md:px-6 md:py-4 shadow-[inset_0_0_0_1.5px_rgba(236,232,221,.10)]">
       <span className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full font-mono text-[15px] font-semibold text-[#14181D] ${BADGE[line.badge]}`}>
         {line.number}
       </span>
       {line.latex ? (
         // "ink" = the left-to-right chalk reveal, played once when this step appears
-        <span className="ink flex min-w-0 flex-1"><FitTex latex={line.latex} size={48} min={26} /></span>
+        <span className="ink flex min-w-0 flex-1"><FitTex latex={line.latex} size={48} min={18} /></span>
       ) : (
         <span className="font-hand text-3xl text-[rgba(236,232,221,.4)]">{line.placeholder}</span>
       )}
@@ -176,7 +176,7 @@ function Current({ line }: { line: CurrentLine }) {
       )}
       {/* Rule tag: a small handwritten label with a pointer, saying what this step did */}
       {line.tag && !line.note && (
-        <span className="tag-in ml-auto shrink-0 font-hand text-[22px] text-gold">← {line.tag}</span>
+        <span className="tag-in ml-auto hidden shrink-0 font-hand text-[22px] text-gold md:inline">← {line.tag}</span>
       )}
       {line.note && <span className="ml-auto shrink-0 font-hand text-[22px]">{line.note}</span>}
     </div>

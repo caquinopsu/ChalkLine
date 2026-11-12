@@ -156,6 +156,27 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
 @keyframes tag-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 .tag-in { animation: tag-in 0.4s ease-out 0.5s both; }
 
+/* ---------- Phase 5: phones (under 768px wide) ---------- */
+/* Start-screen dropdowns become full-screen sheets. (Plain CSS like this wins over Tailwind's
+   classes, so it can override their absolute position and fixed 760px width.) */
+@media (max-width: 767px) {
+  .sheet {
+    position: fixed;
+    top: 56px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: auto;
+    margin: 0;
+    transform: none;
+    overflow-y: auto;
+    z-index: 40;
+  }
+}
+/* The swipeable tray strip: no visible scrollbar (you swipe or use the tabs). */
+.tray { scrollbar-width: none; }
+.tray::-webkit-scrollbar { display: none; }
+
 /* Respect people who ask their system for less motion. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }

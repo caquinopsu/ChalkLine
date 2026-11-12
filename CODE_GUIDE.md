@@ -154,6 +154,15 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
    outline that wipes on; a wrong line shakes.
 5. `prefers-reduced-motion` turns it all off.
 
+### Protecting the demo (Phase 5)
+- **Rate limiting:** every AI route starts with `rateLimit(req, "heavy" | "light")` from
+  `lib/rateLimit.ts`. It remembers when each IP address made its recent requests and answers
+  "slow down" (HTTP 429) past the per-minute or per-day limit, before any AI is called.
+- **Friendly errors:** `messageOf()` in `lib/errors.ts` turns browser network errors into a sentence.
+- **Phones:** Tailwind's `md:` prefix means "from 768 px wide up", so classes without it are the phone
+  look (e.g. `px-3 md:px-10`). The tray is a sideways scroll strip with snap points on phones and a
+  3-column grid on desktop; `TrayTabs` in `Session.tsx` drives it.
+
 ### How a photo becomes a problem
 Upload → shrink to 1568 px → `/api/read-photo` → "We read this as". At that moment
 `getPackage()` (`lib/packages.ts`) already starts the pre-solve in the background, so by the time you
@@ -188,6 +197,8 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **Web Animations API (`element.animate`):** the same thing started from JavaScript, used when the motion depends on measured positions.
 - **`useLayoutEffect`:** like an effect, but runs right after the page updates and before it's painted, so we can measure and animate without a flicker.
 - **clip-path:** shows only part of an element (we grow the visible part left to right for the chalk "ink").
+- **Responsive design / breakpoints:** one page that rearranges itself by screen width (`md:` = 768 px and up).
+- **Rate limit / HTTP 429:** a cap on requests per visitor; 429 is the standard "too many requests" status.
 - **Promise cache:** remembering an unfinished request, so asking twice for the same thing waits for one answer.
 - **KaTeX / LaTeX:** LaTeX is a text language for math (`\frac{x^2}{2}`), and KaTeX draws it.
   `\htmlClass{role-a}{u}` adds a CSS class, which is how parts get their blue/gold/teal colors.

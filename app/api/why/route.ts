@@ -1,5 +1,6 @@
 // POST /api/why  { pkg, stepIndex, question }  ->  { ok, answer }
 // Answers a follow-up "why?" question about one step (the basic "why" text comes free with the package).
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { askText, SMART, ThinkingLevel } from "@/lib/gemini";
 import { WHY_SYSTEM } from "@/lib/prompts";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
@@ -9,6 +10,8 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(req, "light"); // too many requests from this visitor?
+    if (limited) return limited;
     const body = await req.json().catch(() => ({}));
     const pkg = PackageSchema.safeParse(body.pkg);
     if (!pkg.success) return badRequest("Missing or invalid solution package.");

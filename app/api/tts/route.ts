@@ -1,6 +1,7 @@
 // POST /api/tts  { text }  ->  MP3 audio (ElevenLabs), or 501 when ElevenLabs isn't set up.
 // Optional: only used when ELEVENLABS_API_KEY is set. The browser falls back to its own voice
 // on ANY error from this route, so the app works the same without it.
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { badRequest } from "@/lib/routeHelpers";
 
 export const maxDuration = 30;
@@ -12,6 +13,8 @@ export async function POST(req: Request) {
   const key = process.env.ELEVENLABS_API_KEY; // secret: only ever read on the server
   if (!key) return Response.json({ ok: false, off: true }, { status: 501 }); // switched off: the browser voice is used
   try {
+    const limited = rateLimit(req, "light"); // too many requests from this visitor?
+    if (limited) return limited;
     const body = await req.json().catch(() => ({}));
     const text = typeof body.text === "string" ? body.text.trim() : "";
     if (!text) return badRequest("Nothing to say.");

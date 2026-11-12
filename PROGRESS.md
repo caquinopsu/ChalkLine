@@ -93,9 +93,26 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Checked in the browser on the by-parts preset (ink, slide, tag, ring). Skipped for time (could add
   later): cancellation strike-throughs, side work folding in/out, word-by-word speech sync.
 
+## Phase 5: Judge-readiness ✅ (Nov 12, 2026)
+- **No login:** works in a private window (nothing is stored on the server; no accounts).
+- **Rate limiting (`lib/rateLimit.ts`):** per visitor (IP address), on all 8 AI routes.
+  Heavy routes (pre-solve, photos, Check my work, similar): 6 a minute, 60 a day. Light routes
+  (step checks, why?, voice, tts): 30 a minute, 500 a day. Over the limit = a friendly message.
+  Kept in server memory (no database), so it's a speed bump: Vercel's separate server copies each
+  count on their own and forget on restart. Tested with empty requests (no AI used): 7th = 429.
+- **Error states:** network drops and odd server replies become plain sentences (`lib/errors.ts`);
+  a problem that fails to prepare shows **Try again** / **New problem** instead of a dead end. The
+  mic-blocked / unclear-audio / busy-AI messages with "Type instead" came with Phase 3.
+- **Phones (under 768 px):** smaller margins and headings; the board's big line shrinks further;
+  the start-screen dropdowns open as full-screen sheets with a Close button; the three tray cards
+  become a swipeable strip with **Focus / Controls / More** tabs, opening on the middle card (the
+  input, the mic or the play buttons); the Why?/Side work panel covers the board; the finish board
+  stacks. Uses `100dvh` so phone browser bars don't cut off the tray.
+- Checked at 375×812 in the browser: start screen, demo sheet, Walkthrough and Step practice fit with
+  no sideways scrolling; the tray tabs work. Not checked on a real phone yet.
+
 ## Next
-Phase 5 (judge-readiness): rate limiting, mobile layout, error states. Test Phase 3 by hand with a
-real voice (Chrome, then Safari/iPhone).
+Test Phases 3-5 by hand (real voice, a real phone, a private window). Then Phase 6: design polish.
 
 ## Known issues
 - Think-aloud was tested with computer-generated speech, not a real human voice or mic yet; check
@@ -104,9 +121,8 @@ real voice (Chrome, then Safari/iPhone).
 - Space starts the mic anywhere on the Think-aloud screen except inside a text/math box.
 - MathLive's typing shortcuts (`^`, `/`) weren't testable by automation; check them by hand.
 - Series problems (ratio test) are judged by the AI alone for most lines (SymPy can't compare them).
-- No rate limiting yet (Phase 5). On Gemini's free tier there is no cost, but there are request
-  limits per minute and per day (shown in Google AI Studio), and Google may use free-tier data to
-  improve its products.
+- Rate limiting is per server copy and in memory (see Phase 5). Gemini's own free-tier limits per
+  minute/day still apply to everyone together, and Google may use free-tier data to improve its products.
 - Free-tier models were often busy during testing (the fallback handled it, but it can add
   10-45 s to a request). If that hurts the demo, enabling billing on the Gemini key fixes it.
 - Real phone photos (glare, slanted pages, messy handwriting) not tested yet; generated images read perfectly.

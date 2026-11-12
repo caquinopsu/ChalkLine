@@ -2,6 +2,7 @@
 
 // The start screen (DESIGN.md frames A–D): choose how to bring a problem, then pick a mode.
 import { useEffect, useRef, useState } from "react";
+import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
 import { KEYS_PROBLEM, MathInput, type MathInputHandle } from "./MathInput";
 import { Tex } from "./Tex";
 import { Logo } from "./Logo";
@@ -28,43 +29,43 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
   return (
     <div className="flex h-full flex-col">
       {/* Header: logo left, skills/history right (stretch features, not built yet) */}
-      <header className={`flex h-[72px] items-center justify-between px-10 ${dim}`}>
+      <header className={`flex h-14 items-center justify-between px-4 md:h-[72px] md:px-10 ${dim}`}>
         <div className="flex items-center gap-3">
           <Logo />
           <span className="font-display text-xl font-semibold">Chalkline</span>
         </div>
-        <div className="flex gap-2">
+        <div className="hidden gap-2 md:flex">
           <button className="btn" disabled title="Coming later">My skills</button>
           <button className="btn" disabled title="Coming later">History</button>
         </div>
       </header>
 
       {/* The rail the board is "rolled up" in */}
-      <div className={`relative mx-20 h-4 rounded bg-wood ${dim}`}>
+      <div className={`relative mx-6 h-4 shrink-0 rounded bg-wood md:mx-20 ${dim}`}>
         <span className="absolute left-1/2 top-full h-3 w-10 -translate-x-1/2 rounded-b bg-wood" />
       </div>
 
       {/* Centered when resting; moves up when a dropdown is open so the panel fits without scrolling */}
-      <main className={`flex flex-1 flex-col items-center gap-8 px-4 ${panel === "none" ? "justify-center" : "justify-start pt-8"}`}>
+      <main className={`flex min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto px-4 py-4 md:gap-8 md:overflow-visible md:py-0 ${panel === "none" ? "justify-center" : "justify-start pt-8"}`}>
         <div className={`text-center ${dim}`}>
-          <h1 className="font-display text-[56px] font-semibold leading-tight">What are we solving today?</h1>
-          <p className="mt-2 text-xl italic text-[#C9C3B5]">See the math move.</p>
+          <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[56px]">What are we solving today?</h1>
+          <p className="mt-2 text-base italic text-[#C9C3B5] md:text-xl">See the math move.</p>
         </div>
 
         {/* The action row */}
-        <div className="relative flex items-end gap-6">
+        <div className="relative flex w-full max-w-md flex-col items-stretch gap-3 md:w-auto md:max-w-none md:flex-row md:items-end md:gap-6">
           <div className="flex flex-col gap-2">
             <span className={`eyebrow text-subtle ${dim}`}>BRING A PROBLEM</span>
             <div className="flex gap-2 rounded-[18px] bg-panel p-2">
               <button
-                className={`btn h-16 w-[230px] justify-between ${panel === "upload" ? "bg-panel-3" : panel === "type" ? dim : ""}`}
+                className={`btn h-16 flex-1 justify-between md:w-[230px] md:flex-none ${panel === "upload" ? "bg-panel-3" : panel === "type" ? dim : ""}`}
                 aria-expanded={panel === "upload"}
                 onClick={() => toggle("upload")}
               >
                 Upload a photo <span aria-hidden>{panel === "upload" ? "▴" : "▾"}</span>
               </button>
               <button
-                className={`btn h-16 w-[230px] justify-between ${panel === "type" ? "bg-panel-3" : panel === "upload" ? dim : ""}`}
+                className={`btn h-16 flex-1 justify-between md:w-[230px] md:flex-none ${panel === "type" ? "bg-panel-3" : panel === "upload" ? dim : ""}`}
                 aria-expanded={panel === "type"}
                 onClick={() => toggle("type")}
               >
@@ -72,7 +73,7 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
               </button>
             </div>
           </div>
-          <span className={`pb-5 text-muted ${dim}`}>or</span>
+          <span className={`text-center text-muted md:pb-5 ${dim}`}>or</span>
           <button
             className={`flex h-24 items-center gap-4 rounded-[22px] border border-gold/60 bg-panel px-5 text-left shadow-[0_0_28px_rgba(242,201,76,.12)] ${
               panel === "talk" ? "bg-panel-3" : panel === "none" ? "hover:bg-panel-2" : "pointer-events-none opacity-30"
@@ -80,7 +81,7 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
             aria-expanded={panel === "talk"}
             onClick={() => toggle("talk")}
           >
-            <span className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-gold text-2xl text-[#14181D]">🎙</span>
+            <span className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-gold text-2xl text-[#14181D]">🎙</span>
             <span className="flex flex-col">
               <span className="flex items-center gap-2 font-semibold">
                 Talk it through <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] text-gold">SIGNATURE</span>
@@ -104,7 +105,14 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
         </button>
       </main>
 
-      <footer className={`pb-5 text-center text-sm text-subtle ${dim}`}>Talk it through: hold space (or the mic) and say the problem</footer>
+      {/* Phones: panels open as full-screen sheets that cover their button, so give them a close button */}
+      {panel !== "none" && (
+        <div className="fixed right-3 top-2 z-50 md:hidden">
+          <button className="btn h-10 bg-panel" onClick={() => setPanel("none")} aria-label="Close panel">✕ Close</button>
+        </div>
+      )}
+
+      <footer className={`hidden pb-5 text-center text-sm text-subtle md:block ${dim}`}>Talk it through: hold space (or the mic) and say the problem</footer>
     </div>
   );
 }
@@ -157,7 +165,7 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
       getPackage(read.problem_latex).catch(() => {}); // start pre-solving now (errors show up later, when a mode is picked)
     } catch (err) {
       setStatus("error");
-      setMessage(err instanceof Error ? err.message : "Couldn't read that photo.");
+      setMessage(messageOf(err, "Couldn't read that photo."));
     }
   }
 
@@ -177,7 +185,7 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   }
 
   return (
-    <div className="absolute left-0 top-full z-20 mt-3 flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute left-0 top-full z-20 mt-3 sheet flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       {/* Hidden file picker. On a phone, "image/*" offers both the camera and the photo library. */}
       <input
         ref={fileInput}
@@ -263,8 +271,8 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const input = useRef<MathInputHandle>(null); // handle for inserting math keys
   const empty = latex.trim() === "";
   return (
-    <div className="absolute left-0 top-full z-20 mt-3 flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
-      <div className="grid grid-cols-2 gap-4">
+    <div className="absolute left-0 top-full z-20 mt-3 sheet flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <span className="eyebrow text-subtle">TYPE THE PROBLEM</span>
           <MathInput ref={input} onChange={setLatex} ariaLabel="Type the problem" placeholder="\int x\ln x\,dx" />
@@ -293,9 +301,9 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
 function PracticePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const [selected, setSelected] = useState<string | null>(null); // which card is picked
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-16 flex w-[760px] -translate-x-1/2 flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute left-1/2 top-full z-20 mt-16 sheet flex w-[760px] flex-col md:-translate-x-1/2 gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       <span className="eyebrow text-subtle">PICK A DEMO PROBLEM</span>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {PRESETS.map((p) => (
           <button
             key={p.id}
@@ -346,7 +354,7 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
       } else choose(h.latex);
       voice.setPhase("idle");
     } catch (err) {
-      voice.fail(err instanceof Error ? err.message : "I couldn't hear that. Try again, or type it.");
+      voice.fail(messageOf(err, "I couldn't hear that. Try again, or type it."));
     }
   }
 
@@ -369,7 +377,7 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
   });
 
   return (
-    <div className="absolute right-0 top-full z-20 mt-3 flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute right-0 top-full z-20 mt-3 sheet flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       <div className="flex items-center gap-6">
         <MicButton
           phase={voice.phase}

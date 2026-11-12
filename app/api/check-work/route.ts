@@ -1,5 +1,6 @@
 // POST /api/check-work  { pkg, lines: string[] }  ->  { ok, result: WorkResult }
 // Mode B: checks a whole written solution and finds the first slip.
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { checkWork, MAX_WORK_LINES } from "@/lib/checkWork";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 import { PackageSchema } from "@/lib/schemas";
@@ -8,6 +9,8 @@ export const maxDuration = 150;
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(req, "heavy"); // too many requests from this visitor?
+    if (limited) return limited;
     const text = await req.text();
     if (text.length > 100_000) return badRequest("Request too large.");
     const body = JSON.parse(text);

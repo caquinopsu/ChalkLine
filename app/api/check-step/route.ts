@@ -1,5 +1,6 @@
 // POST /api/check-step  (CheckRequest)  ->  { ok, result: CheckResult }
 // Checks one line a student typed in Step practice.
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { checkStep } from "@/lib/checkStep";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 import { PackageSchema, type CheckRequest } from "@/lib/schemas";
@@ -8,6 +9,8 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(req, "light"); // too many requests from this visitor?
+    if (limited) return limited;
     const text = await req.text(); // raw body
     if (text.length > 80_000) return badRequest("Request too large.");
     const body = JSON.parse(text) as Partial<CheckRequest>;

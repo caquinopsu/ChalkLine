@@ -1,5 +1,6 @@
 // POST /api/read-photo  { image: base64, mediaType, knownProblem? }  ->  { ok, read: PhotoRead }
 // Reads a photo of a problem and/or handwritten work. The photo is never stored.
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { readPhoto, type ImageType } from "@/lib/readPhoto";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 
@@ -9,6 +10,8 @@ const TYPES: ImageType[] = ["image/jpeg", "image/png", "image/webp", "image/gif"
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(req, "heavy"); // too many requests from this visitor?
+    if (limited) return limited;
     const text = await req.text();
     if (text.length > 4_000_000) return badRequest("That photo is too large. Try a smaller one."); // Vercel's limit is 4.5 MB
     const body = JSON.parse(text);

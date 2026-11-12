@@ -20,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${spaceGrotesk.variable} ${inter.variable} ${caveat.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <body className="h-full overflow-hidden font-sans">{children}</body>
+      <body className="h-dvh overflow-hidden font-sans">{children}</body>
     </html>
   );
 }

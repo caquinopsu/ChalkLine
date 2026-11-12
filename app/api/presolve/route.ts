@@ -1,5 +1,6 @@
 // POST /api/presolve  { problem: "..." }  ->  { ok, pkg, verification }
 // Builds the reference solution package for a typed problem (presets skip this: theirs are saved in data/presets).
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { presolve } from "@/lib/presolve";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 
@@ -7,6 +8,8 @@ export const maxDuration = 180; // the AI can take a while on a full solution; a
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(req, "heavy"); // too many requests from this visitor?
+    if (limited) return limited;
     const body = await req.json().catch(() => ({})); // read the JSON body ({} if it's broken)
     const problem = typeof body.problem === "string" ? body.problem.trim() : ""; // the problem text
     if (!problem) return badRequest("Please type a problem first.");

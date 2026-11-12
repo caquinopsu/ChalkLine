@@ -6,6 +6,7 @@ import { StartScreen, type StartChoice, type StartMode } from "@/components/Star
 import { PRESETS, loadPreset } from "@/lib/presets";
 import { getPackage, rememberPackage } from "@/lib/packages";
 import type { SolutionPackage, Submission } from "@/lib/schemas";
+import { messageOf } from "@/lib/errors";
 
 // Everything the session screen needs to know about the problem being worked on.
 type Active = {
@@ -16,6 +17,7 @@ type Active = {
   work: Submission | null; // solution lines already read from a photo (Check my work)
   pkg: SolutionPackage | null; // null while loading
   error: string | null; // set if loading failed
+  choice: StartChoice; // what was picked, so "Try again" can repeat it
 };
 
 export default function Home() {
@@ -27,7 +29,7 @@ export default function Home() {
     const preset = choice.kind === "preset" ? PRESETS.find((p) => p.id === choice.presetId) : null;
     const problemLatex = preset ? preset.latex : choice.kind === "typed" ? choice.latex : "";
     const work = choice.kind === "typed" ? choice.work ?? null : null;
-    setActive({ key, problemId: preset?.id ?? "custom", problemLatex, mode: choice.mode, work, pkg: null, error: null });
+    setActive({ key, problemId: preset?.id ?? "custom", problemLatex, mode: choice.mode, work, pkg: null, error: null, choice });
 
     try {
       // Presets are saved files (instant). Anything else is pre-solved, or was already started early.
@@ -35,7 +37,7 @@ export default function Home() {
       // Only apply the result if the student hasn't moved on to another problem meanwhile.
       setActive((a) => (a && a.key === key ? { ...a, pkg } : a));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Couldn't prepare this problem.";
+      const message = messageOf(err, "Couldn't prepare this problem.");
       setActive((a) => (a && a.key === key ? { ...a, error: message } : a));
     }
   }
@@ -56,6 +58,7 @@ export default function Home() {
       initialMode={active.mode}
       initialWork={active.work}
       loadError={active.error}
+      onRetry={() => start(active.choice)} // pre-solve failed: ask again (failed requests aren't cached)
       onNewProblem={() => setActive(null)}
       onSimilar={startSimilar}
     />

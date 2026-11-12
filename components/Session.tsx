@@ -4,6 +4,7 @@
 // Holds all the state for Walkthrough (Mode A), Check my work (Mode B), Step practice (Mode C),
 // Think-aloud (Mode D: Step practice by voice) and the finish board.
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
 import { Board, Mark, type BoardLine, type CurrentLine } from "./Board";
 import { KEYS_PRACTICE, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex, ringError } from "./Tex";
@@ -35,11 +36,12 @@ type Props = {
   initialMode: WorkMode;
   initialWork: Submission | null; // solution lines already read from a photo (Check my work)
   loadError: string | null; // if preparing the solution failed
+  onRetry: () => void; // try preparing it again
   onNewProblem: () => void; // back to the start screen
   onSimilar: (pkg: SolutionPackage, mode: WorkMode) => void; // start a "similar problem"
 };
 
-export function Session({ pkg, problemId, problemLatex, initialMode, initialWork, loadError, onNewProblem, onSimilar }: Props) {
+export function Session({ pkg, problemId, problemLatex, initialMode, initialWork, loadError, onRetry, onNewProblem, onSimilar }: Props) {
   const [mode, setMode] = useState<SessionMode>(initialMode);
   const [view, setView] = useState(1); // Walkthrough: how many reference steps are shown
   const [playing, setPlaying] = useState(false); // Walkthrough autoplay on/off
@@ -81,6 +83,14 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   const [now, setNow] = useState(() => Date.now()); // ticks once a second while the timer shows
 
   // Walkthrough "Read aloud" state
+  const tray = useRef<HTMLElement>(null); // the tray strip (on phones it scrolls sideways)
+  // Phones: when the mode changes, jump to the middle card (the input, the mic or the play controls).
+  useEffect(() => {
+    const el = tray.current;
+    if (!el || window.innerWidth >= 768) return; // desktop shows all three cards
+    const card = el.children[mode === "finished" ? 0 : 1] as HTMLElement | undefined;
+    if (card) el.scrollTo({ left: card.offsetLeft - 12, behavior: "instant" });
+  }, [mode, pkg]); // also once the solution has loaded (the cards appear then)
   const [readAloud, setReadAloud] = useState(false); // the toggle
   const [readDone, setReadDone] = useState(0); // the last step number that finished being read
   const readToken = useRef(0); // which reading is the latest (older ones finishing late are ignored)
@@ -223,7 +233,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       setEditIndex(null);
       workInput.current?.clear();
     } catch (err) {
-      setWorkError(err instanceof Error ? err.message : "Couldn't read that photo.");
+      setWorkError(messageOf(err, "Couldn't read that photo."));
     } finally {
       setWorkBusy("");
     }
@@ -257,7 +267,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         logAttempt({ ts: Date.now(), problemId, skills: pkg.techniques, stepId: null, correct: l.verdict === "correct", hintUsed: false, mode: "check" });
       });
     } catch (err) {
-      setWorkError(err instanceof Error ? err.message : "Couldn't check your work.");
+      setWorkError(messageOf(err, "Couldn't check your work."));
     } finally {
       setWorkBusy("");
     }
@@ -297,7 +307,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       if (!data.ok) throw new Error(data.error);
       setSimilar({ state: "ready", pkg: data.pkg });
     } catch (err) {
-      setSimilar({ state: "error", error: err instanceof Error ? err.message : "Couldn't write a new problem." });
+      setSimilar({ state: "error", error: messageOf(err, "Couldn't write a new problem.") });
     }
   }
 
@@ -321,7 +331,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           attempt,
         }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ ok: false, error: "The server didn't answer properly." }));
       if (!data.ok) throw new Error(data.error);
       const r: CheckResult = data.result;
       const valid = r.status === "correct" || r.status === "correct_alternate";
@@ -356,7 +366,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       }
       return r;
     } catch (err) {
-      setCheckError(err instanceof Error ? err.message : "Couldn't check that step.");
+      setCheckError(messageOf(err, "Couldn't check that step."));
       return null;
     } finally {
       setChecking(false);
@@ -427,7 +437,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         wrongStep: wrongLine !== null,
       });
     } catch (err) {
-      voice.fail(err instanceof Error ? err.message : "I couldn't hear that. Try again, or type instead.");
+      voice.fail(messageOf(err, "I couldn't hear that. Try again, or type instead."));
       return;
     }
     setHeard(h.transcript || null);
@@ -460,11 +470,11 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ pkg, stepIndex, question: h.question || h.transcript }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => ({ ok: false, error: "The server didn't answer properly." }));
         if (!data.ok) throw new Error(data.error);
         say(data.answer);
       } catch (err) {
-        voice.fail(err instanceof Error ? err.message : "I couldn't answer that right now. Try again.");
+        voice.fail(messageOf(err, "I couldn't answer that right now. Try again."));
       }
     } else if (h.intent === "hint") {
       if (!step) return;
@@ -571,7 +581,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   return (
     <div className="flex h-full flex-col">
       {/* Header: logo, mode chip (switch modes), new problem */}
-      <header className="flex h-16 shrink-0 items-center justify-between px-10">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-2 px-3 md:h-16 md:px-10">
         <div className="flex items-center gap-3.5">
           <button aria-label="Chalkline home" onClick={onNewProblem}><Logo /></button>
           <ModeChip label={chip} color={chipColor} disabled={!pkg} onPick={switchMode} live={mode === "voice"} />
@@ -581,7 +591,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       </header>
 
       {/* Board area: fills the remaining height */}
-      <div className="min-h-0 flex-1 px-10">
+      <div className="min-h-0 flex-1 px-1 md:px-10">
         <Board
           problemLatex={pkg?.problem_latex ?? problemLatex}
           status={!pkg ? (loadError ? "couldn't prepare it" : "preparing…") : mode === "finished" ? "the whole solution" : status}
@@ -592,8 +602,15 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           overlay={pkg && overlay ? <OverlayPanel pkg={pkg} overlay={overlay} onClose={() => setOverlay(null)} /> : null}
         >
           {!pkg ? (
-            <div className="flex flex-1 items-center justify-center font-hand text-3xl text-muted">
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center font-hand text-2xl text-muted md:text-3xl">
               {loadError ?? "Preparing the board… (a new problem takes about half a minute)"}
+              {loadError && (
+                // never a dead end: retry, or go back and pick something else
+                <div className="flex gap-2 font-sans">
+                  <button className="btn btn-primary" onClick={onRetry}>Try again</button>
+                  <button className="btn" onClick={onNewProblem}>New problem</button>
+                </div>
+              )}
             </div>
           ) : mode === "finished" ? (
             <FinishBoard
@@ -611,7 +628,13 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       </div>
 
       {/* Tray: three cards, contents depend on the mode */}
-      <section aria-label="Tray" className="grid h-[220px] shrink-0 grid-cols-3 gap-4 px-10 pb-5 pt-4">
+      {/* Phones: the three cards become a swipeable strip with tabs above it (DESIGN.md: bottom sheet). */}
+      <TrayTabs tray={tray} />
+      <section
+        ref={tray}
+        aria-label="Tray"
+        className="tray flex h-[236px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:grid md:h-[220px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-10 md:pb-5 md:pt-4"
+      >
         {pkg && mode === "walkthrough" && (
           <>
             <Card>
@@ -967,9 +990,48 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
 
 // ---------- Small building blocks ----------
 
+// Phones only: three small tabs above the tray strip. Tapping one slides to that card; swiping
+// the strip updates which tab is highlighted.
+function TrayTabs({ tray }: { tray: React.RefObject<HTMLElement | null> }) {
+  const [active, setActive] = useState(1);
+  useEffect(() => {
+    const el = tray.current;
+    if (!el) return;
+    const onScroll = () => {
+      const cards = Array.from(el.children) as HTMLElement[];
+      // the card whose left edge is closest to the strip's scroll position
+      let best = 0;
+      cards.forEach((c, i) => { if (Math.abs(c.offsetLeft - 12 - el.scrollLeft) < Math.abs(cards[best].offsetLeft - 12 - el.scrollLeft)) best = i; });
+      setActive(best);
+    };
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true }); // passive = never slows down scrolling
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [tray]);
+  const go = (i: number) => {
+    const card = tray.current?.children[i] as HTMLElement | undefined;
+    if (card) tray.current!.scrollTo({ left: card.offsetLeft - 12, behavior: "smooth" });
+  };
+  return (
+    <div role="tablist" aria-label="Tray cards" className="flex shrink-0 justify-center gap-1.5 pt-2 md:hidden">
+      {["Focus", "Controls", "More"].map((label, i) => (
+        <button
+          key={label}
+          role="tab"
+          aria-selected={active === i}
+          onClick={() => go(i)}
+          className={`rounded-full px-3 py-1 text-xs font-medium ${active === i ? "bg-panel-3 text-text" : "text-subtle"}`}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function Card({ children, center = false }: { children: ReactNode; center?: boolean }) {
   return (
-    <div className={`flex min-h-0 flex-col gap-2 overflow-hidden rounded-2xl border border-white/[.09] bg-panel px-5 py-4 ${center ? "items-center justify-center gap-3.5" : ""}`}>
+    <div className={`flex min-h-0 w-[88%] shrink-0 snap-center flex-col gap-2 overflow-hidden rounded-2xl border border-white/[.09] bg-panel px-4 py-3 md:w-auto md:px-5 md:py-4 ${center ? "items-center justify-center gap-3.5" : ""}`}>
       {children}
     </div>
   );
@@ -1038,7 +1100,7 @@ function PracticeFocus({ result, wrong, showHint, hint, summary, error }: { resu
 // The finish board (frame K): every line in one column, and the boxed answer to the right.
 function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] }) {
   return (
-    <div className="flex min-h-0 flex-1 items-center gap-10 py-4">
+    <div className="flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-y-auto py-3 md:flex-row md:items-center md:gap-10 md:py-4">
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden opacity-75">
         {lines.map((l, i) => (
           <div key={i} className="flex min-w-0 items-center gap-4">
@@ -1073,7 +1135,7 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pkg, stepIndex: overlay.stepIndex, question }),
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({ ok: false, error: "The server didn't answer properly." }));
       setAnswer(data.ok ? data.answer : data.error);
     } catch {
       setAnswer("Couldn't reach the tutor. Try again.");
@@ -1083,7 +1145,7 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
   }
 
   return (
-    <div className="absolute bottom-4 right-4 top-16 z-20 flex w-[36%] flex-col gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-panel/95 p-5 text-text shadow-2xl">
+    <div className="absolute inset-x-2 bottom-2 top-12 z-20 flex flex-col md:inset-x-auto md:bottom-4 md:right-4 md:top-16 md:w-[36%] gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-panel/95 p-5 text-text shadow-2xl">
       <div className="flex items-center justify-between">
         <span className="eyebrow text-gold">{overlay.kind === "why" ? `WHY? · STEP ${overlay.stepIndex + 1}` : `SIDE WORK · STEP ${overlay.stepIndex + 1}`}</span>
         <button className="btn h-8 px-3" onClick={onClose} aria-label="Close panel">✕</button>

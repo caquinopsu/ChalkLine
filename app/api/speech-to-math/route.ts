@@ -1,5 +1,6 @@
 // POST /api/speech-to-math  (SpeechRequest)  ->  { ok, heard: Heard }
 // Turns one spoken clip into text + LaTeX + what the student wants. The audio is never stored.
+import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { speechToMath } from "@/lib/speechToMath";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
 import type { SpeechRequest } from "@/lib/schemas";
@@ -11,6 +12,8 @@ const TYPES = ["audio/wav", "audio/webm", "audio/ogg", "audio/mp4", "audio/mpeg"
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimit(req, "light"); // too many requests from this visitor?
+    if (limited) return limited;
     const text = await req.text(); // raw body
     if (text.length > 3_000_000) return badRequest("That clip is too long. Keep it under 15 seconds."); // Vercel's limit is 4.5 MB
     const body = JSON.parse(text) as Partial<SpeechRequest>;
