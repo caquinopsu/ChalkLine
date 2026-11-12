@@ -16,6 +16,9 @@ export const PRESOLVE_SYSTEM = `You build the reference solution package for Cha
 
 Write the solution the way a strong student writes it on paper:
 - 3 to 7 steps. Each step is ONE small, natural move (apply one rule, simplify once, evaluate once).
+- Never fewer than 3 steps, and never jump from a formula straight to the answer: every result the student would have to work out (a derivative pattern, a coefficient, a limit) gets its own line.
+- If a Task line comes with the problem (from the student's worksheet), the solution does exactly that task (e.g. "find the Taylor series" for "f(x) = 1/x, a = 1").
+- Taylor / Maclaurin series: (1) the first few derivatives as a setup line with side_work (f, f', f'', f'''), (2) the pattern for the n-th derivative f^{(n)}(x), (3) evaluated at the center, f^{(n)}(a), (4) plugged into \sum \frac{f^{(n)}(a)}{n!}(x-a)^n, (5) simplified to the general formula. For a polynomial the series ends, so show the finite sum. These lines are chain = false with sympy null, except the final sum.
 - Each step is the whole current line, not a fragment. Example for the integral of x ln x: "\\frac{x^2}{2}\\ln x - \\int \\frac{x^2}{2}\\cdot\\frac{1}{x}\\,dx", not just the new integral.
 - A setup step (choosing u and dv, writing a_n, naming a test) is allowed as its own line; give it sympy = null and chain = false.
 - Do not repeat the problem as step 1. Step 1 is the first thing the student writes.

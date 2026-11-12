@@ -183,6 +183,10 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
   (default), Type it, Talk it through and Demo problem tabs. The logo still goes to the start screen.
 - Tested: 1 live photo read of a 4-part Taylor series worksheet (all 4 parts + instructions, 4.6 s);
   the rest of the flow in the browser with that reply replayed and pre-solving mocked (no AI).
+- Live solve of part a (1/x at a = 1): first try was correct but only 2 steps (jumped to the answer).
+  The pre-solve instructions now require at least 3 steps, no jumps, doing the worksheet's task, and a
+  5-step recipe for Taylor series. Re-run: 5 steps (derivatives, n-th derivative pattern, value at 1,
+  plug in, simplify), correct. SymPy can't compare infinite sums, so those lines are judged by the AI.
 - Not yet: progress inside a part isn't kept when you switch parts (you restart at step 1); the
   solved ✓ marks reset on reload.
 

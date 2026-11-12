@@ -1,0 +1,115 @@
+{
+ "ok": true,
+ "pkg": {
+  "problem_latex": "f(x) = \\frac{1}{x}, \\quad a = 1",
+  "problem_sympy": null,
+  "topic": "Taylor Series",
+  "techniques": [
+   "Taylor series",
+   "Derivatives pattern"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+   {
+    "id": "s1",
+    "latex": "f(x) = \\frac{1}{x}, \\quad f'(x) = -\\frac{1}{x^2}, \\quad f''(x) = \\frac{2}{x^3}, \\quad f'''(x) = -\\frac{6}{x^4}",
+    "plain_latex": "f(x) = \\frac{1}{x}, \\quad f'(x) = -\\frac{1}{x^2}, \\quad f''(x) = \\frac{2}{x^3}, \\quad f'''(x) = -\\frac{6}{x^4}",
+    "sympy": null,
+    "chain": false,
+    "rule": "Compute derivatives",
+    "summary": "Find the first few derivatives of $f(x) = \\frac{1}{x}$ to establish a pattern.",
+    "why": "Building a Taylor series requires finding a general formula for the $n$-th derivative, which we start by computing term by term.",
+    "hint": "Take the first three derivatives of $f(x) = x^{-1}$ using the power rule.",
+    "side_work": null,
+    "common_mistakes": [
+     {
+      "mistake": "Sign errors in derivatives",
+      "hint": "Remember that each time you bring down the power using the power rule, the sign alternates."
+     }
+    ],
+    "parts": []
+   },
+   {
+    "id": "s2",
+    "latex": "f^{(n)}(x) = \\frac{(-1)^n n!}{x^{n+1}}",
+    "plain_latex": "f^{(n)}(x) = \\frac{(-1)^n n!}{x^{n+1}}",
+    "sympy": null,
+    "chain": false,
+    "rule": "General derivative formula",
+    "summary": "Write the general formula for the $n$-th derivative $f^{(n)}(x)$.",
+    "why": "The pattern in our derivatives shows an alternating sign $(-1)^n$, a factorial $n!$, and a power in the denominator $x^{n+1}$.",
+    "hint": "Look at the pattern of powers and factorials from the first few derivatives.",
+    "side_work": null,
+    "common_mistakes": [
+     {
+      "mistake": "Incorrect denominator power",
+      "hint": "Check how the exponent of $x$ grows relative to $n$."
+     }
+    ],
+    "parts": []
+   },
+   {
+    "id": "s3",
+    "latex": "f^{(n)}(1) = (-1)^n n!",
+    "plain_latex": "f^{(n)}(1) = (-1)^n n!",
+    "sympy": null,
+    "chain": false,
+    "rule": "Evaluate at center",
+    "summary": "Evaluate the $n$-th derivative at the center $a = 1$.",
+    "why": "Plugging $x = 1$ into our general formula simplifies the denominator to $1$, leaving just $(-1)^n n!$.",
+    "hint": "Substitute $x = 1$ into your formula for $f^{(n)}(x)$.",
+    "side_work": null,
+    "common_mistakes": [
+     {
+      "mistake": "Forgetting to evaluate at $a = 1$",
+      "hint": "Replace every $x$ with $1$ in the expression for $f^{(n)}(x)$."
+     }
+    ],
+    "parts": []
+   },
+   {
+    "id": "s4",
+    "latex": "\\sum_{n=0}^{\\infty} \\frac{(-1)^n n!}{n!} (x-1)^n",
+    "plain_latex": "\\sum_{n=0}^{\\infty} \\frac{(-1)^n n!}{n!} (x-1)^n",
+    "sympy": null,
+    "chain": false,
+    "rule": "Taylor series formula",
+    "summary": "Plug the evaluated derivatives into the Taylor series formula $\\sum \\frac{f^{(n)}(a)}{n!} (x-a)^n$.",
+    "why": "This formula constructs the power series centered at $a = 1$ using our coefficients.",
+    "hint": "Substitute $f^{(n)}(a)$ and $a = 1$ into the standard Taylor series definition.",
+    "side_work": null,
+    "common_mistakes": [
+     {
+      "mistake": "Omitting $n!$ in the denominator",
+      "hint": "Remember the Taylor coefficient formula includes $1/n!$."
+     }
+    ],
+    "parts": []
+   },
+   {
+    "id": "s5",
+    "latex": "\\sum_{n=0}^{\\infty} (-1)^n (x-1)^n",
+    "plain_latex": "\\sum_{n=0}^{\\infty} (-1)^n (x-1)^n",
+    "sympy": "Sum((-1)**n * (x-1)**n, (n, 0, oo))",
+    "chain": true,
+    "rule": "Simplify terms",
+    "summary": "Cancel the $n!$ terms to write the simplified general Taylor series.",
+    "why": "The $n!$ in the numerator and denominator cancel out completely, leaving a clean geometric-style power series.",
+    "hint": "Cancel $\\frac{n!}{n!}$ inside the summation.",
+    "side_work": null,
+    "common_mistakes": [
+     {
+      "mistake": "Leaving $n!$ in the expression",
+      "hint": "Notice that $n! / n! = 1$."
+     }
+    ],
+    "parts": []
+   }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\sum_{n=0}^{\\infty} (-1)^n (x-1)^n",
+  "final_answer_sympy": "Sum((-1)**n * (x-1)**n, (n, 0, oo))"
+ },
+ "verification": {}
+}
