@@ -148,6 +148,17 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
   and the boxed answer scales to fill the right half's width.
 - Demo problem cards use the chalk font too.
 
+## Home screen, round 2 ✅ (Nov 12, 2026)
+- **Large sheets instead of dropdowns:** each choice opens a big centered sheet (up to 1080 px wide)
+  over a blurred page; nothing on the page moves, the demo board keeps playing behind it. Close with
+  ✕, Esc or a click outside. Full-screen on phones.
+- **Work modes are big cards:** Walkthrough, Step practice, Check my work and Talk it through, each
+  with a colored icon, what it does, and a lift + glow + "Start →" on hover. Used in every sheet
+  (Talk it through is now offered for typed, photographed and demo problems too).
+- **Background design:** faint chalk math (∫ f(x) dx, d/dx, Σ 1/n², π, ∞…) floating slowly in the
+  margins, two soft colored lights, and a gold glow behind the title. Bigger sizes on very wide screens.
+- Checked at 1440×900 and 375×812. No AI calls.
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.

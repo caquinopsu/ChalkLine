@@ -161,8 +161,9 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
 
 ### Home screen and summary sizing
 - `DemoBoard` (in `StartScreen.tsx`) is the real `Board` fed a saved solution, advancing one step every
-  2.6 s. It sits in a CSS grid row that animates from `1fr` to `0fr` when a dropdown opens, which is
-  how the page slides instead of jumping.
+  2.6 s.
+- Each choice opens a `Sheet`: a fixed, centered panel over a blurred backdrop, so the page never moves.
+  Inside, `ModeCards` shows the work modes as big cards. `ChalkBackdrop` draws the floating doodles.
 - `fill()` (in `Session.tsx`) draws the summary at 30 px, measures it, and scales the font so the
   lines fill the left half and the answer fills the right half.
 
