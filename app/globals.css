@@ -3,29 +3,45 @@
 /* Design tokens from design/DESIGN.md section 2. Tailwind turns each --color-X into classes like
    bg-X, text-X and border-X (e.g. bg-panel, text-muted, border-gold). */
 @theme {
-  --color-room: #111419; /* app background */
-  --color-panel: #1a1f26; /* tray cards, dropdown panels */
-  --color-panel-2: #20262e; /* buttons/cards inside panels */
-  --color-panel-3: #262d36; /* active/open button */
-  --color-text: #ece8dd; /* UI text */
-  --color-muted: #a3acb6; /* secondary text */
-  --color-subtle: #7f8893; /* tertiary labels */
-  --color-board: #1c2624; /* slate board */
-  --color-wood: #3a2f27; /* rail and frame */
-  --color-ledge: #4a3c31; /* chalk ledge */
+  --color-room: #f3eee3; /* app background: warm notebook paper */
+  --color-panel: #fffdf8; /* tray cards, sheets */
+  --color-panel-2: #f1ebdf; /* buttons/cards inside panels */
+  --color-panel-3: #e7dfcf; /* active/open button */
+  --color-field: #ffffff; /* text inputs and the math input */
+  --color-text: #2a2520; /* UI text: warm ink */
+  --color-muted: #675e54; /* secondary text */
+  --color-subtle: #8c8378; /* tertiary labels */
+  --color-white: #2a2520; /* every "white/10" border or tint becomes faint ink on the light page */
+  --color-board: #22362e; /* the chalkboard: a softer green */
+  --color-wood: #9b7652; /* light oak frame */
+  --color-ledge: #b38c63; /* chalk ledge */
   --color-chalk: #edeae0; /* math on the board */
-  --color-blue: #58c4dd; /* first role, listening */
+  --color-blue: #1a86a6; /* first role, listening (deeper so it reads on paper) */
+  --color-blue-chalk: #1a86a6;
+  --color-gold: #d9a514; /* second role, hints, primary buttons */
+  --color-teal: #1d9a80; /* correct, fixes */
+  --color-pink: #d84b5a; /* errors */
+}
+
+/* The board (and the mini boards) keep bright chalk colors, whatever the page around them looks like:
+   inside .board-surface (and the mode cards' ledge) the tokens switch back to the chalk versions. */
+.board-surface, .mode-card {
+  --color-text: #ece8dd;
+  --color-muted: #a3acb6;
+  --color-subtle: #7f8893;
+  --color-white: #fff;
+  --color-gold: #f2c94c;
+  --color-teal: #4fd1b5;
+  --color-blue: #58c4dd;
   --color-blue-chalk: #6ccde3;
-  --color-gold: #f2c94c; /* second role, hints, primary buttons */
-  --color-teal: #4fd1b5; /* correct, fixes */
-  --color-pink: #ff7a85; /* errors */
+  --color-pink: #ff7a85;
 }
 
 /* Fonts come from next/font (app/layout.tsx), which sets these CSS variables on <html>. */
 @theme inline {
-  --font-display: var(--font-space-grotesk);
-  --font-sans: var(--font-inter);
-  --font-hand: var(--font-caveat);
+  --font-display: var(--font-dm-sans); /* one clean sans for headings, text and notes */
+  --font-sans: var(--font-dm-sans);
+  --font-hand: var(--font-dm-sans);
   --font-mono: var(--font-jetbrains-mono);
 }
 
@@ -42,18 +58,12 @@ body {
     radial-gradient(rgba(236, 232, 221, 0.03) 1px, transparent 1.3px);
   background-size: 5px 5px, 11px 11px;
   background-position: 0 0, 3px 6px;
-  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.5), inset 0 0 90px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 18px 40px rgba(40, 30, 20, 0.22), inset 0 0 90px rgba(0, 0, 0, 0.4); /* soft shadow on the light page */
   color: var(--color-chalk);
 }
 
-/* Chalk handwriting for the math on the board: letters, numbers, + and = use a hand font, while
-   KaTeX keeps its own fonts for the big symbols (∫, Σ, brackets, fraction bars, roots). */
-:root { --font-chalk: var(--font-patrick); }
-.board-surface .katex, .chalk .katex { font-family: var(--font-chalk), cursive; }
-.board-surface .katex .mathnormal, .chalk .katex .mathnormal,
-.board-surface .katex .mathit, .chalk .katex .mathit,
-.board-surface .katex .mathrm, .chalk .katex .mathrm,
-.board-surface .katex .textrm, .chalk .katex .textrm { font-family: var(--font-chalk), cursive; font-style: normal; }
+/* Board math looks like a printed textbook: KaTeX's own fonts, with variables in italic. */
+.board-surface .katex .mathnormal, .chalk .katex .mathnormal { font-family: KaTeX_Math; font-style: italic; }
 
 /* Role colors for parts of an expression (the AI wraps them in \htmlClass{role-a}{...}). */
 .role-a { color: var(--color-blue-chalk); } /* first role: u, du */
@@ -79,7 +89,7 @@ body {
   height: 44px;
   padding: 0 16px;
   border-radius: 12px;
-  border: 1px solid rgba(236, 232, 221, 0.18);
+  border: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent);
   background: transparent;
   color: var(--color-text);
   font-weight: 600;
@@ -89,23 +99,25 @@ body {
 .btn:hover:not(:disabled) { background: var(--color-panel-2); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-primary { background: var(--color-gold); color: #14181d; border-color: var(--color-gold); }
-.btn-primary:hover:not(:disabled) { background: #f5d46b; }
+.btn-primary:hover:not(:disabled) { background: #e6b42a; }
 /* a gold button that can't be pressed yet turns neutral gray (not a muddy half-gold) */
-.btn-primary:disabled { opacity: 1; background: var(--color-panel-3); border-color: rgba(255, 255, 255, 0.08); color: var(--color-subtle); }
+.btn-primary:disabled { opacity: 1; background: var(--color-panel-3); border-color: color-mix(in srgb, var(--color-text) 10%, transparent); color: var(--color-subtle); }
 
-/* Small section labels ("step 2 · your turn", "techniques used"): handwritten, like the board's
-   own notes, so the dock speaks the same language as the chalkboard. Code may write them in capitals;
-   they always show in lowercase handwriting. */
+/* Small section labels ("step 2 · your turn", "techniques used"): short lowercase notes. Code may
+   write them in capitals; they always show in lowercase. */
 .eyebrow {
-  font-family: var(--font-patrick), cursive;
-  font-size: 23px;
-  font-weight: 400;
-  line-height: 1.1;
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.2;
   letter-spacing: 0;
   text-transform: lowercase;
 }
+/* .font-hand was sized for handwriting (which runs small); font-size-adjust keeps a print font at the
+   same visual size by matching the height of its lowercase letters. */
+.font-hand { font-size-adjust: 0.4; }
 
-/* MathLive input: blend into the dark tray and hide its built-in menu/keyboard toggles. */
+/* MathLive input: a white field like the other inputs and hide its built-in menu/keyboard toggles. */
 math-field {
   display: block;
   width: 100%;
@@ -113,8 +125,8 @@ math-field {
   padding: 6px 12px;
   font-size: 22px;
   border-radius: 12px;
-  border: 1px solid rgba(236, 232, 221, 0.25);
-  background: #12161b;
+  border: 1px solid color-mix(in srgb, var(--color-text) 18%, transparent);
+  background: var(--color-field);
   color: var(--color-text);
   --caret-color: var(--color-gold);
   --selection-background-color: rgba(242, 201, 76, 0.25);

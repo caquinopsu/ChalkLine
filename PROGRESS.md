@@ -190,6 +190,16 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Not yet: progress inside a part isn't kept when you switch parts (you restart at step 1); the
   solved ✓ marks reset on reload.
 
+## Design pass 5: notebook paper + clean fonts ✅ (Nov 12, 2026)
+Picked from screenshot mockups (palettes and font sets were compared outside the app, not built in):
+- **Colors:** warm notebook-paper page (`#f3eee3`), cream-white cards, ink-brown text, deeper
+  gold/teal/blue/pink so they read on a light page. The board is a softer green in a light **oak frame**.
+- **Board keeps chalk colors:** inside `.board-surface` (and the mode cards) the color tokens switch
+  back to the bright chalk versions, so the board looks the same whatever the page around it is.
+- **Fonts:** DM Sans for every heading, label and note (no more handwriting fonts); board math uses
+  KaTeX's own textbook fonts with italic variables.
+- Inputs and the math field are white; the dark hard-coded colors are gone.
+
 ## Design pass 4 + problem library ✅ (Nov 12, 2026)
 From the design critique (reviewer pass) and the user's 10 notes:
 - **Home:** the "Calculus I & II · free · no sign-up" line and the SIGNATURE badge are gone. "Try a
@@ -197,8 +207,8 @@ From the design critique (reviewer pass) and the user's 10 notes:
 - **Mode cards** are mini chalkboards with a chalk sketch of each mode that redraws on hover, a
   handwritten title and a ledge with "start →". Before a problem is ready they say "waiting…"
   instead of looking dimmed and broken.
-- **Labels** in the dock and sheets are handwritten (Patrick Hand, lowercase) instead of monospace
-  capitals, so the UI matches the board.
+- **Labels** in the dock and sheets are short lowercase notes instead of monospace capitals (now DM
+  Sans, see Design pass 5).
 - **Walkthrough dock:** the unlabeled middle card (autoplay + read aloud) is gone; those are now
   labeled toggles ("play", "read aloud") in the board's header. The left of the dock is now the
   **Why** explanation, always open, in full-strength text with a gold margin line and a follow-up box.

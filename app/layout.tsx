@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
-import { Caveat, Inter, JetBrains_Mono, Patrick_Hand, Space_Grotesk } from "next/font/google"; // fonts from DESIGN.md
+import { DM_Sans, JetBrains_Mono } from "next/font/google"; // DM Sans for all text, JetBrains Mono for small code-like labels
 import "katex/dist/katex.min.css"; // styles + fonts KaTeX needs to draw math (MathLive reuses these fonts)
 import "./globals.css";
 
 // Each font becomes a CSS variable that globals.css maps to Tailwind classes (font-display, font-hand, ...).
-const spaceGrotesk = Space_Grotesk({ variable: "--font-space-grotesk", subsets: ["latin"], weight: ["600", "700"] });
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
-const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: ["500", "600"] });
+// One clean sans for headings, body text and notes (the board's math uses KaTeX's textbook fonts).
+const dmSans = DM_Sans({ variable: "--font-dm-sans", subsets: ["latin"], weight: ["400", "500", "600", "700"] });
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], weight: ["500"] });
-// Patrick Hand: the handwriting used for the math on the board (clear digits, chalky look).
-const patrick = Patrick_Hand({ variable: "--font-patrick", subsets: ["latin"], weight: ["400"] });
 
 export const metadata: Metadata = {
   title: "Chalkline", // browser tab title
@@ -20,7 +17,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${caveat.variable} ${jetbrainsMono.variable} ${patrick.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="h-dvh overflow-hidden font-sans">{children}</body>
     </html>

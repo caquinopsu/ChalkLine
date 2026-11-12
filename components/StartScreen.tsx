@@ -168,12 +168,12 @@ export function Sheet({ title, icon, tint, onClose, children }: { title: string;
     return () => window.removeEventListener("keydown", onKey);
   });
   return (
-    <div className={`fixed inset-0 z-40 flex items-center justify-center bg-[rgba(10,12,15,.6)] p-4 backdrop-blur-[6px] ${leaving ? "fade-out" : "fade-in"}`} onClick={exit}>
+    <div className={`fixed inset-0 z-40 flex items-center justify-center bg-[rgba(42,37,32,.35)] p-4 backdrop-blur-[6px] ${leaving ? "fade-out" : "fade-in"}`} onClick={exit}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`sheet ${leaving ? "sheet-out" : ""} no-bar flex max-h-[90vh] w-[min(1080px,94vw)] flex-col gap-6 overflow-y-auto rounded-[28px] border border-white/10 bg-panel p-6 shadow-[0_30px_80px_rgba(0,0,0,.6)] md:p-9`}
+        className={`sheet ${leaving ? "sheet-out" : ""} no-bar flex max-h-[90vh] w-[min(1080px,94vw)] flex-col gap-6 overflow-y-auto rounded-[28px] border border-white/10 bg-panel p-6 shadow-[0_30px_80px_rgba(60,45,30,.25)] md:p-9`}
         onClick={(e) => e.stopPropagation()} // clicks inside don't close it
       >
         <div className="flex items-center gap-4">
@@ -206,7 +206,7 @@ function EntryCard({ icon, tint, title, sub, badge, gold = false, onClick }: {
       className={`group relative flex h-[92px] items-center gap-4 rounded-[20px] border px-4 text-left transition duration-200 hover:-translate-y-1 md:h-[108px] md:px-5 2xl:h-[124px] ${
         gold
           ? "border-gold/50 bg-panel shadow-[0_0_30px_rgba(242,201,76,.12)] hover:border-gold hover:shadow-[0_10px_40px_rgba(242,201,76,.22)]"
-          : "border-white/10 bg-panel hover:border-white/25 hover:bg-panel-2 hover:shadow-[0_10px_30px_rgba(0,0,0,.35)]"
+          : "border-white/10 bg-panel hover:border-white/25 hover:bg-panel-2 hover:shadow-[0_10px_30px_rgba(60,45,30,.15)]"
       }`}
     >
       <span className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition group-hover:scale-110 2xl:h-[60px] 2xl:w-[60px] ${tint}`}>{icon}</span>

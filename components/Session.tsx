@@ -519,8 +519,8 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   // ---- What to draw ----
   const chip = { walkthrough: "Walkthrough", practice: "Step practice", check: "Check my work", voice: "Think-aloud", finished: "Solved" }[mode];
   const chipColor =
-    mode === "walkthrough" ? "text-[#8FDCEE] bg-blue/15"
-    : mode === "practice" ? "text-[#FF9AA3] bg-pink/15"
+    mode === "walkthrough" ? "text-blue bg-blue/15"
+    : mode === "practice" ? "text-pink bg-pink/15"
     : mode === "voice" ? "text-[#14181D] bg-gold" // Think-aloud: solid gold
     : "text-teal bg-teal/15";
   // Worksheet: the next part that isn't solved yet (after this one first, then from the start), or null.
@@ -706,7 +706,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <section
         ref={tray}
         aria-label="Tray"
-        className={`tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] ${pkg && (mode === "walkthrough" || mode === "finished") ? "md:grid-cols-[1.9fr_1fr]" : "md:grid-cols-[1.15fr_1fr_1fr]"} md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(0,0,0,.35)]`}
+        className={`tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] ${pkg && (mode === "walkthrough" || mode === "finished") ? "md:grid-cols-[1.9fr_1fr]" : "md:grid-cols-[1.15fr_1fr_1fr]"} md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(60,45,30,.12)]`}
       >
         <span aria-hidden className={`absolute inset-x-0 top-0 hidden h-[3px] md:block ${dockLine}`} />
         {pkg && mode === "walkthrough" && (
@@ -733,7 +733,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         {pkg && mode === "practice" && steps[expected] && (
           <>
             <Card>
-              <span className="eyebrow text-[#FF9AA3]">STEP {progress.length + 1} · YOUR TURN</span>
+              <span className="eyebrow text-pink">STEP {progress.length + 1} · YOUR TURN</span>
               <PracticeFocus result={result} wrong={wrongLine !== null} showHint={showHint} hint={steps[expected].hint} summary={steps[expected].summary} error={checkError} />
               <div className="mt-auto flex gap-2">
                 <button className="btn h-10" onClick={revealHint} disabled={showHint}>Hint</button>
@@ -1177,7 +1177,7 @@ function WhyCard({ pkg, stepIndex, onSideWork }: { pkg: SolutionPackage; stepInd
       </div>
       <div className="flex gap-2">
         <input
-          className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-[#12161B] px-3.5 text-base placeholder:text-subtle focus:border-gold/60 focus:outline-none"
+          className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-field px-3.5 text-base placeholder:text-subtle focus:border-gold/60 focus:outline-none"
           placeholder={`Ask about step ${stepIndex + 1}… (e.g. why this and not something else?)`}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
@@ -1367,7 +1367,7 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
   }
 
   return (
-    <div className="fade-in absolute inset-x-2 bottom-2 top-12 z-20 flex flex-col gap-3 overflow-y-auto rounded-2xl border border-gold/25 bg-[#1A1F26] p-6 text-text shadow-[0_24px_60px_rgba(0,0,0,.55)] md:inset-x-auto md:bottom-4 md:right-4 md:top-16 md:w-[38%]">
+    <div className="fade-in absolute inset-x-2 bottom-2 top-12 z-20 flex flex-col gap-3 overflow-y-auto rounded-2xl border border-gold/25 bg-panel p-6 text-text shadow-[0_24px_60px_rgba(60,45,30,.22)] md:inset-x-auto md:bottom-4 md:right-4 md:top-16 md:w-[38%]">
       <div className="flex items-center justify-between">
         <span className="font-hand text-[28px] leading-none text-gold">{overlay.kind === "why" ? `why step ${overlay.stepIndex + 1}?` : `side work · step ${overlay.stepIndex + 1}`}</span>
         <button
@@ -1387,7 +1387,7 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
             {answer && <RichText className="whitespace-pre-line text-base leading-relaxed" text={answer} />}
             <div className="flex gap-2">
               <input
-                className="h-10 min-w-0 flex-1 rounded-xl border border-white/20 bg-[#12161B] px-3 text-base"
+                className="h-10 min-w-0 flex-1 rounded-xl border border-white/20 bg-field px-3 text-base"
                 placeholder="Ask a follow-up… (e.g. why not u = x?)"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}

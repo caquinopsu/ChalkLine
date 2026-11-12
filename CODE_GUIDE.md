@@ -168,9 +168,19 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
 - `fill()` (in `Session.tsx`) draws the summary at 30 px, measures it, and scales the font so the
   lines fill the left half and the answer fills the right half.
 
+### Design pass 5: the notebook look
+- **Light page, dark board:** the `@theme` tokens in `globals.css` are the paper palette (cream page,
+  ink text, oak `--color-wood`). `--color-white` is set to the ink color, so every `white/10` border
+  in the code becomes a faint ink line on the light page.
+- **Chalk tokens on the board:** `.board-surface, .mode-card` redefine `--color-text`, `--color-gold`,
+  etc. CSS variables inherit, so everything inside the board automatically uses bright chalk colors.
+- **Fonts:** `app/layout.tsx` loads DM Sans (all text) and JetBrains Mono. `.font-hand` keeps its old
+  sizes with `font-size-adjust` (matches lowercase letter height). Board variables are KaTeX_Math italic.
+- **If colors don't change in dev:** Turbopack can keep old CSS in `.next`; stop the server, delete
+  `.next`, start again.
+
 ### Design pass 4: the dock, the summary, the library
-- **Handwritten labels:** `.eyebrow` (globals.css) is now Patrick Hand, lowercase, so the labels in the
-  dock look like the board's own notes. Code can still write them in capitals.
+- **Labels:** `.eyebrow` (globals.css) shows labels in lowercase DM Sans. Code can still write them in capitals.
 - **Task line:** every package has `task` ("Find the antiderivative."); the board writes it in gold
   before the problem. Older packages fall back to `guessTask()` (`lib/task.ts`).
 - **Walkthrough dock** = `WhyCard` (the explanation, always open, with a follow-up box) +
@@ -233,7 +243,7 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **clip-path:** shows only part of an element (used for the board unrolling from the rail).
 - **FLIP animation:** First (old position), Last (new position), Invert (jump back with a transform), Play (animate to none). How lines glide between steps.
 - **`overflow-x: clip`:** cuts off only the sides of a box, so tall math (fractions, integrals) is never cut at the top or bottom.
-- **Board font:** `--font-chalk` in `globals.css` (Patrick Hand) replaces KaTeX's letters and digits on the board; KaTeX keeps its own big symbols (∫, Σ, brackets).
+- **Board font:** the board's math uses KaTeX's own textbook fonts, with variables in italic (`.katex .mathnormal` in `globals.css`).
 - **Responsive design / breakpoints:** one page that rearranges itself by screen width (`md:` = 768 px and up).
 - **Rate limit / HTTP 429:** a cap on requests per visitor; 429 is the standard "too many requests" status.
 - **Promise cache:** remembering an unfinished request, so asking twice for the same thing waits for one answer.
