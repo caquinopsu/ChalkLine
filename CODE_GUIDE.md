@@ -216,6 +216,7 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **Responsive design / breakpoints:** one page that rearranges itself by screen width (`md:` = 768 px and up).
 - **Rate limit / HTTP 429:** a cap on requests per visitor; 429 is the standard "too many requests" status.
 - **Promise cache:** remembering an unfinished request, so asking twice for the same thing waits for one answer.
+- **mathify:** a small text scanner (in `Tex.tsx`) that spots math written as words ("u = ln x") and wraps it in $...$ so KaTeX draws it.
 - **KaTeX / LaTeX:** LaTeX is a text language for math (`\frac{x^2}{2}`), and KaTeX draws it.
   `\htmlClass{role-a}{u}` adds a CSS class, which is how parts get their blue/gold/teal colors.
 

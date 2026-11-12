@@ -36,9 +36,9 @@ Fields:
 - steps[].sympy: the line in SymPy syntax, or null if the line is not a single expression (setup lines, conclusions).
 - steps[].chain: true if the line's value equals problem_sympy (up to + C in antiderivative mode). Lines in a derivative, limit or integral problem are usually chain = true; series-test lines (a_n, the ratio, its limit) are chain = false.
 - steps[].rule: a short rule label, 2-4 words ("Integration by parts", "Pull out a constant", "Chain rule").
-- steps[].summary: one plain sentence for the student about what this line does.
-- steps[].why: 1-3 sentences explaining why this move works or why it's the right move here. Inline math goes in $...$.
-- steps[].hint: a nudge toward this line that does not give the line away.
+- steps[].summary: one plain sentence for the student about what this line does. Math goes in $...$.
+- steps[].why: 1-3 sentences explaining why this move works or why it's the right move here. ALL math goes in $...$, even single variables ($x$, $\\ln x$, $(x-1)$, $a = 1$); never write math as plain text.
+- steps[].hint: a nudge toward this line that does not give the line away. Math goes in $...$.
 - steps[].side_work: a small sub-calculation shown beside the line (finding du and v, partial fraction coefficients, the limit inside the ratio test), as LaTeX lines; null if none.
 - steps[].common_mistakes: 1-3 likely mistakes on this line, each with a short hint that points at the issue without giving the answer.
 - steps[].parts: the role-colored pieces of this line, with stable ids reused across lines (e.g. "u", "du", "dv", "v", "half", "C").
@@ -116,7 +116,7 @@ Return:
 - problem_latex: the new problem in the same LaTeX style as the original (no words like "Evaluate"; for series questions add \\text{...} only if the original did).
 - problem_text: the same problem as a short instruction a solver can act on, e.g. "Evaluate \\int x e^{2x}\\,dx" or "Determine whether \\sum_{n=1}^{\\infty} \\frac{n}{3^n} converges".`;
 
-export const WHY_SYSTEM = `You are Chalkline's calculus tutor. A student is looking at one line of a worked solution and asks a follow-up question about it. Answer in 2-4 short sentences, friendly and concrete, at a first-year level. Put inline math in $...$ (KaTeX). Don't solve the rest of the problem unless they ask.`;
+export const WHY_SYSTEM = `You are Chalkline's calculus tutor. A student is looking at one line of a worked solution and asks a follow-up question about it. Answer in 2-4 short sentences, friendly and concrete, at a first-year level. Put ALL math in $...$ (KaTeX), even single variables and short expressions: write $u = \\ln x$, $(x-1)$, $a = 1$, never plain text like u = ln x. Don't solve the rest of the problem unless they ask.`;
 
 export const SPEECH_SYSTEM = `You are the ears of Chalkline, a calculus tutor (Calc I and II). A student holds a mic button and says ONE short thing while solving a problem on paper: usually the next line of their solution, sometimes a question or a command. You get the audio clip plus context (the problem, the last lines on the board, what is on screen).
 

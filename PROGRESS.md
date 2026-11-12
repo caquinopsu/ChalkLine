@@ -161,6 +161,15 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Follow-up: bigger demo problems (34 px chalk math, larger topic chips), bigger section labels and
   mode-card text, and sheets now animate out (fade + fold up, 0.22 s) instead of vanishing.
 
+## Design pass 3 ✅ (Nov 12, 2026)
+- Home screen never scrolls (the demo board shrinks on short screens; checked at 1366×768).
+- Pop-ups: round ✕ close button that turns on hover.
+- Tray: one rounded "dock" with three sections and a thin mode-colored line on top (phones keep cards).
+- Walkthrough: big ‹ › arrows on the board's left and right edges, ← → keys, and step dots under the
+  play button (click a dot to jump). Phones keep the arrows in the tray.
+- Math notation: `mathify()` in `components/Tex.tsx` typesets plain-text math the AI left outside
+  $...$ ("u = ln x", "(x-1)", "a = 1"); the prompts now ask for all math in $...$.
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.

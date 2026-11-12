@@ -24,13 +24,92 @@ export function Tex({ latex, display = false, className }: { latex: string; disp
 }
 
 // <RichText text="Pull out the $\frac12$ first." /> draws the words and the inline math.
+// Math the AI forgot to put in $...$ ("u = ln x", "(x-1)", "a = 1") is found and typeset too (mathify).
 export function RichText({ text, className }: { text: string; className?: string }) {
-  const pieces = text.split(/\$([^$]+)\$/g); // odd-numbered pieces are the math between $...$
+  const pieces = mathify(text).split(/\$([^$]+)\$/g); // odd-numbered pieces are the math between $...$
   return (
     <span className={className}>
       {pieces.map((piece, i) => (i % 2 === 1 ? <Tex key={i} latex={piece} /> : <span key={i}>{piece}</span>))}
     </span>
   );
+}
+
+// Function names and differentials that count as math when written as plain words.
+const FUNCS = new Set(["ln", "log", "sin", "cos", "tan", "sec", "csc", "cot", "arcsin", "arccos", "arctan", "lim", "exp", "dx", "du", "dv", "dy", "dt", "dθ"]);
+const VARS = new Set(["x", "u", "v", "y", "t", "n", "k", "C", "f", "g", "e"]); // single letters that are math on their own
+const OPS = /[=+\-−*/^·<>≤≥]/; // operator characters
+
+// Is this one word math? Only digits, operators, brackets and letters, where every run of letters is a
+// single letter or a known function ("x^2", "(x-1)", "ln", "2x" yes; "is", "first-year" no).
+function mathWord(w: string): boolean {
+  if (!/^[()[\]0-9a-zA-Zθπ=+\-−*/^·.<>≤≥|′']+$/.test(w)) return false;
+  const runs = w.match(/[a-zA-Zθ]+/g) ?? [];
+  return runs.every((r) => r.length === 1 || FUNCS.has(r));
+}
+
+// Wraps plain-text math in $...$ so it gets typeset. Text already inside $...$ is left alone.
+// A group of math words is only converted when it clearly is math: it has an operator, a function
+// name, or is a lone variable like "x" or "u". English words like "a" and "I" only count next to an operator.
+export function mathify(text: string): string {
+  return text
+    .split(/(\$[^$]+\$)/g)
+    .map((part) => (part.startsWith("$") ? part : mathifyPlain(part)))
+    .join("");
+}
+function mathifyPlain(text: string): string {
+  const tokens = text.split(/(\s+)/); // words and the spaces between them
+  const out: string[] = [];
+  let group: string[] = []; // consecutive math words (with their spaces)
+  const flush = () => {
+    if (!group.length) return;
+    // keep trailing spaces outside the math
+    let tail = "";
+    while (group.length && /^\s+$/.test(group[group.length - 1])) tail = group.pop() + tail;
+    const raw = group.join("");
+    const words = group.filter((g) => !/^\s+$/.test(g));
+    const isMath =
+      OPS.test(raw) || words.some((w) => (w.match(/[a-zA-Zθ]+/g) ?? []).some((r) => FUNCS.has(r))) ||
+      (words.length === 1 && VARS.has(words[0])) || /\d[a-zA-Z]|[a-zA-Z]\d/.test(raw);
+    out.push(isMath ? `$${toLatex(raw)}$` : raw, tail);
+    group = [];
+  };
+  for (let i = 0; i < tokens.length; i++) {
+    const tok = tokens[i];
+    if (/^\s+$/.test(tok)) {
+      (group.length ? group : out).push(tok);
+      continue;
+    }
+    // split off punctuation at the ends ("x," "(x-1)." ) so it stays text
+    const m = tok.match(/^(.*?)([.,;:!?"”’]*)$/)!;
+    let word = m[1];
+    const punct = m[2];
+    let lead = "";
+    if (/^[“"]/.test(word)) { lead = word[0]; word = word.slice(1); }
+    const englishLetter = /^(a|A|I)$/.test(word); // "a", "A", "I" are math only beside an operator
+    const nextWord = tokens.slice(i + 1).find((t) => !/^\s+$/.test(t)) ?? "";
+    const prevWord = [...group].reverse().find((t) => !/^\s+$/.test(t)) ?? "";
+    const nearOp = OPS.test(nextWord.slice(0, 1)) || OPS.test(prevWord.slice(-1));
+    if (word && !lead && mathWord(word) && (!englishLetter || nearOp)) {
+      group.push(word);
+      if (punct) { flush(); out.push(punct); }
+    } else {
+      flush();
+      out.push(tok);
+    }
+  }
+  flush();
+  return out.join("");
+}
+
+// Plain math -> LaTeX: function names get a backslash, * and · become a centered dot, ^10 gets braces.
+function toLatex(raw: string): string {
+  return raw
+    .replace(/−/g, "-")
+    .replace(/\b(arcsin|arccos|arctan|ln|log|sin|cos|tan|sec|csc|cot|lim|exp)\b/g, "\\$1 ")
+    .replace(/[*·]/g, "\\cdot ")
+    .replace(/≤/g, "\\le ").replace(/≥/g, "\\ge ")
+    .replace(/\^(\d{2,}|[a-zA-Z]{2,})/g, "^{$1}")
+    .replace(/\bd([xuvyt])\b/g, "\\,d$1");
 }
 
 // Removes the color markup: \htmlClass{role-a}{u} -> u (repeats for nested markup).

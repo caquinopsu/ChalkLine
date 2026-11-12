@@ -40,11 +40,12 @@ type Props = {
   speaking?: boolean; // the tutor is talking: the colored parts glow while it speaks
   children?: ReactNode; // anything extra (e.g. the finish layout)
   firstNumber?: number; // the step number of lines[0] (the home-screen demo passes only the last line)
+  nav?: { prev?: () => void; next?: () => void }; // Walkthrough: big ‹ › arrows on the board's edges (laptops)
 };
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1 }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1, nav }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find lines to glide
   const spots = useRef(new Map<string, DOMRect>()); // where each step's line was drawn last time
@@ -131,6 +132,13 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
             {ghost && <span className="truncate pl-12 font-hand text-2xl text-[rgba(236,232,221,.38)] md:text-[32px]">{ghost}</span>}
           </div>
         )}
+        {/* Step arrows on the board's edges: big, easy targets right next to the math */}
+        {nav && (
+          <>
+            <EdgeArrow side="left" onClick={nav.prev} />
+            <EdgeArrow side="right" onClick={nav.next} />
+          </>
+        )}
         {overlay}
       </div>
       {/* The chalk ledge with a few decorative chalk sticks */}
@@ -141,6 +149,22 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
       </div>
       </div>
     </div>
+  );
+}
+
+// A round arrow button on the left or right edge of the board (hidden when there's nowhere to go).
+function EdgeArrow({ side, onClick }: { side: "left" | "right"; onClick?: () => void }) {
+  return (
+    <button
+      aria-label={side === "left" ? "Previous step" : "Next step"}
+      disabled={!onClick}
+      onClick={onClick}
+      className={`absolute top-1/2 z-10 hidden h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[rgba(17,20,25,.55)] text-3xl text-chalk backdrop-blur transition hover:scale-110 hover:border-gold/60 hover:text-gold disabled:pointer-events-none disabled:opacity-0 md:flex ${
+        side === "left" ? "-left-10" : "-right-10"
+      }`}
+    >
+      <span aria-hidden className="-mt-1">{side === "left" ? "‹" : "›"}</span>
+    </button>
   );
 }
 

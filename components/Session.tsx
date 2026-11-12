@@ -148,6 +148,20 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  // Walkthrough: one step back / forward (the board arrows, the phone arrows and the ← → keys).
+  function prevStep() { setPlaying(false); setView((v) => Math.max(1, v - 1)); }
+  function nextStep() { setPlaying(false); setView((v) => Math.min(total, v + 1)); }
+  useEffect(() => {
+    if (mode !== "walkthrough") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|MATH-FIELD)$/.test(e.target.tagName)) return; // typing, not navigating
+      if (e.key === "ArrowLeft") prevStep();
+      if (e.key === "ArrowRight") nextStep();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   // ---- Mode switching (the header chip) ----
   function goWalkthrough() {
     setView(Math.max(1, Math.min(total, expected))); // show the reference up to where they are
@@ -501,6 +515,8 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     : mode === "practice" ? "text-[#FF9AA3] bg-pink/15"
     : mode === "voice" ? "text-[#14181D] bg-gold" // Think-aloud: solid gold
     : "text-teal bg-teal/15";
+  const dockLine = // thin colored line on top of the tray: blue / pink / gold / teal like the mode chip
+    mode === "walkthrough" ? "bg-blue/70" : mode === "practice" ? "bg-pink/70" : mode === "voice" ? "bg-gold" : "bg-teal/70";
   const elapsed = voiceStart ? Math.max(0, Math.floor((now - voiceStart) / 1000)) : 0; // Think-aloud timer, in seconds
   const timer = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
 
@@ -600,6 +616,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           current={current}
           ghost={ghost}
           speaking={reading || voice.phase === "speaking"} // colored parts glow while the tutor talks
+          nav={pkg && mode === "walkthrough" ? { prev: view > 1 ? prevStep : undefined, next: view < total ? nextStep : undefined } : undefined}
           overlay={pkg && overlay ? <OverlayPanel pkg={pkg} overlay={overlay} onClose={() => setOverlay(null)} /> : null}
         >
           {!pkg ? (
@@ -631,11 +648,13 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       {/* Tray: three cards, contents depend on the mode */}
       {/* Phones: the three cards become a swipeable strip with tabs above it (DESIGN.md: bottom sheet). */}
       <TrayTabs tray={tray} />
+      {/* Laptops: one rounded "dock" split into three sections, with a thin mode-colored line on top. */}
       <section
         ref={tray}
         aria-label="Tray"
-        className="tray tray-in flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:grid md:h-[250px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-10 md:pb-5 md:pt-4"
+        className="tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] md:grid-cols-[1.15fr_1fr_1fr] md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(0,0,0,.35)]"
       >
+        <span aria-hidden className={`absolute inset-x-0 top-0 hidden h-[3px] md:block ${dockLine}`} />
         {pkg && mode === "walkthrough" && (
           <>
             <Card>
@@ -649,11 +668,23 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
             </Card>
             <Card center>
               <div className="flex items-center gap-3.5">
-                <RoundButton label="Previous step" disabled={view <= 1} onClick={() => { setPlaying(false); setView((v) => Math.max(1, v - 1)); }}>‹</RoundButton>
+                {/* phones only: on a laptop the arrows sit on the board's edges */}
+                <span className="md:hidden"><RoundButton label="Previous step" disabled={view <= 1} onClick={prevStep}>‹</RoundButton></span>
                 <RoundButton big label={playing ? "Pause autoplay" : "Autoplay"} disabled={view >= total} onClick={() => setPlaying((p) => !p)}>
                   {playing ? "❚❚" : "▶"}
                 </RoundButton>
-                <RoundButton label="Next step" disabled={view >= total} onClick={() => { setPlaying(false); setView((v) => Math.min(total, v + 1)); }}>›</RoundButton>
+                <span className="md:hidden"><RoundButton label="Next step" disabled={view >= total} onClick={nextStep}>›</RoundButton></span>
+              </div>
+              {/* one dot per step: the current one is a wide gold pill; click a dot to jump there */}
+              <div className="flex items-center gap-1.5" aria-label="Steps">
+                {steps.map((_, i) => (
+                  <button
+                    key={i}
+                    aria-label={`Go to step ${i + 1}`}
+                    onClick={() => { setPlaying(false); setView(i + 1); }}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${i + 1 === view ? "w-7 bg-gold" : i + 1 < view ? "w-2.5 bg-gold/45 hover:bg-gold/70" : "w-2.5 bg-white/15 hover:bg-white/30"}`}
+                  />
+                ))}
               </div>
               <label className="flex items-center gap-2 text-sm text-muted">
                 Read aloud
@@ -1041,7 +1072,8 @@ function TrayTabs({ tray }: { tray: React.RefObject<HTMLElement | null> }) {
 
 function Card({ children, center = false }: { children: ReactNode; center?: boolean }) {
   return (
-    <div className={`flex min-h-0 w-[88%] shrink-0 snap-center flex-col gap-2 overflow-hidden rounded-2xl border border-white/[.09] bg-panel px-4 py-3 md:w-auto md:px-5 md:py-4 ${center ? "items-center justify-center gap-3.5" : ""}`}>
+    // Phones: a separate rounded card. Laptops: a section of the dock, divided by a thin line.
+    <div className={`flex min-h-0 w-[88%] shrink-0 snap-center flex-col gap-2 overflow-hidden rounded-2xl border border-white/[.09] bg-panel px-4 py-3 md:w-auto md:rounded-none md:border-0 md:border-l md:bg-transparent md:px-7 md:py-6 md:first:border-l-0 ${center ? "items-center justify-center gap-3.5" : ""}`}>
       {children}
     </div>
   );

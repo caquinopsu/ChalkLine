@@ -42,7 +42,7 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
         <span className="hidden text-sm text-subtle md:block">Calculus I &amp; II · free · no sign-up</span>
       </header>
 
-      <main className="no-bar fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto px-4 pb-6 md:justify-start md:gap-7 md:pt-[2vh] 2xl:gap-9">
+      <main className="fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 pb-6 md:justify-start md:gap-7 md:pt-[2vh] 2xl:gap-9">
         {/* Laptop: a live chalkboard that solves a demo problem on its own (hidden on phones) */}
         <div className="hidden w-full max-w-[1040px] md:block 2xl:max-w-[1240px]" aria-hidden>
           <DemoBoard />
@@ -131,7 +131,16 @@ function Sheet({ title, icon, tint, onClose, children }: { title: string; icon: 
         <div className="flex items-center gap-4">
           <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${tint}`}>{icon}</span>
           <h2 className="flex-1 font-display text-2xl font-semibold md:text-[30px]">{title}</h2>
-          <button className="btn h-10" onClick={exit} aria-label="Close">✕ Close</button>
+          {/* round close button: the ✕ turns a quarter turn on hover */}
+          <button
+            onClick={exit}
+            aria-label="Close"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/15 bg-panel-2 text-muted transition duration-200 hover:rotate-90 hover:border-white/35 hover:bg-panel-3 hover:text-text"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
+              <path d="M3 3l10 10M13 3L3 13" />
+            </svg>
+          </button>
         </div>
         {children}
       </div>
@@ -271,7 +280,7 @@ function DemoBoard() {
     const t = setTimeout(() => setView((v) => (last ? 1 : v + 1)), last ? 4500 : 2600); // linger on the answer, then start over
     return () => clearTimeout(t);
   }, [pkg, view]);
-  const height = "h-[clamp(320px,38vh,470px)]";
+  const height = "h-[clamp(240px,33vh,460px)]"; // shrinks on short screens so the home page never scrolls
   if (!pkg) return <div className={height} />;
   const steps = pkg.steps;
   const last = view === steps.length;
