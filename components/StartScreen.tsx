@@ -29,14 +29,6 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
   const [panel, setPanel] = useState<Panel>("none");
   const close = () => setPanel("none");
 
-  // Esc closes the open sheet.
-  useEffect(() => {
-    if (panel === "none") return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setPanel("none");
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [panel]);
-
   return (
     <div className="relative isolate flex h-full flex-col overflow-hidden">
       <ChalkBackdrop />
@@ -112,20 +104,34 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
 
 // A large sheet centered over the page (the page behind blurs and dims; click outside or press Esc
 // to close). On phones it fills the screen (see ".sheet" in globals.css).
+// Closing plays a short exit animation first (fold up + fade), then really closes.
 function Sheet({ title, icon, tint, onClose, children }: { title: string; icon: ReactNode; tint: string; onClose: () => void; children: ReactNode }) {
+  const [leaving, setLeaving] = useState(false); // true while the exit animation plays
+  const exit = () => {
+    if (leaving) return;
+    setLeaving(true);
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setTimeout(onClose, calm ? 0 : 220); // wait for the animation (0.22 s) before removing it
+  };
+  // Esc closes the sheet.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && exit();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
   return (
-    <div className="fixed inset-0 z-40 flex items-center justify-center bg-[rgba(10,12,15,.6)] p-4 backdrop-blur-[6px] fade-in" onClick={onClose}>
+    <div className={`fixed inset-0 z-40 flex items-center justify-center bg-[rgba(10,12,15,.6)] p-4 backdrop-blur-[6px] ${leaving ? "fade-out" : "fade-in"}`} onClick={exit}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="sheet no-bar flex max-h-[90vh] w-[min(1080px,94vw)] flex-col gap-6 overflow-y-auto rounded-[28px] border border-white/10 bg-panel p-6 shadow-[0_30px_80px_rgba(0,0,0,.6)] md:p-9"
+        className={`sheet ${leaving ? "sheet-out" : ""} no-bar flex max-h-[90vh] w-[min(1080px,94vw)] flex-col gap-6 overflow-y-auto rounded-[28px] border border-white/10 bg-panel p-6 shadow-[0_30px_80px_rgba(0,0,0,.6)] md:p-9`}
         onClick={(e) => e.stopPropagation()} // clicks inside don't close it
       >
         <div className="flex items-center gap-4">
           <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${tint}`}>{icon}</span>
           <h2 className="flex-1 font-display text-2xl font-semibold md:text-[30px]">{title}</h2>
-          <button className="btn h-10" onClick={onClose} aria-label="Close">✕ Close</button>
+          <button className="btn h-10" onClick={exit} aria-label="Close">✕ Close</button>
         </div>
         {children}
       </div>
@@ -227,7 +233,7 @@ function ModeCards({ disabled, onPick, hint, modes = ["walkthrough", "practice",
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <span className="eyebrow text-subtle">{hint}</span>
+      <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">{hint}</span>
       <div className={`grid grid-cols-2 gap-3 ${modes.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
         {MODES.filter((m) => modes.includes(m.mode)).map((m) => {
           const tone = TONE[m.tone];
@@ -239,8 +245,8 @@ function ModeCards({ disabled, onPick, hint, modes = ["walkthrough", "practice",
               className={`group flex min-h-[132px] flex-col items-start gap-2 rounded-2xl border border-white/10 bg-panel-2 p-4 text-left transition duration-200 enabled:hover:-translate-y-1 enabled:hover:bg-panel-3 disabled:cursor-not-allowed disabled:opacity-40 ${disabled ? "" : tone.hover}`}
             >
               <span className={`flex h-11 w-11 items-center justify-center rounded-full text-lg transition group-enabled:group-hover:scale-110 ${tone.icon}`}>{m.icon}</span>
-              <span className="text-lg font-semibold">{m.title}</span>
-              <span className="text-sm leading-snug text-muted">{m.desc}</span>
+              <span className="text-xl font-semibold">{m.title}</span>
+              <span className="text-[15px] leading-snug text-muted">{m.desc}</span>
               <span className={`mt-auto text-sm font-semibold opacity-0 transition group-enabled:group-hover:opacity-100 ${tone.text}`}>Start →</span>
             </button>
           );
@@ -378,7 +384,7 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
           )}
           <span aria-hidden className="hidden text-3xl text-subtle md:block">⇢</span>
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="eyebrow text-subtle">WE READ THIS AS</span>
+            <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">WE READ THIS AS</span>
             {status === "reading" && <span className="font-hand text-3xl text-muted">reading your photo…</span>}
             {status === "error" && <span className="text-base text-pink">{message}</span>}
             {status === "read" && !editing && (
@@ -432,7 +438,7 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
     <>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <span className="eyebrow text-subtle">TYPE THE PROBLEM</span>
+          <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">TYPE THE PROBLEM</span>
           <MathInput ref={input} onChange={setLatex} ariaLabel="Type the problem" placeholder="\int x\ln x\,dx" />
           <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Math keys">
             {KEYS_PROBLEM.map((k) => (
@@ -443,7 +449,7 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <span className="eyebrow text-subtle">PREVIEW</span>
+          <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">PREVIEW</span>
           <div className="board-surface flex min-h-[140px] flex-1 items-center justify-center rounded-2xl px-5 text-3xl">
             {empty ? <span className="font-hand text-2xl text-muted">your problem appears here</span> : <Tex latex={latex} display />}
           </div>
@@ -460,22 +466,22 @@ function PracticePanel({ onStart }: { onStart: (choice: StartChoice) => void }) 
   return (
     <>
       <div className="flex flex-col gap-3">
-        <span className="eyebrow text-subtle">1 · PICK A PROBLEM</span>
+        <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">1 · PICK A PROBLEM</span>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
           {PRESETS.map((p) => (
             <button
               key={p.id}
               onClick={() => setSelected(p.id)}
               aria-pressed={selected === p.id}
-              className={`flex h-[128px] flex-col justify-between rounded-2xl border p-4 text-left transition duration-200 hover:-translate-y-0.5 ${
+              className={`flex h-[160px] flex-col justify-between rounded-2xl border p-5 text-left transition duration-200 hover:-translate-y-0.5 ${
                 selected === p.id ? "border-gold bg-panel-3 shadow-[0_0_0_1px_var(--color-gold),0_10px_30px_rgba(242,201,76,.15)]" : "border-white/10 bg-panel-2 hover:border-white/25 hover:bg-panel-3"
               }`}
             >
               <span className="flex w-full items-center justify-between">
-                <span className="rounded-full bg-blue/15 px-2.5 py-0.5 text-xs font-medium text-blue">{p.tag}</span>
-                {selected === p.id && <span className="text-gold">✓</span>}
+                <span className="rounded-full bg-blue/15 px-3.5 py-1 text-[15px] font-semibold text-blue">{p.tag}</span>
+                {selected === p.id && <span className="text-xl text-gold">✓</span>}
               </span>
-              <span className="chalk text-2xl"><Tex latex={p.latex} /></span>
+              <span className="chalk text-[34px] leading-none"><Tex latex={p.latex} /></span>
             </button>
           ))}
         </div>
@@ -549,7 +555,7 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
           />
         </div>
         <div className="flex w-full min-w-0 flex-1 flex-col gap-2">
-          <span className="eyebrow text-subtle">{options ? "DID YOU MEAN…?" : "WE HEARD THIS AS"}</span>
+          <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">{options ? "DID YOU MEAN…?" : "WE HEARD THIS AS"}</span>
           {options ? (
             options.map((o, i) => (
               <button key={i} className="flex h-16 items-center justify-between rounded-2xl border border-blue/45 bg-blue/[.08] px-5 text-2xl hover:bg-blue/15" onClick={() => choose(o)}>

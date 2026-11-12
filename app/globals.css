@@ -196,6 +196,11 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
 /* Home-screen sheets: the dim backdrop fades in (the sheet itself unfolds, see .sheet). */
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 .fade-in { animation: fade-in 0.2s ease-out both; }
+/* ...and on close: the backdrop fades out while the sheet folds back up toward where it came from. */
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+.fade-out { animation: fade-out 0.22s ease-in both; }
+@keyframes fold-up { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-12px) scale(0.96); } }
+.sheet.sheet-out { animation: fold-up 0.22s ease-in both; }
 /* Floating chalk doodles in the home-screen background: faint, slowly bobbing and tilting. */
 @keyframes doodle { 0%, 100% { transform: translateY(0) rotate(var(--rot)); } 50% { transform: translateY(-14px) rotate(calc(var(--rot) * -0.6)); } }
 .doodle { opacity: 0.12; animation: doodle 12s ease-in-out infinite; }

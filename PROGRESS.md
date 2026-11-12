@@ -158,6 +158,8 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - **Background design:** faint chalk math (∫ f(x) dx, d/dx, Σ 1/n², π, ∞…) floating slowly in the
   margins, two soft colored lights, and a gold glow behind the title. Bigger sizes on very wide screens.
 - Checked at 1440×900 and 375×812. No AI calls.
+- Follow-up: bigger demo problems (34 px chalk math, larger topic chips), bigger section labels and
+  mode-card text, and sheets now animate out (fade + fold up, 0.22 s) instead of vanishing.
 
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
