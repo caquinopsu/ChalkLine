@@ -79,7 +79,8 @@ function CheckedLines({ result }: { result: WorkResult }) {
               <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-pink font-mono text-[14px] font-semibold text-[#14181D]">{i + 1}</span>
               <FitTex latex={ringed} size={size + 6} min={16} grow={false} />
               {result.fixLatex && (
-                <span className="flex min-w-0 flex-1 items-center gap-3 text-teal">
+                // "ink-late": the fix writes in after the ring has drawn (ring, then arrow + fix)
+                <span className="ink ink-late flex min-w-0 flex-1 items-center gap-3 text-teal">
                   <span aria-hidden className="text-3xl">→</span>
                   <FitTex latex={result.fixLatex} size={size + 2} min={14} />
                 </span>

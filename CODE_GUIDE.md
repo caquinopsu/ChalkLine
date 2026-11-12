@@ -141,6 +141,19 @@ state and the same `/api/check-step` as typing.
 5. **Read aloud** in Walkthrough reads each step with the same voice, with no AI calls; autoplay
    waits for each step to be read.
 
+### How the board animates (Phase 4)
+Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globals.css`.
+1. **Ink reveal:** the current line has the CSS class `ink`, a clip-path wipe from left to right. The
+   line is keyed by its step number, so it re-inks only when a new step arrives, not while typing.
+2. **Carry-over slide:** when the board gets exactly one more finished line, `slidePart()` copies
+   each colored part (`.role-a`, `.role-b`, `.role-c`) of that line, places the copy on top of the
+   page, and animates it to the matching part in the new line, then removes it.
+3. **Shrink-on-arrival:** each older line remembers its last size; when it gets smaller it plays a
+   quick scale animation from the old size.
+4. **Marks:** the ✓ path has `pathLength=1`, so the CSS can "draw" it; the pink ring is a `::after`
+   outline that wipes on; a wrong line shakes.
+5. `prefers-reduced-motion` turns it all off.
+
 ### How a photo becomes a problem
 Upload → shrink to 1568 px → `/api/read-photo` → "We read this as". At that moment
 `getPackage()` (`lib/packages.ts`) already starts the pre-solve in the background, so by the time you
@@ -171,6 +184,10 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **speechSynthesis:** the browser's built-in text-to-speech voice; free and offline.
 - **Pointer events:** one set of events for mouse, touch and pen (`onPointerDown` / `onPointerUp`), used for hold-to-talk.
 - **Base64 / data URL:** a way to write a file (like a photo) as plain text, so it can travel inside JSON.
+- **CSS animation / @keyframes:** a named list of looks over time (e.g. hidden → shown) the browser plays on an element.
+- **Web Animations API (`element.animate`):** the same thing started from JavaScript, used when the motion depends on measured positions.
+- **`useLayoutEffect`:** like an effect, but runs right after the page updates and before it's painted, so we can measure and animate without a flicker.
+- **clip-path:** shows only part of an element (we grow the visible part left to right for the chalk "ink").
 - **Promise cache:** remembering an unfinished request, so asking twice for the same thing waits for one answer.
 - **KaTeX / LaTeX:** LaTeX is a text language for math (`\frac{x^2}{2}`), and KaTeX draws it.
   `\htmlClass{role-a}{u}` adds a CSS class, which is how parts get their blue/gold/teal colors.

@@ -2,8 +2,17 @@
 
 // The chalkboard (DESIGN.md section 6): problem on top, then a step stack where only the
 // current line is big. Older lines shrink and dim, and anything older folds into one pill.
+// Phase 4 adds the motion (DESIGN.md section 10): new lines ink in, older lines shrink smoothly,
+// colored parts slide from the previous line into the new one, ✓ marks draw on, wrong parts shake.
 import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Tex } from "./Tex";
+
+// true if the visitor asked their system for less motion (then we skip the JavaScript animations;
+// the CSS ones are switched off in globals.css).
+const calm = () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+// The colored part classes the AI uses (\htmlClass{role-a}{...}); matched parts slide between lines.
+const ROLES = ["role-a", "role-b", "role-c"];
 
 // One finished line on the board.
 export type BoardLine = {
@@ -19,6 +28,7 @@ export type CurrentLine = {
   placeholder?: string; // Caveat text when empty, e.g. "type step 4 below"
   note?: ReactNode; // short Caveat note beside it (hint "?" or "writing…")
   fixLatex?: string | null; // the corrected line, written in teal beside it
+  tag?: string; // a small rule label pointing at the line ("Chain rule")
 };
 
 type Props = {
@@ -28,13 +38,29 @@ type Props = {
   current: CurrentLine | null;
   ghost?: string | null; // faint Caveat line under the current one ("next: ...")
   overlay?: ReactNode; // the Why? / Side work panel, drawn over the right third
+  speaking?: boolean; // the tutor is talking: the colored parts glow while it speaks
   children?: ReactNode; // anything extra (e.g. the finish layout)
 };
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, overlay, children }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
+  const stack = useRef<HTMLDivElement>(null); // the step stack, to find parts to slide
+  const prevCount = useRef(lines.length); // how many finished lines there were last time
+
+  // Carry-over slide: when a step is finished (one more line), each colored part of the line that
+  // just moved up flies down to the same-colored part of the new current line.
+  useLayoutEffect(() => {
+    const grew = lines.length === prevCount.current + 1; // exactly one new finished line (not typing, not a reset)
+    prevCount.current = lines.length;
+    if (!grew || !current || !stack.current || calm()) return;
+    const rows = stack.current.querySelectorAll("[data-row]");
+    const from = rows[rows.length - 1]; // the line that just finished
+    const to = stack.current.querySelector("[data-current]");
+    if (!from || !to) return;
+    for (const role of ROLES) slidePart(from.querySelector(`.${role}`), to.querySelector(`.${role}`));
+  }, [lines.length, current]);
   // When there's a current line, show the last 2 finished lines; otherwise the last 3.
   const keep = current ? 2 : 3;
   const hidden = lines.length > keep ? lines.slice(0, lines.length - keep) : []; // folded into the pill
@@ -54,7 +80,7 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, ch
         </div>
 
         {children ?? (
-          <div className="flex min-h-0 flex-1 flex-col justify-center gap-5 pb-4">
+          <div ref={stack} className={`flex min-h-0 flex-1 flex-col justify-center gap-5 pb-4 ${speaking ? "board-speaking" : ""}`}>
             {hidden.length > 0 && (
               <div className="relative">
                 <button
@@ -79,7 +105,8 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, ch
             {visible.map((l, i) => (
               <Row key={hidden.length + i} n={hidden.length + i + 1} line={l} size={sizes[i + offset]} opacity={opacity[i + offset]} />
             ))}
-            {current && <Current line={current} />}
+            {/* key = step number, so a new step mounts fresh and inks in (typing doesn't re-ink) */}
+            {current && <Current key={current.number} line={current} />}
             {ghost && <span className="pl-10 font-hand text-[26px] text-[rgba(236,232,221,.35)]">{ghost}</span>}
           </div>
         )}
@@ -97,8 +124,20 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, ch
 
 // An older (finished) line: number, math, mark.
 function Row({ n, line, size, opacity }: { n: number; line: BoardLine; size: number; opacity: number }) {
+  const el = useRef<HTMLDivElement>(null);
+  const prevSize = useRef(size); // the size this line had before
+  // Shrink-on-arrival: when the line gets smaller, ease it from its old size instead of jumping.
+  useLayoutEffect(() => {
+    const before = prevSize.current;
+    prevSize.current = size;
+    if (before === size || !el.current || calm()) return;
+    el.current.animate(
+      [{ transform: `scale(${before / size})` }, { transform: "scale(1)" }],
+      { duration: 400, easing: "cubic-bezier(.2,.7,.2,1)" },
+    );
+  }, [size]);
   return (
-    <div className="flex min-w-0 items-center gap-4" style={{ opacity }}>
+    <div ref={el} data-row className="flex min-w-0 origin-left items-center gap-4 transition-opacity duration-400" style={{ opacity }}>
       <span className="w-[22px] shrink-0 font-mono text-[13px] text-muted">{n}</span>
       <FitTex latex={line.latex} size={size} min={16} grow={false} />
       <Mark mark={line.mark} size={size} />
@@ -108,25 +147,67 @@ function Row({ n, line, size, opacity }: { n: number; line: BoardLine; size: num
 
 // The current (big) line, in its tinted block with a numbered badge.
 function Current({ line }: { line: CurrentLine }) {
+  const el = useRef<HTMLDivElement>(null);
+  const wrong = line.latex.includes("part-error"); // a pink ring is showing on this line
+  // Gentle shake when a ring appears (or moves to a new wrong attempt).
+  useLayoutEffect(() => {
+    if (!wrong || !el.current || calm()) return;
+    el.current.animate(
+      [{ transform: "translateX(0)" }, { transform: "translateX(-7px)" }, { transform: "translateX(6px)" }, { transform: "translateX(-3px)" }, { transform: "translateX(0)" }],
+      { duration: 380, easing: "ease-in-out" },
+    );
+  }, [wrong, line.latex]);
   return (
-    <div className="-ml-6 flex min-w-0 items-center gap-5 rounded-[14px] bg-white/[.04] px-6 py-4 shadow-[inset_0_0_0_1.5px_rgba(236,232,221,.10)]">
+    <div ref={el} data-current className="-ml-6 flex min-w-0 items-center gap-5 rounded-[14px] bg-white/[.04] px-6 py-4 shadow-[inset_0_0_0_1.5px_rgba(236,232,221,.10)]">
       <span className={`flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full font-mono text-[15px] font-semibold text-[#14181D] ${BADGE[line.badge]}`}>
         {line.number}
       </span>
       {line.latex ? (
-        <FitTex latex={line.latex} size={48} min={26} />
+        // "ink" = the left-to-right chalk reveal, played once when this step appears
+        <span className="ink flex min-w-0 flex-1"><FitTex latex={line.latex} size={48} min={26} /></span>
       ) : (
         <span className="font-hand text-3xl text-[rgba(236,232,221,.4)]">{line.placeholder}</span>
       )}
       {line.fixLatex && (
-        <span className="flex min-w-0 items-center gap-3 text-teal">
+        <span className="ink flex min-w-0 items-center gap-3 text-teal">
           <span aria-hidden className="text-3xl">→</span>
           <FitTex latex={line.fixLatex} size={34} min={18} />
         </span>
       )}
+      {/* Rule tag: a small handwritten label with a pointer, saying what this step did */}
+      {line.tag && !line.note && (
+        <span className="tag-in ml-auto shrink-0 font-hand text-[22px] text-gold">← {line.tag}</span>
+      )}
       {line.note && <span className="ml-auto shrink-0 font-hand text-[22px]">{line.note}</span>}
     </div>
   );
+}
+
+// Flies a copy of one colored part from its spot in the old line to its spot in the new line,
+// then shows the real one. (The copy lives on top of the page for ~0.7 s and is then removed.)
+function slidePart(from: Element | null, to: Element | null) {
+  if (!(from instanceof HTMLElement) || !(to instanceof HTMLElement)) return;
+  const a = from.getBoundingClientRect();
+  const b = to.getBoundingClientRect();
+  if (!a.width || !b.width) return;
+  const copy = document.createElement("span");
+  copy.className = "katex"; // so the copied math keeps KaTeX's fonts and spacing
+  copy.innerHTML = from.outerHTML;
+  Object.assign(copy.style, {
+    position: "fixed", left: `${a.left}px`, top: `${a.top}px`, margin: "0", zIndex: "50",
+    pointerEvents: "none", transformOrigin: "top left", whiteSpace: "nowrap",
+    fontSize: getComputedStyle(from).fontSize, color: "var(--color-chalk)",
+  });
+  document.body.appendChild(copy);
+  to.style.visibility = "hidden"; // the real part waits until the copy lands
+  const scale = b.height / a.height; // the new line is bigger
+  const run = copy.animate(
+    [{ transform: "translate(0,0) scale(1)" }, { transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${scale})` }],
+    { duration: 700, easing: "cubic-bezier(.45,0,.25,1)" },
+  );
+  const done = () => { copy.remove(); to.style.visibility = ""; };
+  run.onfinish = done;
+  run.oncancel = done;
 }
 
 // Math that shrinks (down to `min` px) instead of wrapping or overflowing (DESIGN.md "shrink-to-fit").
@@ -166,7 +247,8 @@ export function Mark({ mark, size }: { mark: BoardLine["mark"]; size: number }) 
     return (
       <span className="flex shrink-0 items-center gap-2">
         <svg width={s} height={s * 0.8} viewBox="0 0 30 24" role="img" aria-label="Correct">
-          <path d="M3 13l8 7L27 3" stroke="#4FD1B5" strokeWidth="3.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+          {/* pathLength=1 lets the CSS "check-draw" animation draw the stroke on from start to end */}
+          <path className="check-draw" pathLength={1} d="M3 13l8 7L27 3" stroke="#4FD1B5" strokeWidth="3.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         {mark === "alternate" && <span className="font-hand text-lg text-teal">another way</span>}
       </span>

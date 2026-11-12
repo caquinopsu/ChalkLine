@@ -500,7 +500,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   let ghost: string | null = null;
   if (pkg && mode === "walkthrough") {
     lines = steps.slice(0, view - 1).map((s) => ({ latex: s.latex, mark: "none" }));
-    current = { latex: steps[view - 1].latex, number: view, badge: "gold" };
+    current = { latex: steps[view - 1].latex, number: view, badge: "gold", tag: steps[view - 1].rule }; // tag = rule label beside the line
     status = `step ${view} of ${total}`;
     ghost = view < total ? `next: ${steps[view].rule.toLowerCase()}` : "that's the answer";
   } else if (pkg && mode === "practice") {
@@ -588,6 +588,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           lines={lines}
           current={current}
           ghost={ghost}
+          speaking={reading || voice.phase === "speaking"} // colored parts glow while the tutor talks
           overlay={pkg && overlay ? <OverlayPanel pkg={pkg} overlay={overlay} onClose={() => setOverlay(null)} /> : null}
         >
           {!pkg ? (

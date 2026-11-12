@@ -77,8 +77,25 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
 - Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
+## Phase 4: Visual engine ✅ (Nov 12, 2026)
+All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works in every mode.
+- **Ink reveal:** each new step writes in left to right (0.6 s). Typing doesn't re-ink.
+- **Carry-over slide (part matching):** when a step finishes, each colored part (`role-a/b/c`) of
+  the line that just moved up flies into the same-colored part of the new line (e.g. by parts:
+  `ln x` and `x dx` slide into `x²/2 · ln x`). Works with the parts the pre-solve already colors.
+- **Shrink-on-arrival:** older lines ease down to their smaller size instead of jumping.
+- **Highlights:** colored parts glow once when a line arrives, and pulse while the tutor is speaking
+  (Read aloud, spoken hints, "why?").
+- **Rule tags:** in Walkthrough a gold Caveat label points at the line ("← Integration by parts").
+- **Marks:** ✓ draws on and pulses; the pink ring draws on around the wrong part and the line shakes;
+  in Check my work the teal fix writes in after the ring.
+- **Reduced motion:** all of it switches off when the system asks for less motion.
+- Checked in the browser on the by-parts preset (ink, slide, tag, ring). Skipped for time (could add
+  later): cancellation strike-throughs, side work folding in/out, word-by-word speech sync.
+
 ## Next
-Try the mic by hand with a real voice (Chrome, then Safari/iPhone). Then Phase 4, the visual engine.
+Phase 5 (judge-readiness): rate limiting, mobile layout, error states. Test Phase 3 by hand with a
+real voice (Chrome, then Safari/iPhone).
 
 ## Known issues
 - Think-aloud was tested with computer-generated speech, not a real human voice or mic yet; check
