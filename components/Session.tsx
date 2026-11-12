@@ -1,19 +1,23 @@
 "use client";
 
-// The session screen (DESIGN.md frames F, G, H, K): header + board + tray.
-// Holds all the state for Walkthrough (Mode A), Check my work (Mode B), Step practice (Mode C)
-// and the finish board.
+// The session screen (DESIGN.md frames F-K): header + board + tray.
+// Holds all the state for Walkthrough (Mode A), Check my work (Mode B), Step practice (Mode C),
+// Think-aloud (Mode D: Step practice by voice) and the finish board.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Board, Mark, type BoardLine, type CurrentLine } from "./Board";
 import { KEYS_PRACTICE, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex, ringError } from "./Tex";
 import { Logo } from "./Logo";
 import { WorkBoard } from "./WorkBoard";
+import { MicButton } from "./MicButton";
 import { logAttempt } from "@/lib/attempts";
 import { preparePhoto, readPhoto } from "@/lib/photo";
+import { hear, type Clip } from "@/lib/recorder";
+import { latexToWords, speak, speakable, stopSpeaking } from "@/lib/speak";
+import { useVoice } from "@/lib/useVoice";
 import type { CheckResult, SolutionPackage, Submission, WorkResult } from "@/lib/schemas";
 
-export type WorkMode = "walkthrough" | "practice" | "check"; // the modes you can pick
+export type WorkMode = "walkthrough" | "practice" | "check" | "voice"; // the modes you can pick ("voice" = Think-aloud)
 export type SessionMode = WorkMode | "finished";
 
 const MAX_LINES = 12; // longest solution Check my work accepts
@@ -69,18 +73,70 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   // "Give me a similar problem" state
   const [similar, setSimilar] = useState<{ state: "idle" | "loading" | "ready" | "error"; pkg?: SolutionPackage; error?: string }>({ state: "idle" });
 
+  // Think-aloud (Mode D) state. It shares all the Step practice state above (progress, attempt, result...).
+  const [heard, setHeard] = useState<string | null>(null); // the words of the last clip ("STEP n · HEARD")
+  const [options, setOptions] = useState<string[] | null>(null); // "Did you mean…?" readings, when the speech was ambiguous
+  const [tutor, setTutor] = useState<string | null>(null); // the tutor's last message (also spoken)
+  const [voiceStart, setVoiceStart] = useState<number | null>(() => (initialMode === "voice" ? Date.now() : null)); // when Think-aloud started (header timer)
+  const [now, setNow] = useState(() => Date.now()); // ticks once a second while the timer shows
+
+  // Walkthrough "Read aloud" state
+  const [readAloud, setReadAloud] = useState(false); // the toggle
+  const [readDone, setReadDone] = useState(0); // the last step number that finished being read
+  const readToken = useRef(0); // which reading is the latest (older ones finishing late are ignored)
+
   const steps = pkg?.steps ?? [];
   const total = steps.length;
+  const reading = readAloud && mode === "walkthrough" && readDone !== view; // is the current step still being read?
+  const voice = useVoice({ enabled: mode === "voice" && !!pkg, onClip: handleClip }); // push-to-talk, only in Think-aloud
 
   // Walkthrough autoplay: reveal the next step every 2.5 seconds until the end.
+  // With Read aloud on, it waits until the step has been read, then moves on a moment later.
   useEffect(() => {
     if (!playing || mode !== "walkthrough" || view >= total) return;
+    if (readAloud && reading) return; // still reading this step
     const timer = setTimeout(() => {
       setView(view + 1); // reveal the next step
       if (view + 1 >= total) setPlaying(false); // stop at the last step
-    }, 2500);
+    }, readAloud ? 900 : 2500);
     return () => clearTimeout(timer); // cancel if the user pauses or leaves
-  }, [playing, view, total, mode]);
+  }, [playing, view, total, mode, readAloud, reading]);
+
+  // Walkthrough "Read aloud": read each step when it appears (the browser voice; no AI calls).
+  useEffect(() => {
+    if (!readAloud || mode !== "walkthrough" || !pkg) return;
+    const step = pkg.steps[view - 1];
+    if (!step) return;
+    const token = ++readToken.current; // this reading's number
+    speak(`Step ${view}. ${step.rule}. ${latexToWords(step.plain_latex)}. ${speakable(step.summary)}`).then(() => {
+      if (readToken.current === token) setReadDone(view); // only the latest reading counts
+    });
+  }, [readAloud, mode, view, pkg]);
+
+  // Stop talking when leaving a mode (each mode starts quiet). Solving by voice ends with a spoken cheer.
+  useEffect(() => {
+    stopSpeaking();
+    if (mode === "finished" && finishedFrom === "voice") speak("That's the answer. Nice work, you solved it out loud!");
+  }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps -- only when the mode changes
+
+  // Think-aloud header timer: tick once a second (the clock starts when Think-aloud is entered).
+  useEffect(() => {
+    if (mode !== "voice") return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [mode]);
+
+  // Keys 1 and 2 pick a "Did you mean…?" option.
+  useEffect(() => {
+    if (mode !== "voice" || !options) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLElement && /^(INPUT|TEXTAREA|MATH-FIELD)$/.test(e.target.tagName)) return;
+      const k = Number(e.key);
+      if (k >= 1 && k <= options.length) voiceCheck(options[k - 1]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   // ---- Mode switching (the header chip) ----
   function goWalkthrough() {
@@ -88,14 +144,15 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     setOverlay(null);
     setMode("walkthrough");
   }
-  function goPractice(fromStep: number) {
-    // Start Step practice with the tutor's first `fromStep` lines already on the board.
+  function goPractice(fromStep: number, target: "practice" | "voice" = "practice") {
+    // Start Step practice (or Think-aloud) with the tutor's first `fromStep` lines already on the board.
     setProgress(steps.slice(0, fromStep).map((s) => ({ latex: s.latex, sympy: s.sympy, mark: "none" })));
     setExpected(fromStep);
     resetStepState();
     setOverlay(null);
     setPlaying(false);
-    setMode(fromStep >= total ? "finished" : "practice");
+    if (target === "voice") setVoiceStart((t) => t ?? Date.now()); // start the Think-aloud clock
+    setMode(fromStep >= total ? "finished" : target);
   }
   function resetStepState() {
     setDraft("");
@@ -107,6 +164,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     setWrongLine(null);
     setShowFix(false);
     setCheckError(null);
+    setOptions(null);
   }
   function finish(from: WorkMode) {
     setFinishedFrom(from);
@@ -244,8 +302,11 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   }
 
   // ---- Step practice actions ----
-  async function checkThisStep() {
-    if (!pkg || !draft.trim() || checking) return;
+  // Checks one step. Typed steps use the input box; Think-aloud passes the spoken step in `spoken`.
+  // Returns the verdict (or null if the check failed), so Think-aloud can speak about it.
+  async function checkThisStep(spoken?: string): Promise<CheckResult | null> {
+    const latex = (spoken ?? draft).trim();
+    if (!pkg || !latex || checking) return null;
     setChecking(true);
     setCheckError(null);
     try {
@@ -256,7 +317,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           pkg,
           expectedIndex: expected,
           board: progress.map((l) => ({ latex: l.latex, sympy: l.sympy })),
-          studentLatex: draft,
+          studentLatex: latex,
           attempt,
         }),
       });
@@ -271,7 +332,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         stepId: steps[expected]?.id ?? null,
         correct: valid,
         hintUsed,
-        mode: "practice",
+        mode: mode === "voice" ? "voice" : "practice",
       });
       if (valid) {
         // Accept the line: it joins the board with a ✓ (or ⚠ if they needed help), and we move on.
@@ -283,17 +344,20 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         resetStepState();
         setResult(r); // keep the confirmation visible in the Focus card
         setExpected(Math.min(next, total));
-        if (r.finished || next >= total) finish("practice");
+        if (r.finished || next >= total) finish(mode === "voice" ? "voice" : "practice");
       } else {
         // Not accepted: ring the wrong piece, show the hint; after a second miss, show the fix.
         setResult(r);
-        setCheckedDraft(draft);
+        setDraft(latex); // (in Think-aloud the spoken line becomes the "draft")
+        setCheckedDraft(latex);
         setWrongLine(r.status === "incorrect" ? ringError(r.interpreted_latex, r.error_latex) : r.interpreted_latex);
         if (attempt >= 2) setShowFix(true);
         setAttempt((a) => a + 1);
       }
+      return r;
     } catch (err) {
       setCheckError(err instanceof Error ? err.message : "Couldn't check that step.");
+      return null;
     } finally {
       setChecking(false);
     }
@@ -310,17 +374,125 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     const step = steps[expected];
     if (!step) return;
     if (!hintUsed) setStats((s) => ({ ...s, hints: s.hints + 1 }));
-    logAttempt({ ts: Date.now(), problemId, skills: pkg!.techniques, stepId: step.id, correct: false, hintUsed: true, mode: "practice" });
+    logAttempt({ ts: Date.now(), problemId, skills: pkg!.techniques, stepId: step.id, correct: false, hintUsed: true, mode: mode === "voice" ? "voice" : "practice" });
     setProgress((p) => [...p, { latex: step.latex, sympy: step.sympy, mark: "hinted" }]);
     resetStepState();
-    if (expected + 1 >= total) finish("practice");
+    if (expected + 1 >= total) finish(mode === "voice" ? "voice" : "practice");
     else setExpected(expected + 1);
   }
 
+  // ---- Think-aloud (Mode D) ----
+  // The tutor says something: it's shown in the Tutor card and spoken; the mic shows "tutor".
+  async function say(text: string, shown?: string) {
+    setTutor(shown ?? text);
+    voice.setPhase("speaking");
+    await speak(speakable(text));
+    voice.setPhase((p) => (p === "speaking" ? "idle" : p)); // unless they already started talking again
+  }
+
+  // Checks a spoken step. Correct = a silent ✓; wrong = the hint is shown and spoken.
+  async function voiceCheck(latex: string) {
+    setOptions(null);
+    setDraft(latex); // show it on the board while it's checked
+    voice.setPhase("checking");
+    const r = await checkThisStep(latex);
+    if (!r) {
+      voice.fail("I couldn't check that step. Say it again, or type instead.");
+      return;
+    }
+    const valid = r.status === "correct" || r.status === "correct_alternate";
+    if (valid) {
+      setTutor(r.status === "correct_alternate" ? r.display_feedback : null); // quiet ✓ (another valid route gets a note)
+      voice.setPhase("idle"); // (finishing the problem is announced by the finish board)
+      return;
+    }
+    if (r.status === "unclear_input") {
+      say("Sorry, say that again?", r.display_feedback);
+      return;
+    }
+    // The Focus card shows the written feedback; the Tutor card shows (and says) the short spoken hint.
+    say(r.spoken_feedback || r.hint || r.display_feedback);
+  }
+
+  // One push-to-talk clip finished: find out what was said, then do it.
+  async function handleClip(clip: Clip) {
+    if (!pkg) return;
+    let h;
+    try {
+      h = await hear(clip, {
+        kind: "step",
+        problemLatex: pkg.problem_latex,
+        board: progress.slice(-2).map((l) => l.latex),
+        choices: options?.length ?? 0,
+        wrongStep: wrongLine !== null,
+      });
+    } catch (err) {
+      voice.fail(err instanceof Error ? err.message : "I couldn't hear that. Try again, or type instead.");
+      return;
+    }
+    setHeard(h.transcript || null);
+    const step = steps[expected];
+
+    if (h.intent === "step") {
+      if (!h.latex) {
+        say("I didn't catch any math there. Try saying your step again.");
+        return;
+      }
+      if (h.alternatives.length) {
+        // Ambiguous: show "Did you mean…?" and wait for a click, key 1/2, or "the first one".
+        setOptions([h.latex, ...h.alternatives].slice(0, 2));
+        setDraft(h.latex);
+        setTutor(null);
+        voice.setPhase("idle");
+        return;
+      }
+      await voiceCheck(h.latex);
+    } else if (h.intent === "choose") {
+      const pick = options?.[(h.choice ?? 0) - 1];
+      if (pick) await voiceCheck(pick);
+      else say("There's nothing to choose right now. Say your next step.");
+    } else if (h.intent === "why") {
+      voice.setPhase("checking");
+      const stepIndex = Math.min(expected, total - 1); // the step they're working on
+      try {
+        const res = await fetch("/api/why", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pkg, stepIndex, question: h.question || h.transcript }),
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+        say(data.answer);
+      } catch (err) {
+        voice.fail(err instanceof Error ? err.message : "I couldn't answer that right now. Try again.");
+      }
+    } else if (h.intent === "hint") {
+      if (!step) return;
+      revealHint();
+      say((wrongLine !== null && result?.hint) || step.hint);
+    } else if (h.intent === "show_fix") {
+      if (!step) return;
+      if (wrongLine !== null) {
+        setShowFix(true); // the teal fix appears beside the ring
+        say(`Here's the fix: ${latexToWords(step.plain_latex)}.`, "The fix is written in teal on the board. Say it back to keep going.");
+      } else {
+        showMeThisStep(); // nothing to fix yet: "Stuck? Show me this step"
+        say(`Here's step ${progress.length + 1}: ${latexToWords(step.plain_latex)}.`);
+      }
+    } else {
+      say("Sorry, I didn't catch that. Say your next step, or ask me why.", h.transcript ? `I heard “${h.transcript}”. Say your next step, or ask “why?”.` : undefined);
+    }
+  }
+
   // ---- What to draw ----
-  const chip = { walkthrough: "Walkthrough", practice: "Step practice", check: "Check my work", finished: "Solved" }[mode];
+  const chip = { walkthrough: "Walkthrough", practice: "Step practice", check: "Check my work", voice: "Think-aloud", finished: "Solved" }[mode];
   const chipColor =
-    mode === "walkthrough" ? "text-[#8FDCEE] bg-blue/15" : mode === "practice" ? "text-[#FF9AA3] bg-pink/15" : "text-teal bg-teal/15";
+    mode === "walkthrough" ? "text-[#8FDCEE] bg-blue/15"
+    : mode === "practice" ? "text-[#FF9AA3] bg-pink/15"
+    : mode === "voice" ? "text-[#14181D] bg-gold" // Think-aloud: solid gold
+    : "text-teal bg-teal/15";
+  const elapsed = voiceStart ? Math.max(0, Math.floor((now - voiceStart) / 1000)) : 0; // Think-aloud timer, in seconds
+  const timer = `${String(Math.floor(elapsed / 60)).padStart(2, "0")}:${String(elapsed % 60).padStart(2, "0")}`;
 
   let lines: BoardLine[] = [];
   let current: CurrentLine | null = null;
@@ -351,6 +523,33 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       fixLatex: wrongNow && showFix ? steps[expected]?.latex : null,
     };
     status = `your turn · step ${n}`;
+  } else if (pkg && mode === "voice") {
+    // Think-aloud: the same board as Step practice, but the line comes from your voice.
+    lines = progress;
+    const n = progress.length + 1;
+    const wrongNow = wrongLine !== null && draft === checkedDraft;
+    current = {
+      latex: wrongNow ? wrongLine! : draft,
+      number: n,
+      badge: voice.phase === "listening" || voice.phase === "writing" || options ? "blue" : "pink", // blue = listening
+      placeholder: voice.phase === "listening" ? "listening…" : `say step ${n}`,
+      note: options ? (
+        <span className="text-gold">which one? ↓</span>
+      ) : wrongNow && result ? (
+        <span className="flex items-center gap-2 text-gold">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-gold">?</span>
+          {result.status === "unclear_input" ? "say that again?" : "look here"}
+        </span>
+      ) : null,
+      fixLatex: wrongNow && showFix ? steps[expected]?.latex : null,
+    };
+    status =
+      voice.phase === "listening" ? `step ${n} · listening`
+      : voice.phase === "writing" ? `step ${n} · writing it down`
+      : voice.phase === "checking" ? `step ${n} · checking`
+      : wrongNow ? `step ${n} · take another look`
+      : `step ${n} · your turn`;
+    ghost = heard ? `“${heard}”` : null; // the words, under the line, so there's always text
   } else if (pkg && mode === "check") {
     const n = work.lines.length;
     status =
@@ -375,7 +574,8 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <header className="flex h-16 shrink-0 items-center justify-between px-10">
         <div className="flex items-center gap-3.5">
           <button aria-label="Chalkline home" onClick={onNewProblem}><Logo /></button>
-          <ModeChip label={chip} color={chipColor} disabled={!pkg} onPick={switchMode} />
+          <ModeChip label={chip} color={chipColor} disabled={!pkg} onPick={switchMode} live={mode === "voice"} />
+          {mode === "voice" && <span className="font-mono text-[13px] text-muted" aria-label="Time in Think-aloud">{timer}</span>}
         </div>
         <button className="btn h-10" onClick={onNewProblem}>New problem</button>
       </header>
@@ -398,7 +598,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
             <FinishBoard
               pkg={pkg}
               lines={
-                finishedFrom === "practice" ? progress
+                finishedFrom === "practice" || finishedFrom === "voice" ? progress
                 : finishedFrom === "check" && workResult ? workResult.lines.map((l) => ({ latex: l.latex, mark: "correct" as const }))
                 : steps.map((s) => ({ latex: s.latex, mark: "none" as const }))
               }
@@ -430,8 +630,18 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 </RoundButton>
                 <RoundButton label="Next step" disabled={view >= total} onClick={() => { setPlaying(false); setView((v) => Math.min(total, v + 1)); }}>›</RoundButton>
               </div>
-              <label className="flex items-center gap-2 text-[13px] text-muted" title="Coming in Phase 3">
-                Read aloud <input type="checkbox" disabled className="h-4 w-4" />
+              <label className="flex items-center gap-2 text-[13px] text-muted">
+                Read aloud
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-gold"
+                  checked={readAloud}
+                  onChange={(e) => {
+                    setReadAloud(e.target.checked);
+                    setReadDone(0); // (re)start reading from the current step
+                    if (!e.target.checked) stopSpeaking(); // turning it off stops the voice right away
+                  }}
+                />
               </label>
             </Card>
             <Card center>
@@ -463,8 +673,8 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
             </Card>
             <Card>
               <label className="text-xs uppercase tracking-[.06em] text-muted">Type step {progress.length + 1}</label>
-              <MathInput ref={input} onChange={setDraft} onSubmit={checkThisStep} ariaLabel={`Type step ${progress.length + 1}`} />
-              <button className="btn btn-primary h-[46px]" disabled={!draft.trim() || checking} onClick={checkThisStep}>
+              <MathInput ref={input} onChange={setDraft} onSubmit={() => checkThisStep()} ariaLabel={`Type step ${progress.length + 1}`} />
+              <button className="btn btn-primary h-[46px]" disabled={!draft.trim() || checking} onClick={() => checkThisStep()}>
                 {checking ? "Checking…" : "Check this step"}
               </button>
             </Card>
@@ -479,6 +689,78 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               <button className="mt-auto h-10 text-left text-[13px] font-medium text-muted hover:text-text" onClick={showMeThisStep}>
                 Stuck? Show me this step →
               </button>
+            </Card>
+          </>
+        )}
+
+        {pkg && mode === "voice" && steps[expected] && (
+          <>
+            {/* Left: what was heard, and (after a check) what to look at */}
+            <Card>
+              <span className="eyebrow text-gold">
+                STEP {progress.length + 1} · {result && wrongLine !== null ? steps[expected].rule.toUpperCase() : "HEARD"}
+              </span>
+              {result && wrongLine !== null ? (
+                <RichText className="min-h-0 overflow-y-auto text-sm leading-relaxed text-text" text={result.display_feedback} />
+              ) : heard ? (
+                <span className="min-h-0 overflow-y-auto font-mono text-[13px] leading-relaxed text-text">“{heard}”</span>
+              ) : (
+                <span className="text-sm leading-relaxed text-muted">Solve on paper and say each step out loud. Hold space (or the mic), talk, let go.</span>
+              )}
+              {showHint && <RichText className="text-sm text-gold" text={`Hint: ${(wrongLine !== null && result?.hint) || steps[expected].hint}`} />}
+              <div className="mt-auto flex flex-wrap gap-2">
+                <button className="btn h-10" onClick={() => switchMode("practice")}>Type instead</button>
+                <button className="btn h-10" onClick={() => setOverlay({ kind: "why", stepIndex: expected })}>Why?</button>
+                {wrongLine !== null && !showFix ? (
+                  <button className="btn h-10" onClick={() => setShowFix(true)}>Show the fix</button>
+                ) : (
+                  <button className="btn h-10" disabled={!steps[expected].side_work} onClick={() => setOverlay({ kind: "side", stepIndex: expected })}>Side work</button>
+                )}
+              </div>
+            </Card>
+
+            {/* Center: the mic */}
+            <Card center>
+              <MicButton phase={voice.phase} level={voice.level} onPress={voice.press} onRelease={voice.release} />
+            </Card>
+
+            {/* Right: "Did you mean…?", or the tutor's message */}
+            <Card>
+              {options ? (
+                <>
+                  <span className="eyebrow text-blue">DID YOU MEAN…?</span>
+                  <div className="flex flex-col gap-2">
+                    {options.map((o, i) => (
+                      <button
+                        key={i}
+                        className="flex h-12 items-center justify-between gap-3 rounded-xl border border-blue/45 bg-blue/[.08] px-3 text-lg hover:bg-blue/15"
+                        onClick={() => voiceCheck(o)}
+                      >
+                        <span className="min-w-0 truncate"><Tex latex={o} /></span>
+                        <kbd className="rounded border border-white/25 px-1.5 font-mono text-[11px] text-muted">{i + 1}</kbd>
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-[13px] text-muted">Or just say “the first one”.</span>
+                </>
+              ) : voice.phase === "error" ? (
+                <>
+                  <span className="eyebrow text-pink">MIC</span>
+                  <span className="text-sm leading-relaxed text-pink">{voice.error}</span>
+                  <button className="btn mt-auto h-10 self-start" onClick={() => switchMode("practice")}>Type instead</button>
+                </>
+              ) : (
+                <>
+                  <span className="eyebrow text-teal">TUTOR</span>
+                  <RichText
+                    className="min-h-0 overflow-y-auto text-sm leading-relaxed text-text"
+                    text={tutor ?? (progress.length ? "✓ Keep going. Say your next step." : "Correct steps get a quiet ✓. If something's off, I'll say so.")}
+                  />
+                  <button className="mt-auto h-8 text-left text-[13px] font-medium text-muted hover:text-text" onClick={showMeThisStep}>
+                    Stuck? Show me this step →
+                  </button>
+                </>
+              )}
             </Card>
           </>
         )}
@@ -615,7 +897,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               </div>
             </Card>
             <Card center>
-              {finishedFrom === "practice" ? (
+              {finishedFrom === "practice" || finishedFrom === "voice" ? (
                 <div className="flex gap-8 text-center">
                   <Stat n={progress.filter((l) => l.mark !== "none").length} label="steps you wrote" />
                   <Stat n={stats.firstTry} label="right first try" />
@@ -674,7 +956,11 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       setOverlay(null);
       setPlaying(false);
       setMode("check"); // your submitted lines (if any) are kept
-    } else goPractice(mode === "walkthrough" ? view : 0); // from Walkthrough: continue after the steps shown
+    } else if ((m === "voice" && mode === "practice") || (m === "practice" && mode === "voice")) {
+      setOptions(null);
+      if (m === "voice") setVoiceStart((t) => t ?? Date.now());
+      setMode(m); // typing <-> talking: same step, same board
+    } else goPractice(mode === "walkthrough" ? view : 0, m); // from Walkthrough: continue after the steps shown
   }
 }
 
@@ -713,18 +999,20 @@ function Stat({ n, label }: { n: number; label: string }) {
 }
 
 // Clickable mode chip in the header: switch modes mid-problem.
-function ModeChip({ label, color, disabled, onPick }: { label: string; color: string; disabled: boolean; onPick: (m: WorkMode) => void }) {
+// `live` adds the small red "live" dot (Think-aloud).
+function ModeChip({ label, color, disabled, live = false, onPick }: { label: string; color: string; disabled: boolean; live?: boolean; onPick: (m: WorkMode) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
-      <button disabled={disabled} aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`rounded-full px-3 py-[7px] text-[13px] font-semibold ${color}`}>
+      <button disabled={disabled} aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`flex items-center gap-1.5 rounded-full px-3 py-[7px] text-[13px] font-semibold ${color}`}>
+        {live && <span aria-hidden className="live-dot h-2 w-2 rounded-full bg-[#E5484D]" />}
         {label} ▾
       </button>
       {open && (
         <div className="absolute left-0 top-10 z-30 flex w-44 flex-col rounded-xl border border-white/10 bg-panel p-1.5 shadow-xl">
-          {(["walkthrough", "practice", "check"] as const).map((m) => (
+          {(["walkthrough", "practice", "voice", "check"] as const).map((m) => (
             <button key={m} className="rounded-lg px-3 py-2 text-left text-sm hover:bg-panel-2" onClick={() => { setOpen(false); onPick(m); }}>
-              {{ walkthrough: "Walkthrough", practice: "Step practice", check: "Check my work" }[m]}
+              {{ walkthrough: "Walkthrough", practice: "Step practice", voice: "Think-aloud", check: "Check my work" }[m]}
             </button>
           ))}
         </div>

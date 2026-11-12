@@ -5,17 +5,20 @@ import { useEffect, useRef, useState } from "react";
 import { KEYS_PROBLEM, MathInput, type MathInputHandle } from "./MathInput";
 import { Tex } from "./Tex";
 import { Logo } from "./Logo";
+import { MicButton } from "./MicButton";
 import { PRESETS } from "@/lib/presets";
 import { getPackage } from "@/lib/packages";
 import { imageFrom, preparePhoto, readPhoto } from "@/lib/photo";
+import { hear, type Clip } from "@/lib/recorder";
+import { useVoice } from "@/lib/useVoice";
 import type { Submission } from "@/lib/schemas";
 
-export type StartMode = "walkthrough" | "practice" | "check"; // the modes built so far
+export type StartMode = "walkthrough" | "practice" | "check" | "voice"; // "voice" = Think-aloud
 export type StartChoice =
   | { kind: "preset"; presetId: string; mode: StartMode } // a demo problem
   | { kind: "typed"; latex: string; mode: StartMode; work?: Submission }; // typed or photographed (with any work in the photo)
 
-type Panel = "none" | "upload" | "type" | "practice"; // which dropdown is open
+type Panel = "none" | "upload" | "type" | "practice" | "talk"; // which dropdown is open
 
 export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const [panel, setPanel] = useState<Panel>("none");
@@ -71,19 +74,22 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
           </div>
           <span className={`pb-5 text-muted ${dim}`}>or</span>
           <button
-            className={`flex h-24 items-center gap-4 rounded-[22px] border border-gold/60 bg-panel px-5 text-left ${panel === "none" ? "opacity-60" : "pointer-events-none opacity-30"}`}
-            disabled
-            title="Think-aloud voice mode arrives in Phase 3"
+            className={`flex h-24 items-center gap-4 rounded-[22px] border border-gold/60 bg-panel px-5 text-left shadow-[0_0_28px_rgba(242,201,76,.12)] ${
+              panel === "talk" ? "bg-panel-3" : panel === "none" ? "hover:bg-panel-2" : "pointer-events-none opacity-30"
+            }`}
+            aria-expanded={panel === "talk"}
+            onClick={() => toggle("talk")}
           >
             <span className="flex h-[60px] w-[60px] items-center justify-center rounded-full bg-gold text-2xl text-[#14181D]">🎙</span>
             <span className="flex flex-col">
               <span className="flex items-center gap-2 font-semibold">
-                Talk it through <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] text-gold">SIGNATURE · SOON</span>
+                Talk it through <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] text-gold">SIGNATURE</span>
               </span>
               <span className="text-sm text-muted">Say the problem, solve it on paper, out loud</span>
             </span>
           </button>
 
+          {panel === "talk" && <TalkPanel onStart={onStart} onType={() => setPanel("type")} />}
           {panel === "upload" && <UploadPanel onStart={onStart} />}
           {panel === "type" && <TypePanel onStart={onStart} />}
           {panel === "practice" && <PracticePanel onStart={onStart} />}
@@ -98,7 +104,7 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
         </button>
       </main>
 
-      <footer className={`pb-5 text-center text-sm text-subtle ${dim}`}>Voice mode (hold space to talk) is coming soon</footer>
+      <footer className={`pb-5 text-center text-sm text-subtle ${dim}`}>Talk it through: hold space (or the mic) and say the problem</footer>
     </div>
   );
 }
@@ -306,8 +312,101 @@ function PracticePanel({ onStart }: { onStart: (choice: StartChoice) => void }) 
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="mr-1 text-sm text-muted">Start as:</span>
-        <button className="btn" disabled title="Coming in Phase 3">Talk it through</button>
+        <button className="btn border-gold/60 text-gold" disabled={!selected} onClick={() => selected && onStart({ kind: "preset", presetId: selected, mode: "voice" })}>
+          Talk it through
+        </button>
         <ModeButtons disabled={!selected} onPick={(mode) => selected && onStart({ kind: "preset", presetId: selected, mode })} />
+      </div>
+    </div>
+  );
+}
+
+// "Talk it through" dropdown: say the problem, check how it was heard, then start Think-aloud.
+function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void; onType: () => void }) {
+  const [latex, setLatex] = useState(""); // the problem as heard (editable)
+  const [heard, setHeard] = useState<string | null>(null); // the words, as heard
+  const [options, setOptions] = useState<string[] | null>(null); // "Did you mean…?" readings
+  const [editing, setEditing] = useState(false);
+  const input = useRef<MathInputHandle>(null);
+  const voice = useVoice({ enabled: true, onClip: handleClip });
+
+  // A clip finished: turn it into the problem's LaTeX.
+  async function handleClip(clip: Clip) {
+    try {
+      const h = await hear(clip, { kind: "problem" });
+      setHeard(h.transcript || null);
+      if (!h.latex) {
+        voice.fail("I didn't catch a problem there. Try again, or type it.");
+        return;
+      }
+      setEditing(false);
+      if (h.alternatives.length) {
+        setOptions([h.latex, ...h.alternatives].slice(0, 2)); // ask which one before pre-solving
+        setLatex("");
+      } else choose(h.latex);
+      voice.setPhase("idle");
+    } catch (err) {
+      voice.fail(err instanceof Error ? err.message : "I couldn't hear that. Try again, or type it.");
+    }
+  }
+
+  // The problem is settled: show it and start pre-solving right away.
+  function choose(problem: string) {
+    setOptions(null);
+    setLatex(problem);
+    getPackage(problem).catch(() => {}); // errors show up later, when the session starts
+  }
+
+  // Keys 1 and 2 pick a "Did you mean…?" option.
+  useEffect(() => {
+    if (!options) return;
+    const onKey = (e: KeyboardEvent) => {
+      const k = Number(e.key);
+      if (k >= 1 && k <= options.length) choose(options[k - 1]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  return (
+    <div className="absolute right-0 top-full z-20 mt-3 flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+      <div className="flex items-center gap-6">
+        <MicButton
+          phase={voice.phase}
+          level={voice.level}
+          onPress={voice.press}
+          onRelease={voice.release}
+          labels={{ idle: "Hold space or the mic, say the problem", writing: "Writing it down…" }}
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-2">
+          <span className="eyebrow text-subtle">{options ? "DID YOU MEAN…?" : "WE HEARD THIS AS"}</span>
+          {options ? (
+            options.map((o, i) => (
+              <button key={i} className="flex h-14 items-center justify-between rounded-xl border border-blue/45 bg-blue/[.08] px-4 text-xl hover:bg-blue/15" onClick={() => choose(o)}>
+                <Tex latex={o} />
+                <kbd className="rounded border border-white/25 px-1.5 font-mono text-[11px] text-muted">{i + 1}</kbd>
+              </button>
+            ))
+          ) : editing ? (
+            <MathInput ref={input} initialValue={latex} onChange={setLatex} ariaLabel="Edit the problem" />
+          ) : (
+            <div className="board-surface flex min-h-[64px] items-center rounded-xl px-4 text-2xl">
+              {latex ? <Tex latex={latex} /> : <span className="font-hand text-xl text-muted">e.g. “the integral of x times log x, dx”</span>}
+            </div>
+          )}
+          {voice.phase === "error" ? (
+            <span className="text-sm text-pink">{voice.error}</span>
+          ) : (
+            heard && <span className="font-mono text-xs text-muted">“{heard}”</span>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <button className="btn btn-primary" disabled={!latex.trim() || !!options} onClick={() => onStart({ kind: "typed", latex, mode: "voice" })}>
+          Start solving out loud
+        </button>
+        {latex && !options && <button className="btn" onClick={() => setEditing((e) => !e)}>{editing ? "Done" : "Edit"}</button>}
+        <button className="btn" onClick={onType}>Type it instead</button>
       </div>
     </div>
   );

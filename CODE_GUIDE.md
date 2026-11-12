@@ -1,7 +1,7 @@
 # Chalkline code guide
 
 A tour of every file in the project: what it does, how the pieces connect, and the
-web-development ideas behind them. Updated at the end of every phase (last: **Phase 2**).
+web-development ideas behind them. Updated at the end of every phase (last: **Phase 3**).
 
 > **Tip:** In VS Code, press `Ctrl+Shift+V` while this file is open to see it nicely formatted.
 
@@ -23,6 +23,9 @@ web-development ideas behind them. Updated at the end of every phase (last: **Ph
 │                          │          │                 └► SymPy: re-check every line  │
 │                          │          │ /api/similar    ─► Gemini: new problem, then   │
 │                          │          │                    presolve + SymPy check      │
+│ mic ► lib/recorder (WAV) │          │ /api/speech-to-math ─► Gemini (fast): listen,  │
+│ voice ◄ lib/speak        │          │                    words + LaTeX + intent      │
+│                          │          │ /api/tts (optional) ─► ElevenLabs voice        │
 │                          │          │ /api/check (Python) = SymPy itself             │
 └──────────────────────────┘          └───────────────────────────────────────────────┘
 ```
@@ -62,6 +65,9 @@ problems' packages are saved as files, so they load instantly and cost nothing.
 | 11 | `components/Session.tsx` | The session: all the state for every mode and the finish board. |
 | 12 | `components/Board.tsx`, `WorkBoard.tsx` | The chalkboard; WorkBoard is its Check my work version. |
 | 13 | `components/Tex.tsx`, `MathInput.tsx` | Math display (KaTeX) and math typing (MathLive). |
+| 14 | `lib/useVoice.ts`, `components/MicButton.tsx` | Think-aloud: push-to-talk (button or space) and the mic's 6 states. |
+| 15 | `lib/recorder.ts`, `lib/speechToMath.ts` | Recording a clip, and Gemini turning it into words + LaTeX + what you want. |
+| 16 | `lib/speak.ts` | The tutor's voice, and turning LaTeX into words ("x squared over 2"). |
 
 **Smaller helpers:** `lib/gemini.ts` (the Gemini client: which models to use, JSON replies, and automatic fallback to another model when one is busy), `lib/sympy.ts` (calls the Python
 checker), `lib/routeHelpers.ts` (friendly error messages), `lib/presets.ts` (the 6 demo problems),
@@ -116,6 +122,25 @@ uploaded), `.env.example`, `.gitignore`.
 4. The board shows ✓, the pink ring + teal fix on the slip, and fades everything after it.
    "Redo step n myself" puts your correct lines into Step practice and lets you continue from there.
 
+### How Think-aloud works (Mode D)
+Think-aloud is Step practice with a microphone in front and a voice after it. It uses the same
+state and the same `/api/check-step` as typing.
+1. **Record:** hold the mic button or space (`lib/useVoice.ts`); a quick tap means "keep listening
+   until I tap again". `lib/recorder.ts` records with the browser's `MediaRecorder` and converts the
+   clip to a small WAV file (16 kHz, mono), a format every Gemini model accepts. Clips stop at 15 s.
+2. **Listen:** `/api/speech-to-math` → `lib/speechToMath.ts` sends the audio plus context (the
+   problem, the last lines on the board) to **Gemini's fast model**, which returns what you said, the
+   math as LaTeX, what you want (`step`, `why`, `choose`, `show_fix`, `hint`, `other`), and
+   "Did you mean…?" alternatives when the math could be read two ways.
+3. **Do it** (`handleClip` in `Session.tsx`): a step is checked like a typed one. Correct → a quiet ✓
+   (no talking, to stay fast). Wrong → the pink ring, and the hint is shown *and* spoken. "Why?" goes
+   to `/api/why` and the answer is read out. Hint / show the fix work like the buttons.
+4. **Speak:** `lib/speak.ts` uses the browser's built-in voice (`speechSynthesis`). If the server has
+   an `ELEVENLABS_API_KEY`, it tries `/api/tts` first and falls back to the browser voice on any error.
+   `latexToWords()` turns math into speech: `\frac{x^2}{2}` → "x squared, over 2".
+5. **Read aloud** in Walkthrough reads each step with the same voice, with no AI calls; autoplay
+   waits for each step to be read.
+
 ### How a photo becomes a problem
 Upload → shrink to 1568 px → `/api/read-photo` → "We read this as". At that moment
 `getPackage()` (`lib/packages.ts`) already starts the pre-solve in the background, so by the time you
@@ -141,6 +166,10 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **Tailwind classes:** styling shortcuts in `className` (`rounded` = rounded corners, `px-4` =
   horizontal padding, `bg-panel` = our panel color from `globals.css`).
 - **Canvas:** an invisible drawing surface in the browser; we draw the photo on it smaller and save it as a JPEG.
+- **Custom hook (`useVoice`):** a function starting with `use` that bundles state + effects so a component can reuse them.
+- **MediaRecorder / getUserMedia:** the browser's microphone access (it asks permission once) and recorder.
+- **speechSynthesis:** the browser's built-in text-to-speech voice; free and offline.
+- **Pointer events:** one set of events for mouse, touch and pen (`onPointerDown` / `onPointerUp`), used for hold-to-talk.
 - **Base64 / data URL:** a way to write a file (like a photo) as plain text, so it can travel inside JSON.
 - **Promise cache:** remembering an unfinished request, so asking twice for the same thing waits for one answer.
 - **KaTeX / LaTeX:** LaTeX is a text language for math (`\frac{x^2}{2}`), and KaTeX draws it.

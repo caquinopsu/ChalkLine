@@ -46,10 +46,44 @@ Live: https://chalk-line-five.vercel.app · Repo: https://github.com/caquinopsu/
   SymPy-confirmed), similar problems, Why?. Step checks now take about 1-3 s.
 - The 6 preset solutions were made by Claude earlier; they're saved files and still work as-is.
 
+## Phase 3: Think-aloud voice (push-to-talk) 🟡 built, live test pending (Nov 12, 2026)
+Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and the browser speaks.
+- **Think-aloud (Mode D):** hold space or the mic (or tap to start / tap to stop, max 15 s). The clip
+  is converted to WAV in the browser and sent to `/api/speech-to-math` (Gemini FAST), which returns
+  the transcript, the LaTeX, the intent and "Did you mean…?" alternatives.
+  - step → `/api/check-step`. Correct = silent ✓. Wrong = pink ring + the hint shown and spoken.
+  - why → `/api/why`, answer shown and spoken. hint / show the fix / "the first one" work by voice.
+  - Ambiguous math → "Did you mean…?" (click, keys 1/2, or say "the first one").
+  - Mic with 6 states (idle, listening + level waveform, writing, checking, tutor speaking, error),
+    the words always shown under the line on the board and in the Heard card.
+  - Header chip: solid gold "Think-aloud" with a live dot and a timer. "Type instead" switches to
+    Step practice on the same step (and the chip switches back).
+  - Solving the last step by voice ends with a spoken "Nice work".
+- **Where voice appears:** "Talk it through" on the start screen (say the problem → typeset →
+  Start solving out loud), "Talk it through" in Practice's "Start as" row, and the mode chip.
+- **Read aloud** in Walkthrough: browser voice reads each step (rule, the math in words, summary);
+  autoplay waits for it. No AI calls.
+- **Speaking:** `lib/speak.ts` (browser voice + LaTeX → words). Optional `/api/tts` (ElevenLabs,
+  "Rachel" voice) is used only if `ELEVENLABS_API_KEY` is set; any error falls back to the browser voice.
+- **Fallbacks:** mic blocked / missing / unsupported → message + "Type instead". Gemini busy → friendly
+  error in the mic area, retry or type.
+- **Tested (free checks only):** `tsc`, lint, build; a browser run with a fake microphone and the AI
+  routes mocked: hold-to-talk, tap mode, Did you mean + key 1, silent ✓, spoken hint on a wrong
+  step, why, hint, show the fix, "other", solving to the finish, Read aloud + autoplay, the Talk
+  panel, and a blocked mic. Clips arrive at the server as `audio/wav`.
+- **Not yet tested:** the live Gemini batch (about 5-8 requests: a few spoken steps, one "why?", one
+  ambiguous phrase), waiting for the Gemini key. Not merged to `main` yet (lives on branch
+  `claude/ecstatic-franklin-lcuuk5`).
+
 ## Next
-Phase 3: Think-aloud voice (push-to-talk), spoken feedback, Read aloud in Walkthrough.
+Phase 3 live test with the Gemini key (a few real spoken steps, one "why?", one ambiguous phrase),
+then merge to `main`. After that: Phase 4, the visual engine.
 
 ## Known issues
+- Think-aloud hasn't heard a real voice yet (live Gemini test pending). Speech-to-LaTeX quality and
+  speed (~2 s expected) still need confirming, especially on Safari/iPhone.
+- The browser voice differs per browser and computer (Chrome's "Google US English" is the best we pick).
+- Space starts the mic anywhere on the Think-aloud screen except inside a text/math box.
 - MathLive's typing shortcuts (`^`, `/`) weren't testable by automation; check them by hand.
 - Series problems (ratio test) are judged by the AI alone for most lines (SymPy can't compare them).
 - No rate limiting yet (Phase 5). On Gemini's free tier there is no cost, but there are request

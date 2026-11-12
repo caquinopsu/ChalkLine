@@ -156,3 +156,27 @@ export type CheckRequest = {
   studentLatex: string; // what the student just typed
   attempt: number; // 1 for the first try at this step, 2 for the second, ...
 };
+
+// ---------- Phase 3: Think-aloud voice ----------
+
+// What the AI returns after listening to one push-to-talk clip.
+export const HeardSchema = z.object({
+  transcript: z.string(), // the words, written out as heard ("x squared over two log x")
+  intent: z.enum(["step", "why", "choose", "show_fix", "hint", "other"]), // what the student wants
+  latex: z.string().nullable(), // the spoken math as KaTeX LaTeX (for a step, or the problem itself)
+  alternatives: z.array(z.string()), // other readings of the math when it's ambiguous (0-2), as LaTeX
+  choice: z.number().int().nullable(), // for "choose": 1 or 2 ("the first one" -> 1)
+  question: z.string().nullable(), // for "why": the question in plain words
+});
+export type Heard = z.infer<typeof HeardSchema>;
+
+// What the browser sends to /api/speech-to-math.
+export type SpeechRequest = {
+  audio: string; // the clip, base64
+  mimeType: string; // "audio/wav" (we convert in the browser)
+  kind: "step" | "problem"; // solving a step, or saying the problem on the start screen
+  problemLatex?: string; // the problem being solved (helps the AI read the math)
+  board?: string[]; // the last lines on the board (more context)
+  choices?: number; // how many "Did you mean…?" options are showing (0 = none)
+  wrongStep?: boolean; // is a rejected step waiting to be fixed? ("show me the fix" makes sense)
+};
