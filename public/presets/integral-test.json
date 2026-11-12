@@ -1,0 +1,146 @@
+{
+  "problem_latex": "\\sum_{n=2}^{\\infty}\\frac{1}{n\\ln n}",
+  "task": "Decide whether the series converges.",
+  "problem_sympy": null,
+  "topic": "Series",
+  "techniques": [
+    "Integral Test"
+  ],
+  "check_mode": "value",
+  "variable": "n",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "f(x) = \\frac{1}{\\htmlClass{role-a}{x \\ln x}}",
+      "plain_latex": "f(x) = \\frac{1}{x \\ln x}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Set up function",
+      "comment": "replace n with x for the integral",
+      "summary": "Define the continuous function $f(x)$ corresponding to the terms of the series.",
+      "why": "The integral test requires a function $f(x)$ that is positive, continuous, and decreasing for $x \\ge 2$ such that $f(n) = a_n$.",
+      "hint": "Turn the sequence terms into a function of $x$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving the variable as $n$.",
+          "hint": "Use $x$ when setting up the function for integration."
+        }
+      ],
+      "parts": [
+        {
+          "id": "fx",
+          "latex": "x \\ln x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\int_{2}^{\\infty} \\frac{1}{\\htmlClass{role-a}{x} \\htmlClass{role-b}{\\ln x}}\\,dx = \\lim_{t\\to\\infty} \\int_{2}^{t} \\frac{1}{x \\ln x}\\,dx",
+      "plain_latex": "\\int_{2}^{\\infty} \\frac{1}{x \\ln x}\\,dx = \\lim_{t\\to\\infty} \\int_{2}^{t} \\frac{1}{x \\ln x}\\,dx",
+      "sympy": "Limit(Integral(1/(x*log(x)), (x, 2, t)), t, oo)",
+      "chain": false,
+      "rule": "Improper integral limit",
+      "comment": "rewrite the improper integral as a limit",
+      "summary": "Convert the improper integral into a limit of a proper integral.",
+      "why": "Because the upper limit is infinity, we must evaluate it as a limit as $t$ approaches infinity.",
+      "hint": "Replace $\\infty$ with a variable like $t$ and take the limit as $t \\to \\infty$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Evaluating without writing the limit.",
+          "hint": "Always use a limit for improper integrals."
+        }
+      ],
+      "parts": [
+        {
+          "id": "x",
+          "latex": "x",
+          "role": "a"
+        },
+        {
+          "id": "lnx",
+          "latex": "\\ln x",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\lim_{t\\to\\infty} \\left[ \\ln(\\htmlClass{role-a}{\\ln x}) \\right]_{2}^{t}",
+      "plain_latex": "\\lim_{t\\to\\infty} \\left[ \\ln(\\ln x) \\right]_{2}^{t}",
+      "sympy": "Limit(log(log(t)) - log(log(2)), t, oo)",
+      "chain": false,
+      "rule": "U-substitution integration",
+      "comment": "integrate using u = ln x and du = 1/x dx",
+      "summary": "Find the antiderivative using $u$-substitution.",
+      "why": "Since the derivative of $\\ln x$ is $1/x$, the integral of $1/(x \\ln x)$ is $\\ln(\\ln x)$.",
+      "hint": "Let $u = \\ln x$, then $du = \\frac{1}{x}\\,dx$.",
+      "side_work": {
+        "title": "U-Substitution",
+        "lines": [
+          "u = \\ln x",
+          "du = \\frac{1}{x}\\,dx",
+          "\\int \\frac{1}{u}\\,du = \\ln|u| = \\ln(\\ln x)"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Integrating as $\\frac{1}{x^2}$ or forgetting the inner ln.",
+          "hint": "Remember that $\\int \\frac{1}{u}\\,du = \\ln|u|$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "inner",
+          "latex": "\\ln x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\lim_{t\\to\\infty} \\left( \\ln(\\ln t) - \\ln(\\ln 2) \\right) = \\infty",
+      "plain_latex": "\\lim_{t\\to\\infty} \\left( \\ln(\\ln t) - \\ln(\\ln 2) \\right) = \\infty",
+      "sympy": null,
+      "chain": false,
+      "rule": "Evaluate limit",
+      "comment": "diverges because the limit is infinity",
+      "summary": "Evaluate the limit as $t \\to \\infty$ to find that the integral diverges.",
+      "why": "As $t$ grows large, $\\ln t$ grows large, and its natural logarithm $\\ln(\\ln t)$ also grows to infinity.",
+      "hint": "What happens to $\\ln(\\ln t)$ as $t$ gets bigger and bigger?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Concluding the integral converges because ln grows slowly.",
+          "hint": "Double-check the growth rate of nested logarithms; it still goes to infinity."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s5",
+      "latex": "\\text{The series diverges by the integral test.}",
+      "plain_latex": "The series diverges by the integral test.",
+      "sympy": null,
+      "chain": false,
+      "rule": "Integral test conclusion",
+      "comment": "series and integral either both converge or both diverge",
+      "summary": "Conclude that the series diverges since its corresponding improper integral diverges.",
+      "why": "The integral test states that if the improper integral diverges, the series must also diverge.",
+      "hint": "Connect the result of your integral to the behavior of the series.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Saying the series converges to infinity.",
+          "hint": "Series either converge to a number, or they diverge."
+        }
+      ],
+      "parts": []
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\text{Diverges}",
+  "final_answer_sympy": null
+}

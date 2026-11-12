@@ -1,0 +1,97 @@
+{
+  "problem_latex": "\\int\\left(3x^2-4x+5\\right)dx",
+  "task": "Find the antiderivative.",
+  "problem_sympy": "Integral(3*x**2 - 4*x + 5, x)",
+  "topic": "Integration",
+  "techniques": [
+    "Power rule",
+    "Sum rule"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\int 3x^2\\,dx - \\int 4x\\,dx + \\int 5\\,dx",
+      "plain_latex": "\\int 3x^2\\,dx - \\int 4x\\,dx + \\int 5\\,dx",
+      "sympy": "Integral(3*x**2, x) - Integral(4*x, x) + Integral(5, x)",
+      "chain": true,
+      "rule": "Sum rule",
+      "comment": "split into individual integrals",
+      "summary": "Split the integral of the sum into the sum of individual integrals.",
+      "why": "The integral of a sum is the sum of the integrals, allowing us to tackle each term in $3x^2 - 4x + 5$ separately.",
+      "hint": "Try breaking the polynomial up term by term using the linearity of integration.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to distribute the integral sign and $dx$ to all terms.",
+          "hint": "Make sure every term gets its own integral sign."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "3\\int x^2\\,dx - 4\\int x\\,dx + 5\\int 1\\,dx",
+      "plain_latex": "3\\int x^2\\,dx - 4\\int x\\,dx + 5\\int 1\\,dx",
+      "sympy": "3*Integral(x**2, x) - 4*Integral(x, x) + 5*Integral(1, x)",
+      "chain": true,
+      "rule": "Pull out a constant",
+      "comment": "factor out constants from each term",
+      "summary": "Pull constant coefficients outside of each integral.",
+      "why": "Constants can be factored out of integrals, making it easier to apply the power rule to the remaining variable parts.",
+      "hint": "Factor the numbers $3$, $4$, and $5$ out to the front of their respective integrals.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving the constants inside the integration.",
+          "hint": "Constants factor straight through the integral operator."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s3",
+      "latex": "3\\left(\\frac{x^3}{3}\\right) - 4\\left(\\frac{x^2}{2}\\right) + 5x + C",
+      "plain_latex": "3\\left(\\frac{x^3}{3}\\right) - 4\\left(\\frac{x^2}{2}\\right) + 5x + C",
+      "sympy": "3*(x**3/3) - 4*(x**2/2) + 5*x + C",
+      "chain": true,
+      "rule": "Power rule",
+      "comment": "integrate each power of x",
+      "summary": "Integrate each term using the power rule for integration and add the constant of integration.",
+      "why": "The power rule states that $\\int x^n \\, dx = \\frac{x^{n+1}}{n+1}$, which we apply to $x^2$, $x^1$, and the constant term.",
+      "hint": "Use $\\int x^n \\, dx = \\frac{x^{n+1}}{n+1}$ for each part.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting the $+ C$ at the end.",
+          "hint": "Indefinitely integrated functions always need a constant of integration."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s4",
+      "latex": "x^3 - 2x^2 + 5x + C",
+      "plain_latex": "x^3 - 2x^2 + 5x + C",
+      "sympy": "x**3 - 2*x**2 + 5*x + C",
+      "chain": true,
+      "rule": "Simplify expression",
+      "comment": "cancel coefficients and simplify",
+      "summary": "Simplify the fractions to get the final antiderivative.",
+      "why": "Multiplying the coefficients by the fractions simplifies $3 \\cdot \\frac{x^3}{3}$ to $x^3$ and $4 \\cdot \\frac{x^2}{2}$ to $2x^2$.",
+      "hint": "Cancel common factors in the numerators and denominators.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Arithmetic errors when reducing fractions.",
+          "hint": "Check that $3/3$ is $1$ and $4/2$ is $2$."
+        }
+      ],
+      "parts": []
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "x^3 - 2x^2 + 5x + C",
+  "final_answer_sympy": "x**3 - 2*x**2 + 5*x + C"
+}

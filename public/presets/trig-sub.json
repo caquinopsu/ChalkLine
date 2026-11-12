@@ -1,0 +1,180 @@
+{
+  "problem_latex": "\\int \\frac{dx}{\\left(1+x^2\\right)^{3/2}}",
+  "task": "Find the antiderivative.",
+  "problem_sympy": "Integral(1 / (1 + x**2)**(3/2), x)",
+  "topic": "Integration",
+  "techniques": [
+    "Trigonometric substitution"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "x = \\tan(\\theta),\\, dx = \\sec^2(\\theta)\\,d\\theta",
+      "plain_latex": "x = \\tan(\\theta),\\, dx = \\sec^2(\\theta)\\,d\\theta",
+      "sympy": null,
+      "chain": false,
+      "rule": "Substitution setup",
+      "comment": "choose $x = \\tan(\\theta)$ to match $1+x^2$",
+      "summary": "Set up the trigonometric substitution $x = \\tan(\\theta)$.",
+      "why": "Using the substitution $x = \\tan(\\theta)$ allows us to use the Pythagorean identity $1 + \\tan^2(\\theta) = \\sec^2(\\theta)$ to simplify the denominator.",
+      "hint": "Think about what trig identity involves $1 + x^2$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to compute $dx$.",
+          "hint": "Remember that $dx$ must also be substituted using the derivative of $\\tan(\\theta)$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "\\int \\frac{\\htmlClass{role-b}{\\sec^2(\\theta)}}{(1 + \\htmlClass{role-a}{\\tan^2(\\theta)})^{3/2}}\\,d\\theta",
+      "plain_latex": "\\int \\frac{\\sec^2(\\theta)}{(1 + \\tan^2(\\theta))^{3/2}}\\,d\\theta",
+      "sympy": "Integral(sec(t)**2 / (1 + tan(t)**2)**(3/2), t)",
+      "chain": false,
+      "rule": "Substitute into integral",
+      "comment": "replace every $x$ and $dx$",
+      "summary": "Substitute $x = \\tan(\\theta)$ and $dx = \\sec^2(\\theta)\\,d\\theta$ into the integral.",
+      "why": "We replace $x$ with $\\tan(\\theta)$ and $dx$ with $\\sec^2(\\theta)\\,d\\theta$ to rewrite the entire integral in terms of $\\theta$.",
+      "hint": "Plug the expressions for $x$ and $dx$ into the integral.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving $dx$ as $dx$ instead of converting to $d\\theta$.",
+          "hint": "Every part of the integral must be in terms of $\\theta$ before integrating."
+        }
+      ],
+      "parts": [
+        {
+          "id": "a",
+          "latex": "\\tan^2(\\theta)",
+          "role": "a"
+        },
+        {
+          "id": "b",
+          "latex": "\\sec^2(\\theta)",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\int \\frac{\\sec^2(\\theta)}{(\\sec^2(\\theta))^{3/2}}\\,d\\theta",
+      "plain_latex": "\\int \\frac{\\sec^2(\\theta)}{(\\sec^2(\\theta))^{3/2}}\\,d\\theta",
+      "sympy": "Integral(sec(t)**2 / (sec(t)**2)**(3/2), t)",
+      "chain": false,
+      "rule": "Apply trig identity",
+      "comment": "use $1 + \\tan^2(\\theta) = \\sec^2(\\theta)$",
+      "summary": "Simplify the denominator using the Pythagorean identity.",
+      "why": "The identity $1 + \\tan^2(\\theta) = \\sec^2(\\theta)$ turns the sum inside the parentheses into a single squared term.",
+      "hint": "Replace $1 + \\tan^2(\\theta)$ with $\\sec^2(\\theta)$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping the exponent outside the parentheses.",
+          "hint": "Keep the power of $3/2$ on the secant term."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s4",
+      "latex": "\\int \\frac{1}{\\sec(\\theta)}\\,d\\theta",
+      "plain_latex": "\\int \\frac{1}{\\sec(\\theta)}\\,d\\theta",
+      "sympy": "Integral(1 / sec(t), t)",
+      "chain": false,
+      "rule": "Simplify powers",
+      "comment": "cubing the square root leaves $\\sec^3(\\theta)$",
+      "summary": "Simplify the fraction by canceling powers of $\\sec(\\theta)$.",
+      "why": "Raising $\\sec^2(\\theta)$ to the $3/2$ power gives $\\sec^3(\\theta)$, which then cancels with $\\sec^2(\\theta)$ in the numerator to leave $1/\\sec(\\theta)$.",
+      "hint": "Simplify $(\\sec^2(\\theta))^{3/2}$ to $\\sec^3(\\theta)$ and reduce the fraction.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Canceling incorrectly and getting secant in the numerator.",
+          "hint": "Remember that $\\sec^2 / \\sec^3 = 1 / \\sec$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s5",
+      "latex": "\\int \\cos(\\theta)\\,d\\theta",
+      "plain_latex": "\\int \\cos(\\theta)\\,d\\theta",
+      "sympy": "Integral(cos(t), t)",
+      "chain": false,
+      "rule": "Reciprocal identity",
+      "comment": "$1/\\sec(\\theta) = \\cos(\\theta)$",
+      "summary": "Rewrite $1/\\sec(\\theta)$ as $\\cos(\\theta)$.",
+      "why": "Cosine is the reciprocal of secant, making the integral a standard, easy-to-solve form.",
+      "hint": "What is the reciprocal of secant?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Integrating before simplifying to cosine.",
+          "hint": "Convert $1/\\sec(\\theta)$ to $\\cos(\\theta)$ first."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s6",
+      "latex": "\\sin(\\theta) + C",
+      "plain_latex": "\\sin(\\theta) + C",
+      "sympy": "sin(t) + C",
+      "chain": false,
+      "rule": "Basic integration",
+      "comment": "integral of cosine is sine",
+      "summary": "Integrate $\\cos(\\theta)$ to get $\\sin(\\theta) + C$.",
+      "why": "The antiderivative of $\\cos(\\theta)$ is $\\sin(\\theta)$, plus the constant of integration $C$.",
+      "hint": "Recall the derivative of sine.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Using $-\\sin(\\theta)$ instead.",
+          "hint": "The derivative of sine is positive cosine, so the integral of cosine is positive sine."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s7",
+      "latex": "\\frac{x}{\\sqrt{1 + x^2}} + C",
+      "plain_latex": "\\frac{x}{\\sqrt{1 + x^2}} + C",
+      "sympy": "x / sqrt(1 + x**2) + C",
+      "chain": true,
+      "rule": "Substitute back to $x$",
+      "comment": "express $\\sin(\\theta)$ in terms of $x$",
+      "summary": "Substitute back to the original variable $x$ using a right triangle.",
+      "why": "Since $x = \\tan(\\theta) = \\text{opposite/adjacent}$, the hypotenuse is $\\sqrt{1+x^2}$, making $\\sin(\\theta) = x/\\sqrt{1+x^2}$.",
+      "hint": "Draw a right triangle where $\\tan(\\theta) = x/1$ to find $\\sin(\\theta)$.",
+      "side_work": {
+        "title": "Triangle relations",
+        "lines": [
+          "\\tan(\\theta) = \\frac{x}{1} = \\frac{\\text{opp}}{\\text{adj}}",
+          "\\text{hyp} = \\sqrt{x^2 + 1}",
+          "\\sin(\\theta) = \\frac{\\text{opp}}{\\text{hyp}} = \\frac{x}{\\sqrt{x^2 + 1}}"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Leaving the answer in terms of $\\theta$.",
+          "hint": "Express $\\sin(\\theta)$ using $x$ before finishing."
+        }
+      ],
+      "parts": [
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\frac{x}{\\sqrt{1 + x^2}} + C",
+  "final_answer_sympy": "x / sqrt(1 + x**2) + C"
+}

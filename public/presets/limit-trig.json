@@ -1,0 +1,110 @@
+{
+  "problem_latex": "\\lim_{x\\to 0}\\frac{\\sin 3x}{x}",
+  "task": "Evaluate the limit.",
+  "problem_sympy": "Limit(sin(3*x)/x, x, 0)",
+  "topic": "Limits",
+  "techniques": [
+    "algebraic manipulation",
+    "standard limit"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\lim_{x\\to 0} \\frac{3\\sin(\\htmlClass{role-a}{3x})}{\\htmlClass{role-a}{3x}}",
+      "plain_latex": "\\lim_{x\\to 0} \\frac{3\\sin(3x)}{3x}",
+      "sympy": "Limit(3*sin(3*x)/(3*x), x, 0)",
+      "chain": true,
+      "rule": "Multiply and divide by a constant",
+      "comment": "match the inside of sine",
+      "summary": "We multiply and divide the expression by $3$ to set up the standard limit $",
+      "why": "The standard limit $\\lim_{t\\to 0} \\frac{\\sin(t)}{t} = 1$ requires the argument of the sine function to match the denominator. By introducing $3$ in both the numerator and denominator, we create this matching term without changing the value of the expression.",
+      "hint": "Try making the denominator match the inside of the sine function by multiplying by a constant.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Multiplying only the denominator by 3.",
+          "hint": "Remember to multiply both the numerator and denominator so the expression remains unchanged."
+        }
+      ],
+      "parts": [
+        {
+          "id": "arg",
+          "latex": "3x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "3 \\cdot \\lim_{x\\to 0} \\frac{\\sin(\\htmlClass{role-a}{3x})}{\\htmlClass{role-a}{3x}}",
+      "plain_latex": "3 \\cdot \\lim_{x\\to 0} \\frac{\\sin(3x)}{3x}",
+      "sympy": "Limit(3*sin(3*x)/(3*x), x, 0)",
+      "chain": true,
+      "rule": "Pull out a constant",
+      "comment": "pull the constant out of the limit",
+      "summary": "We pull the constant $3$ outside the limit operator.",
+      "why": "Limit laws allow us to factor out a constant coefficient from the limit expression, making it easier to apply our standard limit formula.",
+      "hint": "Can you factor the constant out in front of the limit?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping the constant entirely.",
+          "hint": "Make sure to keep the factor of 3 in front."
+        }
+      ],
+      "parts": [
+        {
+          "id": "three",
+          "latex": "3",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "3 \\cdot \\htmlClass{role-c}{1}",
+      "plain_latex": "3 \\cdot 1",
+      "sympy": "3",
+      "chain": true,
+      "rule": "Standard limit",
+      "comment": "apply the standard trig limit",
+      "summary": "We evaluate the limit using the known formula $\\lim_{t\\to 0} \\frac{\\sin(t)}{t} = 1$.",
+      "why": "As $x$ approaches $0$, $3x$ also approaches $0$, so the limit of $\\frac{\\sin(3x)}{3x}$ evaluates to $1$ based on the standard trigonometric limit.",
+      "hint": "Use the fact that the limit of $\\sin(t)/t$ as $t$ goes to 0 is 1.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Evaluating the limit as 0.",
+          "hint": "Recall that $\\sin(t)/t$ approaches 1 as $t$ approaches 0, not 0."
+        }
+      ],
+      "parts": [
+        {
+          "id": "val",
+          "latex": "1",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "3",
+      "plain_latex": "3",
+      "sympy": "3",
+      "chain": true,
+      "rule": "Simplify arithmetic",
+      "comment": "multiply to get final answer",
+      "summary": "We multiply $3$ by $1$ to find the final limit.",
+      "why": "Simplifying the final product gives the exact value of the limit.",
+      "hint": "Multiply the remaining numbers.",
+      "side_work": null,
+      "common_mistakes": [],
+      "parts": []
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "3",
+  "final_answer_sympy": "3"
+}

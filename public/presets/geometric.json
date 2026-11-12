@@ -1,0 +1,160 @@
+{
+  "problem_latex": "\\sum_{n=0}^{\\infty}\\frac{3}{4^n}",
+  "task": "Find the sum of the series.",
+  "problem_sympy": "Sum(3/4**n, (n, 0, oo))",
+  "topic": "Geometric Series",
+  "techniques": [
+    "Geometric series sum formula"
+  ],
+  "check_mode": "value",
+  "variable": "n",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\sum_{n=0}^{\\infty} 3 \\left(\\frac{1}{4}\\right)^n",
+      "plain_latex": "\\sum_{n=0}^{\\infty} 3 \\left(\\frac{1}{4}\\right)^n",
+      "sympy": "Sum(3*(1/4)**n, (n, 0, oo))",
+      "chain": true,
+      "rule": "Rewrite as geometric",
+      "comment": "rewrite in standard form $a r^n$",
+      "summary": "Rewrite the series to clearly show the first term and the common ratio $r$.",
+      "why": "A geometric series must be in the form $\\sum a r^n$ so we can easily identify the first term $a$ and the common ratio $r$.",
+      "hint": "Try pulling the power of $n$ outside the fraction.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Misidentifying the common ratio.",
+          "hint": "Make sure the entire base is raised to the power of $n$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ratio",
+          "latex": "\\frac{1}{4}",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "3 \\sum_{n=0}^{\\infty} \\left(\\frac{1}{4}\\right)^n",
+      "plain_latex": "3 \\sum_{n=0}^{\\infty} \\left(\\frac{1}{4}\\right)^n",
+      "sympy": "3*Sum((1/4)**n, (n, 0, oo))",
+      "chain": true,
+      "rule": "Factor out a constant",
+      "comment": "pull the constant out front",
+      "summary": "Factor the constant numerator out of the summation.",
+      "why": "Moving constants outside the sum simplifies the expression we need to evaluate.",
+      "hint": "Can you factor the numerator $3$ out of every term?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving the constant inside the sum.",
+          "hint": "Constants can be factored out of infinite sums just like integrals and limits."
+        }
+      ],
+      "parts": [
+        {
+          "id": "const",
+          "latex": "3",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "3 \\left( \\frac{1}{1 - \\frac{1}{4}} \\right)",
+      "plain_latex": "3 \\left( \\frac{1}{1 - \\frac{1}{4}} \\right)",
+      "sympy": "3*(1/(1 - 1/4))",
+      "chain": true,
+      "rule": "Geometric series formula",
+      "comment": "apply sum formula $a / (1 - r)$",
+      "summary": "Apply the geometric series sum formula $S = \\frac{a}{1 - r}$.",
+      "why": "Since the common ratio $|r| < 1$, the geometric series converges to $\\frac{a}{1 - r}$ where $a = 1$ and $r = \\frac{1}{4}$.",
+      "hint": "Use the formula $\\sum_{n=0}^{\\infty} r^n = \\frac{1}{1 - r}$ for $|r| < 1$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Using the wrong formula for a series starting at $n = 0$.",
+          "hint": "When the sum starts at $n = 0$, the first term is $1$, so the numerator is $1$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "r_val",
+          "latex": "\\frac{1}{4}",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "3 \\left( \\frac{1}{\\frac{3}{4}} \\right)",
+      "plain_latex": "3 \\left( \\frac{1}{\\frac{3}{4}} \\right)",
+      "sympy": "3*(1/(3/4))",
+      "chain": true,
+      "rule": "Simplify denominator",
+      "comment": "subtract in the denominator",
+      "summary": "Simplify the denominator by subtracting the fractions.",
+      "why": "$1 - \\frac{1}{4} = \\frac{3}{4}$.",
+      "hint": "Find a common denominator for $1 - \\frac{1}{4}$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Subtracting incorrectly.",
+          "hint": "Think of $1$ as $\\frac{4}{4}$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s5",
+      "latex": "3 \\left( \\frac{4}{3} \\right)",
+      "plain_latex": "3 \\left( \\frac{4}{3} \\right)",
+      "sympy": "3*(4/3)",
+      "chain": true,
+      "rule": "Simplify complex fraction",
+      "comment": "multiply by the reciprocal",
+      "summary": "Simplify the complex fraction by multiplying by the reciprocal.",
+      "why": "Dividing by $\\frac{3}{4}$ is the same as multiplying by its reciprocal $\\frac{4}{3}$.",
+      "hint": "Flip the denominator and multiply.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Inverting the wrong fraction.",
+          "hint": "Only the fraction in the denominator gets flipped."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s6",
+      "latex": "4",
+      "plain_latex": "4",
+      "sympy": "4",
+      "chain": true,
+      "rule": "Arithmetic simplification",
+      "comment": "cancel common factors to finish",
+      "summary": "Multiply to find the final sum.",
+      "why": "The $3$ in the numerator and the $3$ in the denominator cancel out, leaving $4$.",
+      "hint": "Cancel the common factor of $3$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Multiplying the numerator instead of cancelling.",
+          "hint": "Notice $3 \\cdot \\frac{4}{3} = \\frac{12}{3} = 4$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "4",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "4",
+  "final_answer_sympy": "4"
+}

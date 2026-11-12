@@ -1,0 +1,118 @@
+{
+  "problem_latex": "\\lim_{x\\to\\infty}\\frac{3x^2-x}{5x^2+2}",
+  "task": "Evaluate the limit.",
+  "problem_sympy": "Limit((3*x**2 - x)/(5*x**2 + 2), x, oo)",
+  "topic": "Limits at infinity",
+  "techniques": [
+    "Divide by highest power of x"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\lim_{x\\to\\infty} \\frac{\\frac{3x^2}{x^2} - \\frac{x}{x^2}}{\\frac{5x^2}{x^2} + \\frac{2}{x^2}}",
+      "plain_latex": "\\lim_{x\\to\\infty} \\frac{\\frac{3x^2}{x^2} - \\frac{x}{x^2}}{\\frac{5x^2}{x^2} + \\frac{2}{x^2}}",
+      "sympy": "Limit((3 - 1/x)/(5 + 2/x**2), x, oo)",
+      "chain": true,
+      "rule": "Divide by highest power",
+      "comment": "divide every term by $x^2$",
+      "summary": "Divide each term in the numerator and denominator by the highest power of $x$ in the denominator, which is $x^2$.",
+      "why": "Dividing by the highest power of $x$ in the denominator transforms terms into forms that approach zero as $x$ approaches infinity, making the limit easy to evaluate.",
+      "hint": "What is the highest power of $x$ in the denominator?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dividing only some terms by $x^2$.",
+          "hint": "Make sure to divide every single term in both the numerator and denominator by $x^2$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "\\lim_{x\\to\\infty} \\frac{3 - \\frac{1}{\\htmlClass{role-a}{x}}}{5 + \\frac{2}{\\htmlClass{role-b}{x^2}}}",
+      "plain_latex": "\\lim_{x\\to\\infty} \\frac{3 - \\frac{1}{x}}{5 + \\frac{2}{x^2}}",
+      "sympy": "Limit((3 - 1/x)/(5 + 2/x**2), x, oo)",
+      "chain": true,
+      "rule": "Simplify fractions",
+      "comment": "simplify powers of $x$",
+      "summary": "Simplify each fraction inside the limit.",
+      "why": "Simplifying the expression reveals terms with $x$ in the denominator, which clearly go to zero as $x$ grows large.",
+      "hint": "Cancel out $x$ where possible in the fractions.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Incorrectly reducing $x/x^2$ to $x$.",
+          "hint": "Remember that $x/x^2 = 1/x$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "x",
+          "latex": "x",
+          "role": "a"
+        },
+        {
+          "id": "x2",
+          "latex": "x^2",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\frac{3 - 0}{5 + 0}",
+      "plain_latex": "\\frac{3 - 0}{5 + 0}",
+      "sympy": "3/5",
+      "chain": true,
+      "rule": "Evaluate limit",
+      "comment": "terms with $x$ in denominator vanish",
+      "summary": "Take the limit as $x \\to \\infty$, noting that terms with $x$ in the denominator approach zero.",
+      "why": "As $x$ grows infinitely large, any constant divided by $x$ or $x^2$ approaches zero.",
+      "hint": "What happens to $1/x$ and $2/x^2$ as $x$ becomes huge?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving $x$ in the expression after taking the limit.",
+          "hint": "Once you apply the limit, all instances of $x$ should be evaluated or replaced by zero."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s4",
+      "latex": "\\htmlClass{role-c}{\\frac{3}{5}}",
+      "plain_latex": "\\frac{3}{5}",
+      "sympy": "3/5",
+      "chain": true,
+      "rule": "Simplify arithmetic",
+      "comment": "write the final fraction",
+      "summary": "Simplify the arithmetic to get the final answer.",
+      "why": "Combining the numbers gives the final value of the limit.",
+      "hint": "Subtract and add the zeros.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Arithmetic error.",
+          "hint": "Check $3-0$ and $5+0$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "\\frac{3}{5}",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Leading coefficients shortcut",
+      "summary": "Since the numerator and denominator are polynomials of the same degree ($2$), the limit is the ratio of their leading coefficients: $3/5$."
+    }
+  ],
+  "final_answer_latex": "\\frac{3}{5}",
+  "final_answer_sympy": "3/5"
+}

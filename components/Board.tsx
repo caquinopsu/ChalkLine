@@ -41,12 +41,13 @@ type Props = {
   children?: ReactNode; // anything extra (e.g. the finish layout)
   firstNumber?: number; // the step number of lines[0] (the home-screen demo passes only the last line)
   nav?: { prev?: () => void; next?: () => void }; // Walkthrough: big ‹ › arrows on the board's edges (laptops)
-  task?: string; // the worksheet's instructions, written small above the problem ("Find the Taylor series…")
+  task?: string; // what the problem asks, handwritten in gold before the problem ("Find the antiderivative.")
+  tools?: ReactNode; // small buttons in the header row (Walkthrough: autoplay and read aloud)
 };
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1, nav, task }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1, nav, task, tools }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find lines to glide
   const spots = useRef(new Map<string, DOMRect>()); // where each step's line was drawn last time
@@ -96,10 +97,15 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
       {/* board-drop: the board (and its ledge) unroll down from the rail when a problem opens */}
       <div className={`board-drop flex min-h-0 flex-1 flex-col ${fresh ? "board-fresh" : ""}`}>
       <div className="board-surface relative mx-2.5 flex min-h-0 flex-1 flex-col rounded-b-lg border-x-[6px] border-b-[6px] border-wood px-4 py-3 md:border-x-[12px] md:border-b-[12px] md:px-14 md:py-5">
-        {task && <RichText className="problem-ink -mb-1 truncate text-base text-muted md:text-lg" text={task} />}
-        {/* Header row: the problem and a handwritten status */}
+        {/* Header row: what to do (handwritten, gold), the problem, then tools and a handwritten status */}
         <div className="flex items-center justify-between gap-4 border-b border-[rgba(236,232,221,.14)] pb-3">
+          {task && (
+            <span title={task} className="line-clamp-2 max-w-[38%] shrink-0 font-hand text-xl leading-tight text-gold md:text-[27px]">
+              <RichText text={task} />
+            </span>
+          )}
           <span className="problem-ink flex min-w-0 flex-1"><FitTex latex={problemLatex} size={32} min={16} /></span>
+          {tools}
           <span className="shrink-0 font-hand text-2xl font-semibold text-muted md:text-[34px]">{status}</span>
         </div>
 

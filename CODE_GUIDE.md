@@ -61,7 +61,8 @@ problems' packages are saved as files, so they load instantly and cost nothing.
 | 7 | `lib/readPhoto.ts`, `lib/similar.ts` | Reading photos (vision) and writing similar problems. |
 | 8 | `app/api/*/route.ts` | Thin wrappers that turn web requests into calls to the files above. |
 | 9 | `app/page.tsx` | Top of the UI: start screen or session. |
-| 10 | `components/StartScreen.tsx` | Start screen + "Upload a photo", "Type it" and "Practice" dropdowns. |
+| 10 | `components/StartScreen.tsx` | Start screen, the sheets (Upload / Type / Talk / library picker) and the mini-chalkboard mode cards. |
+| 10b | `components/Library.tsx`, `lib/library.ts` | The problem library screen, solved ✓ marks, and "Picked for you" (weak spots). |
 | 11 | `components/Session.tsx` | The session: all the state for every mode and the finish board. |
 | 12 | `components/Board.tsx`, `WorkBoard.tsx` | The chalkboard; WorkBoard is its Check my work version. |
 | 13 | `components/Tex.tsx`, `MathInput.tsx` | Math display (KaTeX) and math typing (MathLive). |
@@ -70,7 +71,7 @@ problems' packages are saved as files, so they load instantly and cost nothing.
 | 16 | `lib/speak.ts` | The tutor's voice, and turning LaTeX into words ("x squared over 2"). |
 
 **Smaller helpers:** `lib/gemini.ts` (the Gemini client: which models to use, JSON replies, and automatic fallback to another model when one is busy), `lib/sympy.ts` (calls the Python
-checker), `lib/routeHelpers.ts` (friendly error messages), `lib/presets.ts` (the 6 demo problems),
+checker), `lib/routeHelpers.ts` (friendly error messages), `lib/presets.ts` (the library problems), `lib/task.ts` (guesses "Find the antiderivative." from the LaTeX when a package has no task),
 `lib/attempts.ts` (logs every attempt in your browser for the future Skills dashboard),
 `lib/photo.ts` (shrinks a photo in the browser and sends it), `lib/packages.ts` (remembers solution
 packages in the browser so pre-solving can start early),
@@ -80,10 +81,10 @@ packages in the browser so pre-solving can start early),
 
 | File | What it's for |
 |------|---------------|
-| `data/preset-list.json` | The 6 demo problems: id, tag, LaTeX, and the text sent to the AI. |
+| `data/preset-list.json` | The library: id, topic, technique tag, level (1-3), LaTeX, task line, and the text sent to the AI. |
 | `public/presets/*.json` | Their saved solution packages (made by `npm run presets`). |
 | `scripts/dev_py.py` | Runs the Python checker locally on port 8000 (Vercel does this in the cloud). |
-| `scripts/generate-presets.mjs` | Re-generates the preset packages. |
+| `scripts/generate-presets.mjs` | Solves the library problems and saves them (`npm run presets -- --missing` only does the ones not saved yet; it paces itself under the rate limit). |
 | `scripts/test-steps.mjs` | Sends sample right and wrong steps for every preset and prints the verdicts. |
 | `scripts/test-work.mjs` | Sends whole sample solutions (some with a planted mistake) to Check my work. |
 
@@ -166,6 +167,26 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
   Inside, `ModeCards` shows the work modes as big cards. `ChalkBackdrop` draws the floating doodles.
 - `fill()` (in `Session.tsx`) draws the summary at 30 px, measures it, and scales the font so the
   lines fill the left half and the answer fills the right half.
+
+### Design pass 4: the dock, the summary, the library
+- **Handwritten labels:** `.eyebrow` (globals.css) is now Patrick Hand, lowercase, so the labels in the
+  dock look like the board's own notes. Code can still write them in capitals.
+- **Task line:** every package has `task` ("Find the antiderivative."); the board writes it in gold
+  before the problem. Older packages fall back to `guessTask()` (`lib/task.ts`).
+- **Walkthrough dock** = `WhyCard` (the explanation, always open, with a follow-up box) +
+  `TurnCard` (step dots and "I'll write step n" on a small chalkboard). Autoplay and read aloud are
+  `ToolToggle`s in the board's header row (Board's `tools` slot).
+- **Summary:** every step has a `comment` (a short takeaway). `FinishBoard` lays the lines out as a
+  3-column CSS grid (number, math, comment), so the `// comments` line up like comments in code.
+  A wrapper with `display: contents` lets each row's 3 pieces sit directly in that grid.
+- **Mode cards:** `ModeCards` draws each mode as a mini chalkboard with a sketch (`ModeSketch`). The
+  pieces marked `.sk` redraw themselves on hover (`clip-path` reveal, delayed by a `--d` variable).
+- **Library:** `Library.tsx` lists `PRESETS` by topic. `lib/library.ts` stores solved ids in
+  localStorage and computes weak spots from the attempt log: per technique, missed steps x miss rate.
+  `picksForYou()` turns the worst techniques into problems (unsolved and easiest first). This is a
+  simple counting model on purpose; a trained model can replace `weakSpots()` later.
+- **Older packages:** routes read packages with `PackageInput` (schemas.ts), which fills in `task` and
+  `comment` when an older saved package doesn't have them.
 
 ### Protecting the demo (Phase 5)
 - **Rate limiting:** every AI route starts with `rateLimit(req, "heavy" | "light")` from

@@ -1,0 +1,135 @@
+{
+  "problem_latex": "y=x^3-2x,\\quad x=1",
+  "task": "Find the tangent line at $x = 1$.",
+  "problem_sympy": null,
+  "topic": "Derivatives",
+  "techniques": [
+    "Derivative definition",
+    "Point-slope form"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "y(1) = 1^3 - 2(1) = -1",
+      "plain_latex": "y(1) = 1^3 - 2(1) = -1",
+      "sympy": null,
+      "chain": false,
+      "rule": "Evaluate function",
+      "comment": "find the y-coordinate",
+      "summary": "Substitute $x = 1$ into the original equation to find the y-coordinate.",
+      "why": "The tangent line must pass through the point on the curve, so we need both the x and y coordinates at $x = 1$.",
+      "hint": "Plug $1$ into $y = x^3 - 2x$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Evaluating at the wrong x value",
+          "hint": "Make sure you substitute $x = 1$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "y' = \\htmlClass{role-a}{3x^2 - 2}",
+      "plain_latex": "y' = 3x^2 - 2",
+      "sympy": "Derivative(x**3 - 2*x, x)",
+      "chain": false,
+      "rule": "Power rule",
+      "comment": "differentiate the function",
+      "summary": "Find the derivative of the function to represent the slope.",
+      "why": "The derivative gives a formula for the slope of the tangent line at any point $x$.",
+      "hint": "Use the power rule on $x^3 - 2x$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Incorrect derivative",
+          "hint": "Remember that the derivative of $x^3$ is $3x^2$ and the derivative of $-2x$ is $-2$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "deriv",
+          "latex": "3x^2 - 2",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "m = \\htmlClass{role-b}{3(1)^2 - 2} = 1",
+      "plain_latex": "m = 3(1)^2 - 2 = 1",
+      "sympy": null,
+      "chain": false,
+      "rule": "Evaluate derivative",
+      "comment": "find the slope",
+      "summary": "Substitute $x = 1$ into the derivative to find the slope $m$.",
+      "why": "Evaluating the derivative at the given x-value gives the specific slope of the tangent line at that point.",
+      "hint": "Plug $x = 1$ into your derivative expression.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to evaluate at $x = 1$",
+          "hint": "Substitute $1$ for $x$ in the derivative."
+        }
+      ],
+      "parts": [
+        {
+          "id": "slope_eval",
+          "latex": "3(1)^2 - 2",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "y - (-1) = \\htmlClass{role-c}{1}(x - 1)",
+      "plain_latex": "y - (-1) = 1(x - 1)",
+      "sympy": null,
+      "chain": false,
+      "rule": "Point-slope form",
+      "comment": "use point-slope equation",
+      "summary": "Set up the equation of the line using the point $(1, -1)$ and slope $m = 1$.",
+      "why": "The point-slope form $y - y_1 = m(x - x_1)$ is the most direct way to write the equation of a line when you know a point and the slope.",
+      "hint": "Use $y - y_1 = m(x - x_1)$ with your point and slope.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Sign errors with coordinates",
+          "hint": "Subtracting a negative $y$-coordinate gives $y - (-1) = y + 1$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "slope_val",
+          "latex": "1",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "latex": "y = x - 2",
+      "plain_latex": "y = x - 2",
+      "sympy": "x - 2",
+      "chain": false,
+      "rule": "Algebra simplification",
+      "comment": "simplify to slope-intercept form",
+      "summary": "Simplify the equation into slope-intercept form.",
+      "why": "Expanding and rearranging puts the answer in the standard slope-intercept form $y = mx + b$.",
+      "hint": "Distribute the $1$ and move $-1$ to the right side.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Arithmetic error during simplification",
+          "hint": "Check your addition and subtraction when isolating $y$."
+        }
+      ],
+      "parts": []
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "y = x - 2",
+  "final_answer_sympy": "x - 2"
+}

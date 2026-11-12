@@ -190,10 +190,39 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Not yet: progress inside a part isn't kept when you switch parts (you restart at step 1); the
   solved ✓ marks reset on reload.
 
+## Design pass 4 + problem library ✅ (Nov 12, 2026)
+From the design critique (reviewer pass) and the user's 10 notes:
+- **Home:** the "Calculus I & II · free · no sign-up" line and the SIGNATURE badge are gone. "Try a
+  demo problem" became a **Problem library** card listing the topics.
+- **Mode cards** are mini chalkboards with a chalk sketch of each mode that redraws on hover, a
+  handwritten title and a ledge with "start →". Before a problem is ready they say "waiting…"
+  instead of looking dimmed and broken.
+- **Labels** in the dock and sheets are handwritten (Patrick Hand, lowercase) instead of monospace
+  capitals, so the UI matches the board.
+- **Walkthrough dock:** the unlabeled middle card (autoplay + read aloud) is gone; those are now
+  labeled toggles ("play", "read aloud") in the board's header. The left of the dock is now the
+  **Why** explanation, always open, in full-strength text with a gold margin line and a follow-up box.
+  The right is a small chalkboard: step dots and **I'll write step n**.
+- **Why / Side work panel** (other modes): solid background (the board no longer shows through),
+  handwritten heading, readable text.
+- **Task beside the problem:** every solution now has a `task` ("Find the antiderivative."), written
+  in gold before the problem on the board (worksheet instructions take priority).
+- **Summary:** each line gets a `// takeaway` comment beside it, aligned like code comments, written
+  in after the answer lands. The dock lists techniques and the numbered steps (rule · takeaway) in two
+  columns, matching the board's numbers. The "5 steps" stat and the duplicate New problem button are
+  gone; there's "Now solve it yourself", a similar problem, and "More … problems in the library".
+- **Problem library** (new screen): 29 solved problems in 6 areas with technique, difficulty (●●○)
+  and ✓ when solved. **Picked for you** = version 1 of the recommender: counts the steps you missed
+  per technique (from the attempt log already kept in the browser) and recommends problems for your
+  worst ones. Documented as the stand-in for a trained model (knowledge tracing) later.
+- Phone layout set aside on purpose (laptop and iPad first).
+- Library solutions were generated with `npm run presets` (one AI call per problem, once).
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.
-Stretch if time allows: the Skills dashboard (knowledge tracing from the attempts already logged).
+Stretch if time allows: replace the counting recommender with knowledge tracing (a trained model on
+the attempts already logged). Step practice: type the step on the board itself instead of in the dock.
 
 ## Known issues
 - Think-aloud was tested with computer-generated speech, not a real human voice or mic yet; check

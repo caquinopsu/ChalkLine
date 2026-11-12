@@ -1,0 +1,151 @@
+{
+  "problem_latex": "\\sum_{n=1}^{\\infty}\\frac{x^n}{n\\,3^n}",
+  "task": "Find the radius of convergence.",
+  "problem_sympy": null,
+  "topic": "Power Series",
+  "techniques": [
+    "Ratio Test"
+  ],
+  "check_mode": "value",
+  "variable": "n",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "a_n = \\frac{x^n}{n \\cdot 3^n}",
+      "plain_latex": "a_n = \\frac{x^n}{n \\cdot 3^n}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Identify term",
+      "comment": "define the general term $a_n$",
+      "summary": "We identify the general term $a_n$ of the power series.",
+      "why": "The ratio test applies directly to the absolute value of the general term $a_n$ of the series.",
+      "hint": "What is the formula for the $n$-th term?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Including the sum symbol in $a_n$.",
+          "hint": "Drop the summation operator; $a_n$ is just the sequence term inside."
+        }
+      ],
+      "parts": [
+        {
+          "id": "an",
+          "latex": "\\frac{x^n}{n \\cdot 3^n}",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\lim_{n \\to \\infty} \\left| \\frac{\\htmlClass{role-b}{x^{n+1}}}{(n+1) \\cdot 3^{n+1}} \\cdot \\frac{n \\cdot 3^n}{\\htmlClass{role-a}{x^n}} \\right|",
+      "plain_latex": "\\lim_{n \\to \\infty} \\left| \\frac{x^{n+1}}{(n+1) \\cdot 3^{n+1}} \\cdot \\frac{n \\cdot 3^n}{x^n} \\right|",
+      "sympy": null,
+      "chain": false,
+      "rule": "Ratio test setup",
+      "comment": "set up the limit of $|a_{n+1}/a_n|$",
+      "summary": "We set up the ratio test by writing the limit of the absolute value of $a_{n+1} / a_n$.",
+      "why": "The ratio test uses the limit of $|a_{n+1}/a_n|$ as $n$ goes to infinity to determine convergence.",
+      "hint": "Write out $a_{n+1}$ by replacing every $n$ with $n+1$, then multiply by the reciprocal of $a_n$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting absolute value bars around the ratio.",
+          "hint": "The ratio test requires absolute values because $x$ can be negative."
+        }
+      ],
+      "parts": [
+        {
+          "id": "an1",
+          "latex": "x^{n+1}",
+          "role": "b"
+        },
+        {
+          "id": "an",
+          "latex": "x^n",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\lim_{n \\to \\infty} \\left| \\frac{x}{3} \\cdot \\frac{n}{n+1} \\right|",
+      "plain_latex": "\\lim_{n \\to \\infty} \\left| \\frac{x}{3} \\cdot \\frac{n}{n+1} \\right|",
+      "sympy": null,
+      "chain": false,
+      "rule": "Simplify algebraic terms",
+      "comment": "simplify powers of $x$ and $3$",
+      "summary": "We simplify the expression by canceling common powers of $x$ and $3$.",
+      "why": "Algebraic simplification isolates the dependence on $n$ from the dependence on $x$.",
+      "hint": "Cancel $x^n$ and $3^n$ from numerator and denominator.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Incorrectly simplifying $3^{n+1}$ in the denominator.",
+          "hint": "Remember that $3^{n+1} = 3^n \\cdot 3$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "term",
+          "latex": "\\frac{x}{3}",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\left| \\frac{x}{3} \\right| \\lim_{n \\to \\infty} \\frac{n}{n+1} = \\left| \\frac{x}{3} \\right|",
+      "plain_latex": "\\left| \\frac{x}{3} \\right| \\lim_{n \\to \\infty} \\frac{n}{n+1} = \\left| \\frac{x}{3} \\right|",
+      "sympy": null,
+      "chain": false,
+      "rule": "Evaluate limit",
+      "comment": "evaluate the limit as $n \\to \\infty$",
+      "summary": "We evaluate the limit as $n \\to \\infty$, which gives $|x/3|$.",
+      "why": "Since $x$ does not depend on $n$, it factors out of the limit, and $\\lim_{n \\to \\infty} \\frac{n}{n+1} = 1$.",
+      "hint": "Factor out terms not containing $n$, then evaluate the limit of $n/(n+1)$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Evaluating the limit incorrectly as $\\infty$.",
+          "hint": "Both numerator and denominator grow at the same rate, so the limit is $1$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "\\left| \\frac{x}{3} \\right|",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "latex": "\\left| \\frac{x}{3} \\right| < 1 \\implies R = 3",
+      "plain_latex": "\\left| \\frac{x}{3} \\right| < 1 \\implies R = 3",
+      "sympy": null,
+      "chain": false,
+      "rule": "Apply convergence condition",
+      "comment": "solve for the radius of convergence",
+      "summary": "We set the limit strictly less than $1$ for convergence and find the radius $R = 3$.",
+      "why": "The ratio test states that a series converges absolutely when the limit is less than $1$, giving $|x| < 3$.",
+      "hint": "Set your limit expression less than $1$ and solve for $|x| < R$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Confusing the radius with the interval endpoints.",
+          "hint": "The radius is the distance from the center to the edge, not the set of points."
+        }
+      ],
+      "parts": [
+        {
+          "id": "radius",
+          "latex": "3",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "R = 3",
+  "final_answer_sympy": null
+}

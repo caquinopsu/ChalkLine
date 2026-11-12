@@ -1,117 +1,135 @@
 {
   "problem_latex": "\\lim_{x\\to 0}\\frac{e^x-1-x}{x^2}",
+  "task": "Evaluate the limit.",
   "problem_sympy": "Limit((exp(x) - 1 - x)/x**2, x, 0)",
-  "topic": "Limits with L'Hopital's rule",
+  "topic": "Limits and L'Hopital's Rule",
   "techniques": [
-    "L'Hopital's rule",
-    "indeterminate forms"
+    "LHopitals Rule"
   ],
   "check_mode": "value",
   "variable": "x",
   "steps": [
     {
       "id": "s1",
-      "latex": "\\lim_{x\\to 0} \\frac{\\htmlClass{role-a}{e^x - 1}}{2x}\\cdot\\frac{1}{1}\\text{ with }\\frac{d}{dx}\\left[e^x-1-x\\right]=e^x-1",
-      "plain_latex": "\\lim_{x\\to 0} \\frac{e^x - 1}{2x}",
-      "sympy": "Limit((exp(x) - 1)/(2*x), x, 0)",
-      "chain": true,
-      "rule": "L'Hopital's rule",
-      "summary": "Plugging in x = 0 gives 0/0, so differentiate top and bottom.",
-      "why": "At $x=0$ the top is $1-1-0=0$ and the bottom is $0$, so we have the form $0/0$. L'Hopital's rule lets us replace the top and bottom by their derivatives.",
-      "hint": "Check what happens at x = 0 first. Then take the derivative of the numerator and denominator separately.",
-      "side_work": {
-        "title": "Derivatives",
-        "lines": [
-          "\\frac{d}{dx}\\left[e^x-1-x\\right]=e^x-1",
-          "\\frac{d}{dx}\\left[x^2\\right]=2x"
-        ]
-      },
+      "latex": "\\lim_{x \\to 0} \\frac{\\htmlClass{role-a}{e^x} - 1 - \\htmlClass{role-a}{x}}{\\htmlClass{role-b}{x^2}} = \\frac{0}{0}",
+      "plain_latex": "\\lim_{x \\to 0} \\frac{e^x - 1 - x}{x^2} = \\frac{0}{0}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Check indeterminate form",
+      "comment": "check for zero over zero first",
+      "summary": "Check the form of the limit before applying L'Hopital's rule.",
+      "why": "Direct substitution gives $0/0$, which means we can apply L'Hopital's rule.",
+      "hint": "Try plugging in $x = 0$ to see what form you get.",
+      "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Using the quotient rule on the whole fraction",
-          "hint": "L'Hopital differentiates the top and bottom separately."
-        },
-        {
-          "mistake": "Forgetting that the derivative of -x is -1",
-          "hint": "Differentiate each term of the numerator one at a time."
+          "mistake": "Applying L'Hopital's rule without checking the form.",
+          "hint": "Make sure you actually have an indeterminate form like $0/0$ or $\\infty/\\infty$."
         }
       ],
       "parts": [
         {
           "id": "num",
-          "latex": "e^x - 1",
+          "latex": "e^x - 1 - x",
           "role": "a"
+        },
+        {
+          "id": "den",
+          "latex": "x^2",
+          "role": "b"
         }
       ]
     },
     {
       "id": "s2",
-      "latex": "\\lim_{x\\to 0} \\frac{\\htmlClass{role-a}{e^x}}{\\htmlClass{role-b}{2}}",
-      "plain_latex": "\\lim_{x\\to 0} \\frac{e^x}{2}",
-      "sympy": "Limit(exp(x)/2, x, 0)",
+      "latex": "= \\lim_{x \\to 0} \\frac{\\htmlClass{role-a}{e^x - 1}}{\\htmlClass{role-b}{2x}}",
+      "plain_latex": "= \\lim_{x \\to 0} \\frac{e^x - 1}{2x}",
+      "sympy": "Limit((exp(x) - 1)/(2*x), x, 0)",
       "chain": true,
-      "rule": "L'Hopital again",
-      "summary": "Still 0/0, so apply L'Hopital's rule a second time.",
-      "why": "At $x=0$, $(e^x-1)/(2x)$ is again $0/0$. Differentiating top and bottom gives $e^x$ over $2$.",
-      "hint": "Is the new limit still 0/0? If so, differentiate again.",
-      "side_work": {
-        "title": "Derivatives",
-        "lines": [
-          "\\frac{d}{dx}\\left[e^x-1\\right]=e^x",
-          "\\frac{d}{dx}\\left[2x\\right]=2"
-        ]
-      },
+      "rule": "L'Hopital's Rule",
+      "comment": "take derivatives of top and bottom",
+      "summary": "Apply L'Hopital's rule by differentiating the numerator and denominator separately.",
+      "why": "Since the limit is of the form $0/0$, the derivative of the top over the derivative of the bottom shares the same limit.",
+      "hint": "Take the derivative of $e^x - 1 - x$ and $x^2$ separately.",
+      "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Stopping after one application",
-          "hint": "Substitute x = 0 into the previous line. Is it still indeterminate?"
+          "mistake": "Using the quotient rule instead of differentiating top and bottom separately.",
+          "hint": "L'Hopital's rule requires differentiating the numerator and denominator independently, not using the quotient rule."
         }
       ],
       "parts": [
         {
-          "id": "num",
-          "latex": "e^x",
+          "id": "num2",
+          "latex": "e^x - 1",
           "role": "a"
         },
         {
-          "id": "den",
-          "latex": "2",
+          "id": "den2",
+          "latex": "2x",
           "role": "b"
         }
       ]
     },
     {
       "id": "s3",
-      "latex": "\\htmlClass{role-c}{\\frac{1}{2}}",
-      "plain_latex": "\\frac{1}{2}",
-      "sympy": "1/2",
+      "latex": "= \\lim_{x \\to 0} \\frac{\\htmlClass{role-a}{e^x}}{\\htmlClass{role-b}{2}}",
+      "plain_latex": "= \\lim_{x \\to 0} \\frac{e^x}{2}",
+      "sympy": "Limit(exp(x)/2, x, 0)",
       "chain": true,
-      "rule": "Substitute x = 0",
-      "summary": "Now plug in x = 0 to get the limit.",
-      "why": "The denominator is no longer zero, so we can substitute directly: $e^0/2 = 1/2$.",
-      "hint": "Substitute x = 0 and remember e^0.",
+      "rule": "L'Hopital's Rule",
+      "comment": "still zero over zero so apply again",
+      "summary": "Apply L'Hopital's rule a second time since the form is still $0/0$.",
+      "why": "Plugging $x = 0$ into the previous expression still yields $0/0$, so we differentiate again.",
+      "hint": "Check the form again. Can you use L'Hopital's rule once more?",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Writing e^0 = 0",
-          "hint": "Any nonzero number to the power 0 is 1."
+          "mistake": "Stopping too early while it is still an indeterminate form.",
+          "hint": "Substitute $x = 0$ to verify if the indeterminate form persists."
         }
       ],
       "parts": [
         {
-          "id": "val",
-          "latex": "\\frac{1}{2}",
+          "id": "num3",
+          "latex": "e^x",
+          "role": "a"
+        },
+        {
+          "id": "den3",
+          "latex": "2",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "= \\frac{\\htmlClass{role-c}{1}}{2}",
+      "plain_latex": "= \\frac{1}{2}",
+      "sympy": "1/2",
+      "chain": true,
+      "rule": "Direct substitution",
+      "comment": "substitute x equals zero",
+      "summary": "Evaluate the limit by direct substitution.",
+      "why": "Now that the denominator is no longer zero, we can safely plug in $x = 0$.",
+      "hint": "Substitute $x = 0$ into $e^x / 2$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting that $e^0 = 1$.",
+          "hint": "Any non-zero number to the power of zero is $1$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "1",
           "role": "c"
         }
       ]
     }
   ],
-  "alternates": [
-    {
-      "label": "Taylor series",
-      "summary": "Use e^x = 1 + x + x^2/2 + ..., so the numerator is x^2/2 + ... and dividing by x^2 gives 1/2."
-    }
-  ],
+  "alternates": [],
   "final_answer_latex": "\\frac{1}{2}",
   "final_answer_sympy": "1/2"
 }

@@ -1,0 +1,130 @@
+{
+  "problem_latex": "\\int_0^2\\left(x^2+1\\right)dx",
+  "task": "Evaluate the definite integral.",
+  "problem_sympy": "Integral(x**2 + 1, (x, 0, 2))",
+  "topic": "Definite Integrals",
+  "techniques": [
+    "Power rule"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\left[\\frac{\\htmlClass{role-a}{x^3}}{3} + \\htmlClass{role-b}{x}\\\\right]_0^2",
+      "plain_latex": "\\left[\\frac{x^3}{3} + x\\right]_0^2",
+      "sympy": "x**3/3 + x",
+      "chain": false,
+      "rule": "Power rule",
+      "comment": "find the antiderivative first",
+      "summary": "Find the antiderivative of the function.",
+      "why": "By the fundamental theorem of calculus, we first need to find an antiderivative for $x^2 + 1$.",
+      "hint": "Think about what differentiates to $x^2$ and what differentiates to $1$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to divide by the new power",
+          "hint": "Remember that the integral of $x^n$ is $\\frac{x^{n+1}}{n+1}$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "antideriv1",
+          "latex": "\\frac{x^3}{3}",
+          "role": "a"
+        },
+        {
+          "id": "antideriv2",
+          "latex": "x",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\left(\\frac{\\htmlClass{role-a}{2}^3}{3} + \\htmlClass{role-a}{2}\\right) - \\left(\\frac{\\htmlClass{role-b}{0}^3}{3} + \\htmlClass{role-b}{0}\\right)",
+      "plain_latex": "\\left(\\frac{2^3}{3} + 2\\right) - \\left(\\frac{0^3}{3} + 0\\right)",
+      "sympy": "(2**3/3 + 2) - (0**3/3 + 0)",
+      "chain": true,
+      "rule": "Fundamental Theorem of Calculus",
+      "comment": "plug in upper and lower limits",
+      "summary": "Substitute the upper and lower limits into the antiderivative.",
+      "why": "We evaluate the antiderivative at the upper limit $2$ and subtract its value at the lower limit $0$.",
+      "hint": "Plug $2$ in for every $x$, then subtract the result of plugging in $0$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Subtracting in the wrong order",
+          "hint": "Always do $F(b) - F(a)$ where $b$ is the top limit."
+        }
+      ],
+      "parts": [
+        {
+          "id": "upper",
+          "latex": "2",
+          "role": "a"
+        },
+        {
+          "id": "lower",
+          "latex": "0",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\frac{8}{3} + 2",
+      "plain_latex": "\\frac{8}{3} + 2",
+      "sympy": "8/3 + 2",
+      "chain": true,
+      "rule": "Arithmetic simplification",
+      "comment": "simplify the evaluated terms",
+      "summary": "Simplify the powers and terms at the upper limit, noting the lower limit evaluates to zero.",
+      "why": "Evaluating at $0$ gives zero, leaving us to simplify the expression at $2$.",
+      "hint": "Compute $2^3$ and handle the zero terms.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Arithmetic error on powers",
+          "hint": "Recall that $2^3 = 8$, not $6$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "term",
+          "latex": "\\frac{8}{3}",
+          "role": null
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{\\htmlClass{role-c}{14}}{3}",
+      "plain_latex": "\\frac{14}{3}",
+      "sympy": "14/3",
+      "chain": true,
+      "rule": "Combine fractions",
+      "comment": "get a common denominator",
+      "summary": "Combine the terms into a single fraction.",
+      "why": "Adding $8/3$ and $2$ (which is $6/3$) gives the final single fraction.",
+      "hint": "Write $2$ as $\\frac{6}{3}$ before adding.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Adding numerators and denominators directly",
+          "hint": "Find a common denominator of $3$ first."
+        }
+      ],
+      "parts": [
+        {
+          "id": "final",
+          "latex": "\\frac{14}{3}",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\frac{14}{3}",
+  "final_answer_sympy": "14/3"
+}

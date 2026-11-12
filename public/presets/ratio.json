@@ -1,152 +1,144 @@
 {
   "problem_latex": "\\sum_{n=1}^{\\infty}\\frac{n^2}{2^n}",
+  "task": "Decide whether the series converges.",
   "problem_sympy": null,
-  "topic": "Series convergence tests",
+  "topic": "Infinite Series",
   "techniques": [
-    "Ratio test"
+    "Ratio Test"
   ],
   "check_mode": "value",
   "variable": "n",
   "steps": [
     {
       "id": "s1",
-      "latex": "a_n = \\htmlClass{role-a}{\\frac{n^2}{2^n}},\\quad a_{n+1} = \\htmlClass{role-b}{\\frac{(n+1)^2}{2^{n+1}}}",
-      "plain_latex": "a_n = \\frac{n^2}{2^n},\\quad a_{n+1} = \\frac{(n+1)^2}{2^{n+1}}",
+      "latex": "a_n = \\frac{\\htmlClass{role-a}{n^2}}{\\htmlClass{role-b}{2^n}}",
+      "plain_latex": "a_n = \\frac{n^2}{2^n}",
       "sympy": null,
       "chain": false,
-      "rule": "Set up ratio test",
-      "summary": "Name the general term a_n and write a_{n+1} by replacing n with n+1.",
-      "why": "The series has powers of $2$ and a polynomial in $n$, which is a good fit for the ratio test. We need both $a_n$ and $a_{n+1}$ to form the ratio.",
-      "hint": "Write the general term, then swap every n for n+1.",
+      "rule": "Identify a_n",
+      "comment": "define the general term for the test",
+      "summary": "Identify the general term $a_n$ of the series.",
+      "why": "To apply the ratio test, we must first clearly define the general term $a_n = \\frac{n^2}{2^n}$ from the given series.",
+      "hint": "Write down the formula for $a_n$ based on the summand.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Writing a_{n+1} = n^2/2^n + 1",
-          "hint": "Replace n by n+1 everywhere it appears, including inside the square and the exponent."
-        },
-        {
-          "mistake": "Writing (n+1)^2/2^n",
-          "hint": "The exponent on 2 also contains n, so it changes too."
+          "mistake": "Including the sum symbol in $a_n$",
+          "hint": "Remember that $a_n$ represents only the individual term inside the sum."
         }
       ],
       "parts": [
         {
-          "id": "an",
-          "latex": "\\frac{n^2}{2^n}",
+          "id": "an_num",
+          "latex": "n^2",
           "role": "a"
         },
         {
-          "id": "an1",
-          "latex": "\\frac{(n+1)^2}{2^{n+1}}",
+          "id": "an_den",
+          "latex": "2^n",
           "role": "b"
         }
       ]
     },
     {
       "id": "s2",
-      "latex": "\\left|\\frac{a_{n+1}}{a_n}\\right| = \\frac{(n+1)^2}{2^{n+1}}\\cdot\\frac{2^n}{n^2}",
-      "plain_latex": "\\left|\\frac{a_{n+1}}{a_n}\\right| = \\frac{(n+1)^2}{2^{n+1}}\\cdot\\frac{2^n}{n^2}",
+      "latex": "a_{n+1} = \\frac{\\htmlClass{role-a}{(n+1)^2}}{\\htmlClass{role-b}{2^{n+1}}}",
+      "plain_latex": "a_{n+1} = \\frac{(n+1)^2}{2^{n+1}}",
       "sympy": null,
       "chain": false,
-      "rule": "Form the ratio",
-      "summary": "Write the ratio a_{n+1}/a_n, flipping a_n to multiply.",
-      "why": "Dividing by a fraction is the same as multiplying by its reciprocal, which lets the powers of $2$ combine.",
-      "hint": "Divide a_{n+1} by a_n by multiplying by the reciprocal.",
+      "rule": "Find a_{n+1}",
+      "comment": "replace every n with n+1",
+      "summary": "Find the next term $a_{n+1}$ by replacing $n$ with $n+1$.",
+      "why": "The ratio test requires evaluating the limit of the absolute value of $a_{n+1} / a_n$, so we need the expression for $a_{n+1}$.",
+      "hint": "Substitute $n+1$ everywhere you see $n$ in $a_n$.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Inverting the wrong fraction (a_n / a_{n+1})",
-          "hint": "The ratio test uses the later term on top."
+          "mistake": "Writing $n+1^2$ instead of $(n+1)^2$",
+          "hint": "Make sure to wrap the entire $n+1$ in parentheses when squaring."
         }
       ],
-      "parts": []
+      "parts": [
+        {
+          "id": "an1_num",
+          "latex": "(n+1)^2",
+          "role": "a"
+        },
+        {
+          "id": "an1_den",
+          "latex": "2^{n+1}",
+          "role": "b"
+        }
+      ]
     },
     {
       "id": "s3",
-      "latex": "\\left|\\frac{a_{n+1}}{a_n}\\right| = \\frac{1}{2}\\cdot\\frac{(n+1)^2}{n^2}",
-      "plain_latex": "\\left|\\frac{a_{n+1}}{a_n}\\right| = \\frac{1}{2}\\cdot\\frac{(n+1)^2}{n^2}",
-      "sympy": "(1/2)*(n+1)**2/n**2",
-      "chain": false,
-      "rule": "Simplify the ratio",
-      "summary": "Cancel the powers of 2 using 2^{n+1} = 2\\cdot 2^n.",
-      "why": "Since $2^{n+1}=2\\cdot 2^n$, the ratio $2^n/2^{n+1}$ is just $1/2$.",
-      "hint": "Rewrite 2^{n+1} as 2 times 2^n and cancel.",
-      "side_work": {
-        "title": "Powers of 2",
-        "lines": [
-          "\\frac{2^n}{2^{n+1}} = \\frac{2^n}{2\\cdot 2^n} = \\frac{1}{2}"
-        ]
-      },
-      "common_mistakes": [
-        {
-          "mistake": "Getting 2 instead of 1/2",
-          "hint": "Check which power of 2 is in the denominator."
-        }
-      ],
-      "parts": [
-        {
-          "id": "half",
-          "latex": "\\frac{1}{2}",
-          "role": "c"
-        }
-      ]
-    },
-    {
-      "id": "s4",
-      "latex": "L = \\lim_{n\\to\\infty}\\frac{1}{2}\\left(1+\\frac{1}{n}\\right)^2",
-      "plain_latex": "L = \\lim_{n\\to\\infty}\\frac{1}{2}\\left(1+\\frac{1}{n}\\right)^2",
+      "latex": "\\lim_{n\\to\\infty} \\left| \\frac{a_{n+1}}{a_n} \\right| = \\lim_{n\\to\\infty} \\frac{(n+1)^2}{2^{n+1}} \\cdot \\frac{2^n}{n^2}",
+      "plain_latex": "\\lim_{n\\to\\infty} \\left| \\frac{a_{n+1}}{a_n} \\right| = \\lim_{n\\to\\infty} \\frac{(n+1)^2}{2^{n+1}} \\cdot \\frac{2^n}{n^2}",
       "sympy": null,
       "chain": false,
-      "rule": "Take the limit",
-      "summary": "Take n to infinity, rewriting (n+1)^2/n^2 as (1+1/n)^2.",
-      "why": "Since $\\frac{n+1}{n}=1+\\frac1n$, the limit is easy to see: $1/n\\to 0$.",
-      "hint": "Divide inside the square by n, then let 1/n go to 0.",
-      "side_work": {
-        "title": "Limit",
-        "lines": [
-          "\\frac{(n+1)^2}{n^2} = \\left(1+\\frac1n\\right)^2 \\to 1"
-        ]
-      },
+      "rule": "Set up ratio test",
+      "comment": "multiply by the reciprocal of a_n",
+      "summary": "Set up the ratio test limit $\\lim_{n\\to\\infty} |a_{n+1}/a_n|$.",
+      "why": "Dividing by $a_n$ is the same as multiplying by its reciprocal, which helps set up algebraic simplification.",
+      "hint": "Write out the fraction $a_{n+1} / a_n$ as multiplication by the reciprocal.",
+      "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Saying the limit is infinity because n+1 grows",
-          "hint": "Top and bottom grow at the same rate; compare them."
+          "mistake": "Inverting $a_{n+1}$ instead of $a_n$",
+          "hint": "Remember it is $a_{n+1}$ divided by $a_n$, so flip the second fraction."
         }
       ],
       "parts": []
     },
     {
-      "id": "s5",
-      "latex": "L = \\htmlClass{role-c}{\\frac{1}{2}} < 1 \\;\\Rightarrow\\; \\text{converges by the ratio test}",
-      "plain_latex": "L = \\frac{1}{2} < 1 \\;\\Rightarrow\\; \\text{converges by the ratio test}",
-      "sympy": null,
+      "id": "s4",
+      "latex": "= \\lim_{n\\to\\infty} \\left( \\frac{1}{2} \\cdot \\frac{(n+1)^2}{n^2} \\right) = \\frac{1}{2} \\cdot 1 = \\frac{1}{2}",
+      "plain_latex": "= \\lim_{n\\to\\infty} \\left( \\frac{1}{2} \\cdot \\frac{(n+1)^2}{n^2} \\right) = \\frac{1}{2} \\cdot 1 = \\frac{1}{2}",
+      "sympy": "1/2",
       "chain": false,
-      "rule": "Conclude",
-      "summary": "Since L = 1/2 < 1, the series converges.",
-      "why": "The ratio test says that if $L<1$ the series converges absolutely.",
-      "hint": "Compare L with 1 and recall what the ratio test says.",
+      "rule": "Evaluate limit",
+      "comment": "powers of 2 simplify and limit of rational function is 1",
+      "summary": "Simplify the expression and evaluate the limit to get $\\htmlClass{role-c}{1/2}$.",
+      "why": "The exponential terms $2^n / 2^{n+1}$ simplify to $\\htmlClass{role-c}{1/2}$, and the polynomial part approaches $1$ as $n$ goes to infinity.",
+      "hint": "Cancel out the common powers of $2$ and evaluate the limit of the remaining rational expression.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Concluding divergence",
-          "hint": "Recall which values of L give convergence."
+          "mistake": "Forgetting that $(n+1)^2 / n^2$ approaches $1$",
+          "hint": "Compare the highest powers of the numerator and denominator."
         }
       ],
       "parts": [
         {
-          "id": "L",
+          "id": "limit_val",
           "latex": "\\frac{1}{2}",
           "role": "c"
         }
       ]
-    }
-  ],
-  "alternates": [
+    },
     {
-      "label": "Comparison / growth",
-      "summary": "Exponentials grow faster than polynomials, so compare with a geometric series such as (3/4)^n for large n."
+      "id": "s5",
+      "latex": "\\text{The series converges by the ratio test since } \\frac{1}{2} < 1.",
+      "plain_latex": "The series converges by the ratio test since 1/2 < 1.",
+      "sympy": null,
+      "chain": false,
+      "rule": "Ratio test conclusion",
+      "comment": "limit is less than 1 so it converges",
+      "summary": "Conclude that the series converges because the limit is less than $1$.",
+      "why": "The ratio test states that if the limit is strictly less than $1$, the series converges absolutely.",
+      "hint": "Check if your limit is less than, greater than, or equal to $1$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Concluding divergence when the limit is less than 1",
+          "hint": "A limit less than $1$ means convergence, not divergence."
+        }
+      ],
+      "parts": []
     }
   ],
-  "final_answer_latex": "\\text{converges by the ratio test}",
+  "alternates": [],
+  "final_answer_latex": "\\text{Converges}",
   "final_answer_sympy": null
 }

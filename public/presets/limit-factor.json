@@ -1,0 +1,95 @@
+{
+  "problem_latex": "\\lim_{x\\to 3}\\frac{x^2-9}{x-3}",
+  "task": "Evaluate the limit.",
+  "problem_sympy": "Limit((x**2 - 9)/(x - 3), x, 3)",
+  "topic": "Limits",
+  "techniques": [
+    "Factoring",
+    "Direct substitution"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\lim_{x\\to 3} \\frac{\\htmlClass{role-a}{(x - 3)}(x + 3)}{x - 3}",
+      "plain_latex": "\\lim_{x\\to 3} \\frac{(x - 3)(x + 3)}{x - 3}",
+      "sympy": "Limit((x - 3)*(x + 3)/(x - 3), x, 3)",
+      "chain": true,
+      "rule": "Factor the numerator",
+      "comment": "factor the difference of squares",
+      "summary": "Factor the numerator into a difference of squares so it shares a factor with the denominator.",
+      "why": "Direct substitution gives $0/0$, so we factor $x^2 - 9$ into $\\htmlClass{role-a}{(x - 3)}(x + 3)$ to reveal the common factor causing the zero.",
+      "hint": "Look for a way to factor $x^2 - 9$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Factoring incorrectly as (x - 3)(x - 3)",
+          "hint": "Check by multiplying out your factors to see if they match x^2 - 9."
+        }
+      ],
+      "parts": [
+        {
+          "id": "factor",
+          "latex": "(x - 3)",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\lim_{x\\to 3} (x + 3)",
+      "plain_latex": "\\lim_{x\\to 3} (x + 3)",
+      "sympy": "Limit(x + 3, x, 3)",
+      "chain": true,
+      "rule": "Cancel common factors",
+      "comment": "cancel the matching terms",
+      "summary": "Cancel the common factor of $x - 3$ from the numerator and denominator.",
+      "why": "Since we are taking the limit as $x \\to 3$, $x \\neq 3$, so we can safely cancel the $\\htmlClass{role-a}{x - 3}$ terms.",
+      "hint": "What common term appears in both the top and bottom?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving a zero in the denominator",
+          "hint": "The factor completely divides out, leaving 1 in the denominator."
+        }
+      ],
+      "parts": [
+        {
+          "id": "factor",
+          "latex": "x - 3",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "3 + 3 = \\htmlClass{role-c}{6}",
+      "plain_latex": "3 + 3 = 6",
+      "sympy": "6",
+      "chain": true,
+      "rule": "Direct substitution",
+      "comment": "plug in x = 3",
+      "summary": "Substitute $x = 3$ into the simplified expression to find the limit value.",
+      "why": "The expression is now continuous at $x = 3$, so we can evaluate it by direct substitution.",
+      "hint": "Now plug $3$ in for $x$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to evaluate after simplifying",
+          "hint": "Substitute 3 for x to finish."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "6",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "6",
+  "final_answer_sympy": "6"
+}

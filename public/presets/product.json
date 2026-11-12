@@ -1,0 +1,73 @@
+{
+  "problem_latex": "\\frac{d}{dx}\\left[x^2\\sin x\\right]",
+  "task": "Find the derivative.",
+  "problem_sympy": "Derivative(x**2 * sin(x), x)",
+  "topic": "Derivatives",
+  "techniques": [
+    "Product rule"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\frac{d}{dx}\\left[\\htmlClass{role-a}{x^2}\\right] \\sin(x) + x^2 \\frac{d}{dx}\\left[\\htmlClass{role-b}{\\sin(x)}\\right]",
+      "plain_latex": "\\frac{d}{dx}\\left[x^2\\right] \\sin(x) + x^2 \\frac{d}{dx}\\left[\\sin(x)\\right]",
+      "sympy": "Derivative(x**2, x)*sin(x) + x**2*Derivative(sin(x), x)",
+      "chain": true,
+      "rule": "Product rule",
+      "comment": "split into two derivative terms",
+      "summary": "Apply the product rule to split the derivative of the product into a sum of two derivatives.",
+      "why": "The product rule tells us that the derivative of $f(x)g(x)$ is $f'(x)g(x) + f(x)g'(x)$, which lets us handle each factor separately.",
+      "hint": "Think about the product rule: derivative of the first times the second, plus the first times the derivative of the second.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Just taking the derivative of each part and multiplying them directly.",
+          "hint": "Remember the product rule requires a sum of two terms, not just multiplying individual derivatives."
+        }
+      ],
+      "parts": [
+        {
+          "id": "f",
+          "latex": "x^2",
+          "role": "a"
+        },
+        {
+          "id": "g",
+          "latex": "\\sin(x)",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "2\\htmlClass{role-c}{x} \\sin(x) + x^2 \\cos(x)",
+      "plain_latex": "2x \\sin(x) + x^2 \\cos(x)",
+      "sympy": "2*x*sin(x) + x**2*cos(x)",
+      "chain": true,
+      "rule": "Basic derivatives",
+      "comment": "evaluate the individual derivatives",
+      "summary": "Take the derivative of $x^2$ to get $2x$ and the derivative of $\\sin(x)$ to get $\\cos(x)$.",
+      "why": "We use the power rule on $x^2$ and the standard derivative rule for $\\sin(x)$ to evaluate the remaining derivative operators.",
+      "hint": "Use the power rule for the first part and the standard trig derivative for the second part.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing $-\\cos(x)$ for the derivative of $\\sin(x)$.",
+          "hint": "The derivative of sine is positive cosine; cosine's derivative is the one with the negative sign."
+        }
+      ],
+      "parts": [
+        {
+          "id": "coeff",
+          "latex": "x",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "2x \\sin(x) + x^2 \\cos(x)",
+  "final_answer_sympy": "2*x*sin(x) + x**2*cos(x)"
+}

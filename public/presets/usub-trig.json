@@ -1,0 +1,166 @@
+{
+  "problem_latex": "\\int \\sin^3 x\\cos x\\,dx",
+  "task": "Find the antiderivative.",
+  "problem_sympy": "Integral(sin(x)**3 * cos(x), x)",
+  "topic": "Integration",
+  "techniques": [
+    "U-substitution"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "u = \\htmlClass{role-a}{\\sin(x)}",
+      "plain_latex": "u = \\sin(x)",
+      "sympy": null,
+      "chain": false,
+      "rule": "Choose substitution",
+      "comment": "pick u so its derivative is present",
+      "summary": "Choose $u = \\sin(x)$ because its derivative $\\cos(x)$ is already multiplying the differential.",
+      "why": "When a function and its derivative appear together in an integrand, substitution makes the expression much simpler by turning it into a basic power rule.",
+      "hint": "Look for a function whose derivative is also in the integrand.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Choosing u = cos(x)",
+          "hint": "If u = cos(x), du = -sin(x) dx, leaving an odd power of sine that is harder to convert."
+        }
+      ],
+      "parts": [
+        {
+          "id": "u",
+          "latex": "\\sin(x)",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "du = \\htmlClass{role-b}{\\cos(x) \\, dx}",
+      "plain_latex": "du = \\cos(x) \\, dx",
+      "sympy": null,
+      "chain": false,
+      "rule": "Compute differential",
+      "comment": "find du in terms of dx",
+      "summary": "Compute the differential $du = \\cos(x) \\, dx$.",
+      "why": "Differentiating $u$ gives us the exact replacement needed for $\\cos(x) \\, dx$ in the integral.",
+      "hint": "Take the derivative of your $u$ with respect to $x$ and multiply by $dx$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting the dx",
+          "hint": "Differential terms must always include dx."
+        }
+      ],
+      "parts": [
+        {
+          "id": "du",
+          "latex": "\\cos(x) \\, dx",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\int \\htmlClass{role-a}{u}^3 \\htmlClass{role-b}{\\, du}",
+      "plain_latex": "\\int u^3 \\, du",
+      "sympy": "Integral(u**3, u)",
+      "chain": false,
+      "rule": "Substitute variables",
+      "comment": "rewrite entirely in terms of u",
+      "summary": "Substitute $u$ and $du$ into the integral to get $\\int u^3 \\, du$.",
+      "why": "Replacing $\\sin(x)$ with $u$ and $\\cos(x) \\, dx$ with $du$ transforms a tricky trig integral into a simple polynomial integral.",
+      "hint": "Replace $\\sin(x)$ with $u$ and $\\cos(x) \\, dx$ with $du$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving an x in the integral",
+          "hint": "All x terms must be completely replaced by u before integrating."
+        }
+      ],
+      "parts": [
+        {
+          "id": "u_term",
+          "latex": "u",
+          "role": "a"
+        },
+        {
+          "id": "du_term",
+          "latex": "du",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{\\htmlClass{role-a}{u}^4}{4} + \\htmlClass{role-c}{C}",
+      "plain_latex": "\\frac{u^4}{4} + C",
+      "sympy": "u**4 / 4 + C",
+      "chain": false,
+      "rule": "Power rule",
+      "comment": "integrate using the power rule",
+      "summary": "Integrate using the power rule to get $\\frac{u^4}{4} + C$.",
+      "why": "The power rule for integration states that $\\int u^n \\, du = \\frac{u^{n+1}}{n+1}$ for any $n \\neq -1$.",
+      "hint": "Add 1 to the exponent and divide by the new exponent.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping the + C",
+          "hint": "Indefinite integrals always need a constant of integration."
+        }
+      ],
+      "parts": [
+        {
+          "id": "u_pow",
+          "latex": "u",
+          "role": "a"
+        },
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "latex": "\\frac{\\htmlClass{role-a}{\\sin}^4(x)}{4} + \\htmlClass{role-c}{C}",
+      "plain_latex": "\\frac{\\sin^4(x)}{4} + C",
+      "sympy": "sin(x)**4 / 4 + C",
+      "chain": true,
+      "rule": "Back-substitution",
+      "comment": "substitute back in terms of x",
+      "summary": "Substitute $\\sin(x)$ back for $u$ to obtain the final answer.",
+      "why": "Our original problem was in terms of $x$, so our final answer must also be in terms of $x$.",
+      "hint": "Replace $u$ with $\\sin(x)$ from your original substitution.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving u in the final answer",
+          "hint": "Remember to substitute the original expression back in for u."
+        }
+      ],
+      "parts": [
+        {
+          "id": "sin_term",
+          "latex": "\\sin",
+          "role": "a"
+        },
+        {
+          "id": "C_final",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Trig Identity",
+      "summary": "Could rewrite using double angle formulas, though u-substitution is much faster."
+    }
+  ],
+  "final_answer_latex": "\\frac{\\sin^4(x)}{4} + C",
+  "final_answer_sympy": "sin(x)**4 / 4 + C"
+}

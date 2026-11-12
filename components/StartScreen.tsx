@@ -11,6 +11,7 @@ import { RichText, Tex } from "./Tex";
 import { Logo } from "./Logo";
 import { MicButton } from "./MicButton";
 import { PRESETS, loadPreset } from "@/lib/presets";
+import { LEVELS, TOPICS, solvedIds } from "@/lib/library";
 import { Board } from "./Board"; // the home-screen demo board
 import { getPackage } from "@/lib/packages";
 import { imageFrom, preparePhoto, readPhoto } from "@/lib/photo";
@@ -26,9 +27,9 @@ export type StartChoice =
   | { kind: "preset"; presetId: string; mode: StartMode } // a demo problem
   | { kind: "typed"; latex: string; mode: StartMode; work?: Submission; set?: ProblemSet }; // typed or photographed (with any work in the photo, or a whole worksheet)
 
-type Panel = "none" | "upload" | "type" | "practice" | "talk"; // which sheet is open
+type Panel = "none" | "upload" | "type" | "talk"; // which sheet is open
 
-export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => void }) {
+export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartChoice) => void; onLibrary: () => void }) {
   const [panel, setPanel] = useState<Panel>("none");
   const close = () => setPanel("none");
 
@@ -36,13 +37,12 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
     <div className="relative isolate flex h-full flex-col overflow-hidden">
       <ChalkBackdrop />
 
-      {/* Header: logo and name left, a short promise right */}
-      <header className="flex h-14 shrink-0 items-center justify-between px-4 md:h-[68px] md:px-10">
+      {/* Header: logo and name */}
+      <header className="flex h-14 shrink-0 items-center px-4 md:h-[68px] md:px-10">
         <div className="flex items-center gap-3">
           <Logo />
           <span className="font-display text-xl font-semibold">Chalkline</span>
         </div>
-        <span className="hidden text-sm text-subtle md:block">Calculus I &amp; II · free · no sign-up</span>
       </header>
 
       <main className="fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 pb-6 md:justify-start md:gap-7 md:pt-[2vh] 2xl:gap-9">
@@ -78,18 +78,28 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
             icon={<MicIcon />}
             tint="bg-gold text-[#14181D]"
             title="Talk it through"
-            badge="SIGNATURE"
             sub="Say the problem, then solve it out loud"
             gold
             onClick={() => setPanel("talk")}
           />
         </div>
 
+        {/* The problem library: solved problems by concept, plus picks for your weak spots */}
         <button
-          className="flex h-12 items-center gap-2 rounded-full border border-white/15 bg-room/60 px-6 text-[15px] font-semibold transition hover:-translate-y-0.5 hover:border-white/30 hover:bg-panel-2"
-          onClick={() => setPanel("practice")}
+          onClick={onLibrary}
+          className="group flex w-full max-w-md items-center gap-4 rounded-[20px] border border-white/10 bg-gradient-to-r from-panel to-panel-2 px-5 py-3.5 text-left transition duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_10px_36px_rgba(242,201,76,.14)] md:max-w-[1040px] 2xl:max-w-[1240px]"
         >
-          <span className="text-gold">▶</span> Try a demo problem
+          <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold transition group-hover:scale-110"><BookIcon /></span>
+          <span className="flex min-w-0 flex-col">
+            <span className="text-[17px] font-semibold 2xl:text-xl">Problem library</span>
+            <span className="text-sm text-muted 2xl:text-base">{PRESETS.length} solved problems by concept, and picks for the steps you miss</span>
+          </span>
+          <span className="ml-auto hidden items-center gap-2 xl:flex">
+            {TOPICS.map((t) => (
+              <span key={t} className="whitespace-nowrap rounded-full border border-white/10 px-3 py-1 font-hand text-lg text-muted transition group-hover:border-white/20 group-hover:text-text">{t.toLowerCase()}</span>
+            ))}
+          </span>
+          <span aria-hidden className="text-xl text-muted transition group-hover:translate-x-1 group-hover:text-text">→</span>
         </button>
       </main>
 
@@ -100,7 +110,7 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
       {panel === "upload" && <Sheet title="Upload a photo" icon={<CameraIcon />} tint="bg-blue/15 text-blue" onClose={close}><UploadPanel onStart={onStart} /></Sheet>}
       {panel === "type" && <Sheet title="Type it" icon={<span className="font-display text-[26px] leading-none">∫</span>} tint="bg-teal/15 text-teal" onClose={close}><TypePanel onStart={onStart} /></Sheet>}
       {panel === "talk" && <Sheet title="Talk it through" icon={<MicIcon />} tint="bg-gold text-[#14181D]" onClose={close}><TalkPanel onStart={onStart} onType={() => setPanel("type")} /></Sheet>}
-      {panel === "practice" && <Sheet title="Try a demo problem" icon={<span className="text-gold">▶</span>} tint="bg-gold/15" onClose={close}><PracticePanel onStart={onStart} /></Sheet>}
+
     </div>
   );
 }
@@ -114,7 +124,7 @@ export function NewProblemSheet({ onStart, onClose }: { onStart: (choice: StartC
     { id: "upload", label: "Upload a photo", icon: <CameraIcon />, on: "border-blue/70 bg-blue/10 text-text" },
     { id: "type", label: "Type it", icon: <span className="font-display text-xl leading-none">∫</span>, on: "border-teal/70 bg-teal/10 text-text" },
     { id: "talk", label: "Talk it through", icon: <MicIcon />, on: "border-gold/70 bg-gold/10 text-text" },
-    { id: "practice", label: "Demo problem", icon: <span className="text-sm">▶</span>, on: "border-gold/70 bg-gold/10 text-text" },
+    { id: "practice", label: "From the library", icon: <BookIcon />, on: "border-gold/70 bg-gold/10 text-text" },
   ];
   return (
     <Sheet title="New problem" icon={<span className="text-2xl leading-none">+</span>} tint="bg-gold/15 text-gold" onClose={onClose}>
@@ -143,7 +153,7 @@ export function NewProblemSheet({ onStart, onClose }: { onStart: (choice: StartC
 // A large sheet centered over the page (the page behind blurs and dims; click outside or press Esc
 // to close). On phones it fills the screen (see ".sheet" in globals.css).
 // Closing plays a short exit animation first (fold up + fade), then really closes.
-function Sheet({ title, icon, tint, onClose, children }: { title: string; icon: ReactNode; tint: string; onClose: () => void; children: ReactNode }) {
+export function Sheet({ title, icon, tint, onClose, children }: { title: string; icon: ReactNode; tint: string; onClose: () => void; children: ReactNode }) {
   const [leaving, setLeaving] = useState(false); // true while the exit animation plays
   const exit = () => {
     if (leaving) return;
@@ -219,6 +229,15 @@ function CameraIcon() {
     </svg>
   );
 }
+export function BookIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z" />
+      <path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5" />
+      <path d="M9 8h7M9 11.5h5" />
+    </svg>
+  );
+}
 function MicIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -261,27 +280,28 @@ function ChalkBackdrop() {
   );
 }
 
-// The work-mode cards shown in every sheet: big, colored, with what each mode does.
-const MODES: { mode: StartMode; title: string; desc: string; icon: string; tone: string }[] = [
-  { mode: "walkthrough", title: "Walkthrough", desc: "Watch each step appear and ask “why?”", icon: "▶", tone: "blue" },
-  { mode: "practice", title: "Step practice", desc: "You write each step, the board checks it", icon: "✎", tone: "pink" },
-  { mode: "check", title: "Check my work", desc: "Find the first slip in your solution", icon: "✓", tone: "teal" },
-  { mode: "voice", title: "Talk it through", desc: "Say each step out loud, get spoken hints", icon: "🎙", tone: "gold" },
+// The work-mode cards shown in every sheet: each one is a small chalkboard with a chalk sketch of
+// what the mode does (it re-draws itself when you hover), a handwritten title and one line of help.
+const MODES: { mode: StartMode; title: string; desc: string; tone: string }[] = [
+  { mode: "walkthrough", title: "Walkthrough", desc: "Watch each step appear and see why it works", tone: "blue" },
+  { mode: "practice", title: "Step practice", desc: "You write each step, the board checks it", tone: "pink" },
+  { mode: "check", title: "Check my work", desc: "Find the first slip in your solution", tone: "teal" },
+  { mode: "voice", title: "Talk it through", desc: "Say each step out loud, get spoken hints", tone: "gold" },
 ];
 // Full class names per color (Tailwind only keeps classes it can see written out in full).
-const TONE: Record<string, { icon: string; hover: string; text: string }> = {
-  blue: { icon: "bg-blue/15 text-blue", hover: "hover:border-blue/70 hover:shadow-[0_10px_36px_rgba(88,196,221,.2)]", text: "text-blue" },
-  pink: { icon: "bg-pink/15 text-pink", hover: "hover:border-pink/70 hover:shadow-[0_10px_36px_rgba(255,122,133,.2)]", text: "text-pink" },
-  teal: { icon: "bg-teal/15 text-teal", hover: "hover:border-teal/70 hover:shadow-[0_10px_36px_rgba(79,209,181,.2)]", text: "text-teal" },
-  gold: { icon: "bg-gold/20 text-gold", hover: "hover:border-gold/70 hover:shadow-[0_10px_36px_rgba(242,201,76,.2)]", text: "text-gold" },
+const TONE: Record<string, { hover: string; text: string; bar: string }> = {
+  blue: { hover: "hover:shadow-[0_14px_40px_rgba(88,196,221,.28)] hover:outline-blue/70", text: "text-blue", bar: "bg-blue" },
+  pink: { hover: "hover:shadow-[0_14px_40px_rgba(255,122,133,.28)] hover:outline-pink/70", text: "text-pink", bar: "bg-pink" },
+  teal: { hover: "hover:shadow-[0_14px_40px_rgba(79,209,181,.28)] hover:outline-teal/70", text: "text-teal", bar: "bg-teal" },
+  gold: { hover: "hover:shadow-[0_14px_40px_rgba(242,201,76,.28)] hover:outline-gold/70", text: "text-gold", bar: "bg-gold" },
 };
-function ModeCards({ disabled, onPick, hint, modes = ["walkthrough", "practice", "check", "voice"] }: {
+export function ModeCards({ disabled, onPick, hint, modes = ["walkthrough", "practice", "check", "voice"] }: {
   disabled: boolean; onPick: (mode: StartMode) => void; hint: string; modes?: StartMode[];
 }) {
   return (
     <div className="flex flex-col gap-3">
-      <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">{hint}</span>
-      <div className={`grid grid-cols-2 gap-3 ${modes.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
+      <span className="eyebrow text-muted">{hint}</span>
+      <div className={`grid grid-cols-2 gap-4 ${modes.length === 4 ? "md:grid-cols-4" : "md:grid-cols-3"}`}>
         {MODES.filter((m) => modes.includes(m.mode)).map((m) => {
           const tone = TONE[m.tone];
           return (
@@ -289,17 +309,71 @@ function ModeCards({ disabled, onPick, hint, modes = ["walkthrough", "practice",
               key={m.mode}
               disabled={disabled}
               onClick={() => onPick(m.mode)}
-              className={`group flex min-h-[132px] flex-col items-start gap-2 rounded-2xl border border-white/10 bg-panel-2 p-4 text-left transition duration-200 enabled:hover:-translate-y-1 enabled:hover:bg-panel-3 disabled:cursor-not-allowed disabled:opacity-40 ${disabled ? "" : tone.hover}`}
+              className={`mode-card group flex flex-col overflow-hidden rounded-2xl border-[5px] border-wood text-left outline outline-2 outline-transparent transition duration-200 enabled:hover:-translate-y-1.5 disabled:cursor-not-allowed ${disabled ? "mode-off" : tone.hover}`}
             >
-              <span className={`flex h-11 w-11 items-center justify-center rounded-full text-lg transition group-enabled:group-hover:scale-110 ${tone.icon}`}>{m.icon}</span>
-              <span className="text-xl font-semibold">{m.title}</span>
-              <span className="text-[15px] leading-snug text-muted">{m.desc}</span>
-              <span className={`mt-auto text-sm font-semibold opacity-0 transition group-enabled:group-hover:opacity-100 ${tone.text}`}>Start →</span>
+              {/* the board: a sketch of the mode, then the title and what it does */}
+              <span className="board-surface flex flex-1 flex-col gap-1.5 px-4 pb-3 pt-3.5">
+                <ModeSketch mode={m.mode} />
+                <span className="mt-1 font-hand text-[30px] leading-none text-chalk">{m.title}</span>
+                <span className="text-[15px] leading-snug text-muted">{m.desc}</span>
+              </span>
+              {/* the ledge, with a stick of chalk in the mode's color and "start" */}
+              <span className="flex h-9 items-center justify-between bg-ledge px-4">
+                <span className={`h-1.5 w-8 rounded ${tone.bar}`} />
+                <span className={`font-hand text-xl transition ${disabled ? "text-subtle" : `${tone.text} group-hover:translate-x-1`}`}>{disabled ? "waiting…" : "start →"}</span>
+              </span>
             </button>
           );
         })}
       </div>
     </div>
+  );
+}
+
+// A tiny chalk sketch of each mode (handwriting + a few marks). The pieces with "sk" draw themselves
+// in one after another when the card is hovered (see .mode-card in globals.css).
+function ModeSketch({ mode }: { mode: StartMode }) {
+  const line = "sk flex items-center gap-2 font-hand text-[19px] leading-tight text-chalk/90";
+  const n = (k: number) => <span className="w-3 text-center text-[16px] text-muted">{k}</span>;
+  const d = (i: number) => ({ "--d": `${i * 0.28}s` }) as React.CSSProperties; // each piece starts a little later
+  return (
+    <span aria-hidden className="flex h-[82px] flex-col justify-center gap-1">
+      {mode === "walkthrough" && (
+        <>
+          <span className={line} style={d(0)}>{n(1)}u = <span className="text-blue-chalk">ln x</span></span>
+          <span className={line} style={d(1)}>{n(2)}<span className="text-gold">½x²</span> ln x − ∫ ½x dx</span>
+          <span className={`${line} rounded-md bg-white/[.06] pr-2`} style={d(2)}>{n(3)}½x² ln x − ¼x² <span className="text-teal">+ C</span></span>
+        </>
+      )}
+      {mode === "practice" && (
+        <>
+          <span className={line} style={d(0)}>{n(1)}u = ln x <span className="text-teal">✓</span></span>
+          <span className={line} style={d(1)}>{n(2)}du = <span className="text-teal">1/x dx</span> <span className="text-teal">✓</span></span>
+          <span className={line} style={d(2)}>
+            {n(3)}<span className="sk-caret inline-block h-5 w-[2px] bg-pink" /><span className="text-pink">✎</span> <span className="text-muted">your step</span>
+          </span>
+        </>
+      )}
+      {mode === "check" && (
+        <>
+          <span className={line} style={d(0)}>{n(1)}u = x² <span className="text-teal">✓</span></span>
+          <span className={line} style={d(1)}>{n(2)}∫ eᵘ du <span className="text-teal">✓</span></span>
+          <span className={line} style={d(2)}>
+            {n(3)}<span className="sk-ring rounded-full px-1 outline outline-2 outline-pink">2</span>eˣ² + C <span className="text-pink">← here</span>
+          </span>
+        </>
+      )}
+      {mode === "voice" && (
+        <>
+          <span className="sk flex h-9 items-end gap-[3px]" style={d(0)}>
+            {[10, 22, 34, 18, 28, 14, 30, 20, 12, 26, 16].map((h, i) => (
+              <span key={i} className="sk-bar w-[5px] rounded-full bg-gold/80" style={{ height: h, animationDelay: `${i * 0.07}s` }} />
+            ))}
+          </span>
+          <span className={line} style={d(1)}>“u equals <span className="text-blue-chalk">ln x</span>”</span>
+        </>
+      )}
+    </span>
   );
 }
 
@@ -440,7 +514,7 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
             <img src={thumb} alt="Your photo" className="h-[140px] w-[200px] shrink-0 rounded-2xl object-cover" />
           )}
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">
+            <span className="eyebrow text-muted">
               {parts.length > 1 ? `WE FOUND ${parts.length} PARTS · PICK ONE TO START` : "WE READ THIS AS"}
             </span>
             {status === "reading" && <span className="font-hand text-3xl text-muted">reading your photo…</span>}
@@ -515,7 +589,7 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
     <>
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <div className="flex flex-col gap-2">
-          <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">TYPE THE PROBLEM</span>
+          <span className="eyebrow text-muted">TYPE THE PROBLEM</span>
           <MathInput ref={input} onChange={setLatex} ariaLabel="Type the problem" placeholder="\int x\ln x\,dx" />
           <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Math keys">
             {KEYS_PROBLEM.map((k) => (
@@ -526,7 +600,7 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">PREVIEW</span>
+          <span className="eyebrow text-muted">PREVIEW</span>
           <div className="board-surface flex min-h-[140px] flex-1 items-center justify-center rounded-2xl px-5 text-3xl">
             {empty ? <span className="font-hand text-2xl text-muted">your problem appears here</span> : <Tex latex={latex} display />}
           </div>
@@ -537,38 +611,60 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   );
 }
 
-// "Try a demo problem" sheet: the 6 demo problems as cards, then the modes (frame D).
+// "From the library" (in the New problem sheet): filter by topic, pick a problem, pick a mode.
 function PracticePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
+  const [topic, setTopic] = useState<string>(TOPICS[0]); // which topic's problems are showing
   const [selected, setSelected] = useState<string | null>(null); // which card is picked
+  const [solved] = useState(solvedIds); // problems already solved get a ✓ (read once)
   return (
     <>
       <div className="flex flex-col gap-3">
-        <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">1 · PICK A PROBLEM</span>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
-          {PRESETS.map((p) => (
+        <div className="flex flex-wrap gap-2">
+          {TOPICS.map((t) => (
             <button
-              key={p.id}
-              onClick={() => setSelected(p.id)}
-              aria-pressed={selected === p.id}
-              className={`flex h-[160px] flex-col justify-between rounded-2xl border p-5 text-left transition duration-200 hover:-translate-y-0.5 ${
-                selected === p.id ? "border-gold bg-panel-3 shadow-[0_0_0_1px_var(--color-gold),0_10px_30px_rgba(242,201,76,.15)]" : "border-white/10 bg-panel-2 hover:border-white/25 hover:bg-panel-3"
-              }`}
+              key={t}
+              onClick={() => setTopic(t)}
+              className={`rounded-full border px-4 py-1.5 font-hand text-xl transition ${topic === t ? "border-gold/70 bg-gold/10 text-gold" : "border-white/12 text-muted hover:border-white/30 hover:text-text"}`}
             >
-              <span className="flex w-full items-center justify-between">
-                <span className="rounded-full bg-blue/15 px-3.5 py-1 text-[15px] font-semibold text-blue">{p.tag}</span>
-                {selected === p.id && <span className="text-xl text-gold">✓</span>}
-              </span>
-              <span className="chalk text-[34px] leading-none"><Tex latex={p.latex} /></span>
+              {t.toLowerCase()}
             </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
+          {PRESETS.filter((p) => p.topic === topic).map((p) => (
+            <ProblemCard key={p.id} problem={p} solved={solved.has(p.id)} selected={selected === p.id} onClick={() => setSelected(p.id)} />
           ))}
         </div>
       </div>
       <ModeCards
         disabled={!selected}
-        hint={selected ? "2 · PICK HOW TO WORK ON IT" : "2 · PICK HOW TO WORK ON IT (CHOOSE A PROBLEM FIRST)"}
+        hint={selected ? "pick how to work on it" : "pick a problem, then how to work on it"}
         onPick={(mode) => selected && onStart({ kind: "preset", presetId: selected, mode })}
       />
     </>
+  );
+}
+
+// One library problem as a small chalkboard: the technique, how hard it is, and the problem itself.
+export function ProblemCard({ problem, solved, selected = false, onClick }: { problem: (typeof PRESETS)[number]; solved: boolean; selected?: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-pressed={selected}
+      className={`board-surface group flex h-[150px] w-full flex-col justify-between rounded-2xl border-[4px] border-wood p-4 text-left outline outline-2 transition duration-200 hover:-translate-y-1 ${
+        selected ? "outline-gold shadow-[0_10px_30px_rgba(242,201,76,.2)]" : "outline-transparent hover:outline-white/25"
+      }`}
+    >
+      <span className="flex w-full items-center gap-2">
+        <span className="min-w-0 truncate rounded-full bg-blue/15 px-3 py-0.5 text-sm font-semibold text-blue">{problem.tag}</span>
+        <span className="flex shrink-0 gap-[3px]" title={LEVELS[problem.level]} aria-label={LEVELS[problem.level]}>
+          {[1, 2, 3].map((k) => <span key={k} className={`h-2 w-2 rounded-full ${k <= problem.level ? "bg-gold" : "bg-white/15"}`} />)}
+        </span>
+        {solved && <span className="ml-auto shrink-0 whitespace-nowrap font-hand text-xl leading-none text-teal" title="Solved">✓ solved</span>}
+      </span>
+      <span className="chalk block max-w-full overflow-hidden whitespace-nowrap py-1 text-[28px] leading-none"><Tex latex={problem.latex} /></span>
+      <span className="truncate font-hand text-lg text-gold/80"><RichText text={problem.task} /></span>
+    </button>
   );
 }
 
@@ -632,7 +728,7 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
           />
         </div>
         <div className="flex w-full min-w-0 flex-1 flex-col gap-2">
-          <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">{options ? "DID YOU MEAN…?" : "WE HEARD THIS AS"}</span>
+          <span className="eyebrow text-muted">{options ? "DID YOU MEAN…?" : "WE HEARD THIS AS"}</span>
           {options ? (
             options.map((o, i) => (
               <button key={i} className="flex h-16 items-center justify-between rounded-2xl border border-blue/45 bg-blue/[.08] px-5 text-2xl hover:bg-blue/15" onClick={() => choose(o)}>

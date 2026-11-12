@@ -1,0 +1,141 @@
+{
+  "problem_latex": "x^2+xy+y^2=7",
+  "task": "Find $\\frac{dy}{dx}$ by implicit differentiation.",
+  "problem_sympy": null,
+  "topic": "Implicit Differentiation",
+  "techniques": [
+    "Implicit differentiation",
+    "Chain rule",
+    "Product rule"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\frac{d}{dx}\\left[x^2 + \\htmlClass{role-a}{xy} + y^2\\right] = \\frac{d}{dx}[7]",
+      "plain_latex": "\\frac{d}{dx}\\left[x^2 + xy + y^2\\right] = \\frac{d}{dx}[7]",
+      "sympy": null,
+      "chain": false,
+      "rule": "Take derivative of both sides",
+      "comment": "differentiate both sides with respect to x",
+      "summary": "Apply the derivative operator $\\frac{d}{dx}$ to both sides of the equation.",
+      "why": "Since $y$ is an implicit function of $x$, we treat $y$ as depending on $x$ and differentiate both sides term by term.",
+      "hint": "Start by taking $\\frac{d}{dx}$ of every term on the left and right.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to differentiate the right side.",
+          "hint": "The derivative of a constant is zero, but you still need to apply $\\frac{d}{dx}$ to it."
+        }
+      ],
+      "parts": [
+        {
+          "id": "xy",
+          "latex": "xy",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "2x + \\htmlClass{role-a}{y + x\\frac{dy}{dx}} + \\htmlClass{role-b}{2y\\frac{dy}{dx}} = 0",
+      "plain_latex": "2x + y + x\\frac{dy}{dx} + 2y\\frac{dy}{dx} = 0",
+      "sympy": null,
+      "chain": false,
+      "rule": "Differentiate terms",
+      "comment": "apply product and chain rules",
+      "summary": "Take the derivative of each term, using the product rule for $xy$ and the chain rule for $y^2$.",
+      "why": "The term $xy$ requires the product rule $\\frac{d}{dx}[uv] = u'v + uv'$, and $y^2$ requires the chain rule giving $2y \\frac{dy}{dx}$.",
+      "hint": "Remember that $\\frac{d}{dx}[xy] = y + x \\frac{dy}{dx}$ and $\\frac{d}{dx}[y^2] = 2y \\frac{dy}{dx}$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing $2y$ instead of $2y \\frac{dy}{dx}$.",
+          "hint": "Because $y$ is a function of $x$, the chain rule requires multiplying by $\\frac{dy}{dx}$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "prod",
+          "latex": "y + x\\frac{dy}{dx}",
+          "role": "a"
+        },
+        {
+          "id": "chain",
+          "latex": "2y\\frac{dy}{dx}",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "x\\frac{dy}{dx} + 2y\\frac{dy}{dx} = -2x - y",
+      "plain_latex": "x\\frac{dy}{dx} + 2y\\frac{dy}{dx} = -2x - y",
+      "sympy": null,
+      "chain": false,
+      "rule": "Group derivative terms",
+      "comment": "move terms with dy/dx to one side",
+      "summary": "Rearrange the equation to put all terms containing $\\frac{dy}{dx}$ on the left side and other terms on the right.",
+      "why": "To solve for $\\frac{dy}{dx}$, we must isolate it by collecting all its terms on one side of the equals sign.",
+      "hint": "Get every term with a $\\frac{dy}{dx}$ on the left, and everything else on the right.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping negative signs when moving terms across the equals sign.",
+          "hint": "Check your signs carefully when subtracting $2x$ and $y$ from both sides."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{dy}{dx}(x + 2y) = -2x - y",
+      "plain_latex": "\\frac{dy}{dx}(x + 2y) = -2x - y",
+      "sympy": null,
+      "chain": false,
+      "rule": "Factor out dy/dx",
+      "comment": "factor out the derivative",
+      "summary": "Factor $\\frac{dy}{dx}$ out of the terms on the left side.",
+      "why": "Factoring is the algebraic step that allows us to separate $\\frac{dy}{dx}$ from the rest of the expression.",
+      "hint": "Pull $\\frac{dy}{dx}$ out as a common factor on the left.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving $\\frac{dy}{dx}$ in multiple terms.",
+          "hint": "You need a single factor of $\\frac{dy}{dx}$ before you can divide."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s5",
+      "latex": "\\frac{dy}{dx} = \\frac{-2x - y}{x + 2y}",
+      "plain_latex": "\\frac{dy}{dx} = \\frac{-2x - y}{x + 2y}",
+      "sympy": "(-2*x - y)/(x + 2*y)",
+      "chain": true,
+      "rule": "Divide by coefficient",
+      "comment": "isolate dy/dx by dividing",
+      "summary": "Divide both sides by $(x + 2y)$ to fully isolate $\\frac{dy}{dx}$.",
+      "why": "This gives the final explicit formula for the derivative $\\frac{dy}{dx}$ in terms of both $x$ and $y$.",
+      "hint": "Divide the right side by the polynomial factor attached to $\\frac{dy}{dx}$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Inverting numerator and denominator.",
+          "hint": "Make sure the term multiplied by $\\frac{dy}{dx}$ goes in the denominator."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "\\frac{-2x - y}{x + 2y}",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\frac{dy}{dx} = \\frac{-2x - y}{x + 2y}",
+  "final_answer_sympy": "(-2*x - y)/(x + 2*y)"
+}

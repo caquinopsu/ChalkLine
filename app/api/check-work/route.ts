@@ -3,7 +3,7 @@
 import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { checkWork, MAX_WORK_LINES } from "@/lib/checkWork";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
-import { PackageSchema } from "@/lib/schemas";
+import { PackageInput } from "@/lib/schemas";
 
 export const maxDuration = 150;
 
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const text = await req.text();
     if (text.length > 100_000) return badRequest("Request too large.");
     const body = JSON.parse(text);
-    const pkg = PackageSchema.safeParse(body.pkg);
+    const pkg = PackageInput.safeParse(body.pkg);
     if (!pkg.success) return badRequest("Missing or invalid solution package.");
     const lines: string[] = Array.isArray(body.lines)
       ? body.lines.filter((l: unknown) => typeof l === "string" && l.trim()).map((l: string) => l.trim())

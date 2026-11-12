@@ -7,6 +7,8 @@ import { PRESETS, loadPreset } from "@/lib/presets";
 import { getPackage, rememberPackage } from "@/lib/packages";
 import type { SolutionPackage, Submission } from "@/lib/schemas";
 import { messageOf } from "@/lib/errors";
+import { Library } from "@/components/Library";
+import { markSolved } from "@/lib/library";
 
 // Everything the session screen needs to know about the problem being worked on.
 type Active = {
@@ -24,6 +26,7 @@ type Active = {
 export default function Home() {
   const [active, setActive] = useState<Active | null>(null); // null = show the start screen
   const [picking, setPicking] = useState(false); // is the "New problem" sheet open over the session?
+  const [library, setLibrary] = useState<{ focus?: string } | null>(null); // the library screen (when no problem is open), and which technique to jump to
   const [solved, setSolved] = useState<Record<string, boolean>>({}); // worksheet parts already solved ("instructions|latex" -> true)
   const partKey = (set: ProblemSet, i: number) => `${set.instructions}|${set.parts[i]?.latex}`;
 
@@ -36,6 +39,7 @@ export default function Home() {
     const set = choice.kind === "typed" ? choice.set ?? null : null;
     setActive({ key, problemId: preset?.id ?? "custom", problemLatex, mode: choice.mode, work, pkg: null, error: null, choice, set });
     setPicking(false);
+    setLibrary(null);
 
     // A worksheet: start solving the next part in the background too, so moving on is instant.
     const next = set?.parts[set.index + 1];
@@ -43,7 +47,11 @@ export default function Home() {
 
     try {
       // Presets are saved files (instant). Anything else is pre-solved, or was already started early.
-      const pkg = choice.kind === "preset" ? await loadPreset(choice.presetId) : await getPackage(choice.latex, set?.instructions ?? "");
+      // A library problem without a saved file yet is solved live (once), so no card is ever a dead end.
+      const pkg =
+        choice.kind === "preset" && preset
+          ? await loadPreset(choice.presetId).catch(async () => ({ ...(await getPackage(preset.prompt, preset.task)), problem_latex: preset.latex, task: preset.task }))
+          : await getPackage(choice.kind === "typed" ? choice.latex : "", set?.instructions ?? "");
       // Only apply the result if the student hasn't moved on to another problem meanwhile.
       setActive((a) => (a && a.key === key ? { ...a, pkg } : a));
     } catch (err) {
@@ -65,7 +73,8 @@ export default function Home() {
     start({ kind: "typed", latex: set.parts[i].latex, mode, set: { ...set, index: i } });
   }
 
-  if (!active) return <StartScreen onStart={start} />;
+  if (!active && library) return <Library onStart={start} onHome={() => setLibrary(null)} focus={library.focus} />;
+  if (!active) return <StartScreen onStart={start} onLibrary={() => setLibrary({})} />;
   const set = active.set;
   return (
     <>
@@ -83,7 +92,11 @@ export default function Home() {
       onSimilar={startSimilar}
       set={set ? { ...set, solved: set.parts.map((_, i) => !!solved[partKey(set, i)]) } : null}
       onPickPart={openPart}
-      onSolved={() => set && setSolved((s) => ({ ...s, [partKey(set, set.index)]: true }))}
+      onSolved={() => {
+        if (set) setSolved((s) => ({ ...s, [partKey(set, set.index)]: true })); // a worksheet part gets its ✓
+        if (active.problemId !== "custom") markSolved(active.problemId); // a library problem gets its ✓
+      }}
+      onLibrary={(focus) => { setActive(null); setLibrary({ focus }); }}
     />
     {picking && <NewProblemSheet onStart={start} onClose={() => setPicking(false)} />}
     </>

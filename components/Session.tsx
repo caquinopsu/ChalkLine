@@ -17,6 +17,7 @@ import { preparePhoto, readPhoto } from "@/lib/photo";
 import { hear, type Clip } from "@/lib/recorder";
 import { latexToWords, speak, speakable, stopSpeaking } from "@/lib/speak";
 import { useVoice } from "@/lib/useVoice";
+import { guessTask } from "@/lib/task";
 import type { CheckResult, SolutionPackage, Submission, WorkResult } from "@/lib/schemas";
 
 export type WorkMode = "walkthrough" | "practice" | "check" | "voice"; // the modes you can pick ("voice" = Think-aloud)
@@ -44,9 +45,10 @@ type Props = {
   set: (ProblemSet & { solved: boolean[] }) | null; // the worksheet this problem belongs to, if any
   onPickPart: (index: number, mode: WorkMode) => void; // open another part of the worksheet
   onSolved: () => void; // this part was finished (marks its chip with a ✓)
+  onLibrary: (tag?: string) => void; // open the problem library (optionally on one technique)
 };
 
-export function Session({ pkg, problemId, problemLatex, initialMode, initialWork, loadError, onRetry, onNewProblem, onHome, onSimilar, set, onPickPart, onSolved }: Props) {
+export function Session({ pkg, problemId, problemLatex, initialMode, initialWork, loadError, onRetry, onNewProblem, onHome, onSimilar, set, onPickPart, onSolved, onLibrary }: Props) {
   const [mode, setMode] = useState<SessionMode>(initialMode);
   const [view, setView] = useState(1); // Walkthrough: how many reference steps are shown
   const [playing, setPlaying] = useState(false); // Walkthrough autoplay on/off
@@ -639,7 +641,24 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <div className="min-h-0 flex-1 px-1 md:px-10">
         <Board
           problemLatex={pkg?.problem_latex ?? problemLatex}
-          task={set?.instructions || undefined}
+          task={set?.instructions || pkg?.task || guessTask(pkg?.problem_latex ?? problemLatex) || undefined}
+          tools={
+            pkg && mode === "walkthrough" ? (
+              // Autoplay and Read aloud: two small labeled toggles next to the status (gold when on)
+              <div className="hidden shrink-0 items-center gap-2 md:flex">
+                <ToolToggle on={playing} disabled={view >= total} label={playing ? "pause" : "play"} title="Play the steps one by one" onClick={() => setPlaying((p) => !p)}>
+                  {playing ? <path d="M7 5v14M17 5v14" /> : <path d="M7 4.5v15l12-7.5z" />}
+                </ToolToggle>
+                <ToolToggle on={readAloud} label="read aloud" title="Read each step out loud" onClick={() => {
+                  setReadAloud((r) => !r);
+                  setReadDone(0); // (re)start reading from the current step
+                  if (readAloud) stopSpeaking(); // turning it off stops the voice right away
+                }}>
+                  <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5z" /><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+                </ToolToggle>
+              </div>
+            ) : undefined
+          }
           status={!pkg ? (loadError ? "couldn't prepare it" : "preparing…") : mode === "finished" ? "the whole solution" : status}
           lines={lines}
           current={current}
@@ -662,6 +681,12 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           ) : mode === "finished" ? (
             <FinishBoard
               pkg={pkg}
+              comments={
+                // a "// takeaway" beside each line, when the lines are the tutor's own steps (or one per step)
+                finishedFrom === "walkthrough" || ((finishedFrom === "practice" || finishedFrom === "voice") && progress.length === total)
+                  ? steps.map((s) => s.comment || s.rule.toLowerCase())
+                  : []
+              }
               lines={
                 finishedFrom === "practice" || finishedFrom === "voice" ? progress
                 : finishedFrom === "check" && workResult ? workResult.lines.map((l) => ({ latex: l.latex, mark: "correct" as const }))
@@ -681,66 +706,26 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <section
         ref={tray}
         aria-label="Tray"
-        className="tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] md:grid-cols-[1.15fr_1fr_1fr] md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(0,0,0,.35)]"
+        className={`tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] ${pkg && (mode === "walkthrough" || mode === "finished") ? "md:grid-cols-[1.9fr_1fr]" : "md:grid-cols-[1.15fr_1fr_1fr]"} md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(0,0,0,.35)]`}
       >
         <span aria-hidden className={`absolute inset-x-0 top-0 hidden h-[3px] md:block ${dockLine}`} />
         {pkg && mode === "walkthrough" && (
           <>
+            {/* The explanation is always open: it's the most important text on the screen */}
             <Card>
-              <span className="eyebrow text-gold">STEP {view} · FOCUS</span>
-              <span className="text-lg font-semibold">{steps[view - 1].rule}</span>
-              <RichText className="text-base leading-relaxed text-muted" text={steps[view - 1].summary} />
-              <div className="mt-auto flex gap-2">
-                <button className="btn h-10" onClick={() => setOverlay({ kind: "why", stepIndex: view - 1 })}>Why?</button>
-                <button className="btn h-10" disabled={!steps[view - 1].side_work} onClick={() => setOverlay({ kind: "side", stepIndex: view - 1 })}>Side work</button>
-              </div>
+              <WhyCard key={view} pkg={pkg} stepIndex={view - 1} onSideWork={() => setOverlay({ kind: "side", stepIndex: view - 1 })} />
             </Card>
-            <Card center>
-              <div className="flex items-center gap-3.5">
-                {/* phones only: on a laptop the arrows sit on the board's edges */}
-                <span className="md:hidden"><RoundButton label="Previous step" disabled={view <= 1} onClick={prevStep}>‹</RoundButton></span>
-                <RoundButton big label={playing ? "Pause autoplay" : "Autoplay"} disabled={view >= total} onClick={() => setPlaying((p) => !p)}>
-                  {playing ? "❚❚" : "▶"}
-                </RoundButton>
-                <span className="md:hidden"><RoundButton label="Next step" disabled={view >= total} onClick={nextStep}>›</RoundButton></span>
-              </div>
-              {/* one dot per step: the current one is a wide gold pill; click a dot to jump there */}
-              <div className="flex items-center gap-1.5" aria-label="Steps">
-                {steps.map((_, i) => (
-                  <button
-                    key={i}
-                    aria-label={`Go to step ${i + 1}`}
-                    onClick={() => { setPlaying(false); setView(i + 1); }}
-                    className={`h-2.5 rounded-full transition-all duration-300 ${i + 1 === view ? "w-7 bg-gold" : i + 1 < view ? "w-2.5 bg-gold/45 hover:bg-gold/70" : "w-2.5 bg-white/15 hover:bg-white/30"}`}
-                  />
-                ))}
-              </div>
-              <label className="flex items-center gap-2 text-sm text-muted">
-                Read aloud
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-gold"
-                  checked={readAloud}
-                  onChange={(e) => {
-                    setReadAloud(e.target.checked);
-                    setReadDone(0); // (re)start reading from the current step
-                    if (!e.target.checked) stopSpeaking(); // turning it off stops the voice right away
-                  }}
-                />
-              </label>
-            </Card>
-            <Card center>
-              {view < total ? (
-                <>
-                  <button className="btn btn-primary h-[52px] w-full text-[15px]" onClick={() => goPractice(view)}>Let me try the next step</button>
-                  <span className="text-center text-sm text-muted">You write step {view + 1}, and the board checks it.</span>
-                </>
-              ) : (
-                <>
-                  <button className="btn btn-primary h-[52px] w-full text-[15px]" onClick={() => finish("walkthrough")}>See the summary</button>
-                  <span className="text-center text-sm text-muted">That&apos;s the whole solution.</span>
-                </>
-              )}
+            <Card>
+              <TurnCard
+                view={view}
+                total={total}
+                nextRule={steps[view]?.rule ?? null}
+                onDot={(i) => { setPlaying(false); setView(i + 1); }}
+                onPrev={prevStep}
+                onNext={nextStep}
+                onTry={() => goPractice(view)}
+                onSummary={() => finish("walkthrough")}
+              />
             </Card>
           </>
         )}
@@ -757,7 +742,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               </div>
             </Card>
             <Card>
-              <label className="text-sm uppercase tracking-[.06em] text-muted">Type step {progress.length + 1}</label>
+              <label className="eyebrow text-muted">type step {progress.length + 1}</label>
               <MathInput ref={input} onChange={setDraft} onSubmit={() => checkThisStep()} ariaLabel={`Type step ${progress.length + 1}`} />
               <button className="btn btn-primary h-[46px]" disabled={!draft.trim() || checking} onClick={() => checkThisStep()}>
                 {checking ? "Checking…" : "Check this step"}
@@ -884,7 +869,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               </div>
             </Card>
             <Card>
-              <label className="text-sm uppercase tracking-[.06em] text-muted">
+              <label className="eyebrow text-muted">
                 {editIndex !== null ? `Editing line ${editIndex + 1}` : `Line ${work.lines.length + 1}`}
               </label>
               <MathInput ref={workInput} onChange={setWorkDraft} onSubmit={addLine} ariaLabel="Type a line of your solution" />
@@ -974,45 +959,36 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         {pkg && mode === "finished" && (
           <>
             <Card>
-              <span className="eyebrow text-teal">TECHNIQUES USED</span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="eyebrow mr-1 text-teal">techniques used</span>
                 {pkg.techniques.map((t) => (
-                  <span key={t} className="rounded-full bg-teal/15 px-3.5 py-1.5 text-lg font-semibold text-teal">{t}</span>
+                  <span key={t} className="rounded-full bg-teal/15 px-3.5 py-1 text-base font-semibold text-teal">{t}</span>
                 ))}
+                {(finishedFrom === "practice" || finishedFrom === "voice") && (
+                  // how it went, in one handwritten line
+                  <span className="ml-auto font-hand text-2xl text-muted">
+                    {stats.firstTry} right first try · {stats.hints} hint{stats.hints === 1 ? "" : "s"}
+                  </span>
+                )}
               </div>
-              {/* What each step did, so the techniques connect back to the board */}
-              <ol className="no-bar mt-1 flex min-h-0 flex-col gap-1 overflow-y-auto">
+              {/* Each numbered step, matching the numbers on the board */}
+              <ol className="no-bar grid min-h-0 grid-flow-col grid-cols-2 gap-x-8 gap-y-2.5 overflow-y-auto pt-2" style={{ gridTemplateRows: `repeat(${Math.ceil(steps.length / 2)}, auto)` }}>
                 {steps.map((st, i) => (
-                  <li key={i} className="flex items-baseline gap-2.5 text-[15px] text-muted">
-                    <span className="w-5 shrink-0 text-center font-hand text-xl text-subtle">{i + 1}</span>
-                    {st.rule}
+                  <li key={i} className="flex min-w-0 items-baseline gap-3">
+                    <span className="w-6 shrink-0 text-center font-hand text-[26px] leading-none text-gold">{i + 1}</span>
+                    {/* one line per step: the rule, then the takeaway from the board */}
+                    <span className="min-w-0 truncate text-[17px]">
+                      <span className="font-semibold text-text">{st.rule}</span>
+                      {st.comment && <span className="text-muted"> · <RichText text={st.comment} /></span>}
+                    </span>
                   </li>
                 ))}
               </ol>
             </Card>
             <Card center>
-              {finishedFrom === "practice" || finishedFrom === "voice" ? (
-                <div className="flex gap-8 text-center">
-                  <Stat n={progress.filter((l) => l.mark !== "none").length} label="steps you wrote" />
-                  <Stat n={stats.firstTry} label="right first try" />
-                  <Stat n={stats.hints} label="hints" />
-                </div>
-              ) : finishedFrom === "check" && workResult ? (
-                <div className="flex gap-8 text-center">
-                  <Stat n={workResult.lines.length} label="lines checked" />
-                  <Stat n={0} label="slips" />
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <Stat n={total} label="steps in this solution" />
-                  <button className="btn h-10" onClick={() => goPractice(0)}>Now try it yourself</button>
-                </div>
-              )}
-            </Card>
-            <Card center>
               {similar.state === "ready" && similar.pkg ? (
                 <>
-                  <span className="eyebrow self-start text-gold">NEXT UP · SAME TECHNIQUE</span>
+                  <span className="eyebrow self-start text-gold">next up · same technique</span>
                   <span className="max-w-full truncate text-xl"><Tex latex={similar.pkg.problem_latex} /></span>
                   <div className="flex flex-wrap justify-center gap-1.5">
                     <button className="btn h-9 px-3 text-base" onClick={() => onSimilar(similar.pkg!, "walkthrough")}>Walkthrough</button>
@@ -1028,7 +1004,10 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                       Next: part {set.parts[nextPart].label} →
                     </button>
                   )}
-                  <button className={`btn h-[52px] w-full ${nextPart === null ? "btn-primary" : ""}`} disabled={similar.state === "loading"} onClick={askSimilar}>
+                  {finishedFrom === "walkthrough" && nextPart === null && (
+                    <button className="btn btn-primary h-[52px] w-full text-[16px]" onClick={() => goPractice(0)}>✎ Now solve it yourself</button>
+                  )}
+                  <button className={`btn h-[48px] w-full ${nextPart === null && finishedFrom !== "walkthrough" ? "btn-primary" : ""}`} disabled={similar.state === "loading"} onClick={askSimilar}>
                     {similar.state === "loading" ? "Writing a new problem…" : "Give me a similar problem"}
                   </button>
                   <span className={`text-center text-sm ${similar.state === "error" ? "text-pink" : "text-muted"}`}>
@@ -1038,7 +1017,9 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                         ? similar.error
                         : "Same technique, new numbers."}
                   </span>
-                  <button className="btn h-9" onClick={onNewProblem}>New problem</button>
+                  <button className="text-sm font-semibold text-blue hover:underline" onClick={() => onLibrary(pkg.techniques[0])}>
+                    More {pkg.techniques[0] ?? "practice"} problems in the library →
+                  </button>
                 </>
               )}
             </Card>
@@ -1129,11 +1110,125 @@ function RoundButton({ children, label, big = false, disabled, onClick }: { chil
   );
 }
 
-function Stat({ n, label }: { n: number; label: string }) {
+// A small labeled toggle in the board's header row (autoplay, read aloud). Gold when on.
+function ToolToggle({ on, label, title, disabled, onClick, children }: { on: boolean; label: string; title: string; disabled?: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <div className="flex flex-col">
-      <span className="font-display text-5xl font-semibold">{n}</span>
-      <span className="text-sm text-muted">{label}</span>
+    <button
+      title={title}
+      aria-pressed={on}
+      disabled={disabled}
+      onClick={onClick}
+      className={`flex h-10 items-center gap-1.5 rounded-full border px-3.5 font-hand text-xl transition disabled:opacity-35 ${
+        on ? "border-gold bg-gold/20 text-gold" : "border-white/15 bg-[rgba(17,20,25,.35)] text-muted hover:border-white/35 hover:text-text"
+      }`}
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>{children}</svg>
+      {label}
+    </button>
+  );
+}
+
+// Walkthrough, left of the dock: why this step works, always open. A gold margin line marks the
+// explanation (like a teacher's note), and a follow-up question can be asked right under it.
+function WhyCard({ pkg, stepIndex, onSideWork }: { pkg: SolutionPackage; stepIndex: number; onSideWork: () => void }) {
+  const step = pkg.steps[stepIndex];
+  const [question, setQuestion] = useState(""); // follow-up question text
+  const [answer, setAnswer] = useState<{ q: string; a: string } | null>(null); // the last question and its answer
+  const [asking, setAsking] = useState(false);
+  async function ask() {
+    const q = question.trim();
+    if (!q || asking) return;
+    setAsking(true);
+    try {
+      const res = await fetch("/api/why", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pkg, stepIndex, question: q }),
+      });
+      const data = await res.json().catch(() => ({ ok: false, error: "The server didn't answer properly." }));
+      setAnswer({ q, a: data.ok ? data.answer : data.error });
+      setQuestion("");
+    } catch {
+      setAnswer({ q, a: "Couldn't reach the tutor. Try again." });
+    } finally {
+      setAsking(false);
+    }
+  }
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-2.5">
+      <div className="flex items-center gap-3">
+        <span className="font-hand text-[28px] leading-none text-gold">why step {stepIndex + 1}?</span>
+        <span className="truncate text-[17px] font-semibold text-text">{step.rule}</span>
+        {step.side_work && (
+          <button className="ml-auto shrink-0 rounded-full border border-white/15 px-3.5 py-1.5 text-sm font-semibold text-muted transition hover:border-white/35 hover:text-text" onClick={onSideWork}>
+            {step.side_work.title} ↗
+          </button>
+        )}
+      </div>
+      {/* the explanation (and any follow-up answer) scroll inside the card if they're long */}
+      <div className="no-bar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto border-l-[3px] border-gold/70 pl-4">
+        <RichText className="text-[19px] leading-relaxed text-text" text={step.why} />
+        {answer && (
+          <div className="fade-in rounded-xl bg-white/[.05] px-3.5 py-2">
+            <span className="font-hand text-lg text-blue">you asked: {answer.q}</span>
+            <RichText className="block whitespace-pre-line text-[17px] leading-relaxed text-text" text={answer.a} />
+          </div>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <input
+          className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-[#12161B] px-3.5 text-base placeholder:text-subtle focus:border-gold/60 focus:outline-none"
+          placeholder={`Ask about step ${stepIndex + 1}… (e.g. why this and not something else?)`}
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && ask()}
+        />
+        <button className="btn h-10" disabled={asking || !question.trim()} onClick={ask}>{asking ? "…" : "Ask"}</button>
+      </div>
+    </div>
+  );
+}
+
+// Walkthrough, right of the dock: where you are (dots), and the invitation to write the next step
+// yourself, drawn as a small chalkboard so it feels like stepping up to the board.
+function TurnCard({ view, total, nextRule, onDot, onPrev, onNext, onTry, onSummary }: {
+  view: number; total: number; nextRule: string | null;
+  onDot: (i: number) => void; onPrev: () => void; onNext: () => void; onTry: () => void; onSummary: () => void;
+}) {
+  const done = view >= total;
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {/* one dot per step: the current one is a wide gold pill; click a dot to jump there */}
+      <div className="flex items-center gap-1.5" aria-label="Steps">
+        <span className="md:hidden"><RoundButton label="Previous step" disabled={view <= 1} onClick={onPrev}>‹</RoundButton></span>
+        {Array.from({ length: total }, (_, i) => (
+          <button
+            key={i}
+            aria-label={`Go to step ${i + 1}`}
+            onClick={() => onDot(i)}
+            className={`h-2.5 rounded-full transition-all duration-300 ${i + 1 === view ? "w-7 bg-gold" : i + 1 < view ? "w-2.5 bg-gold/45 hover:bg-gold/70" : "w-2.5 bg-white/15 hover:bg-white/30"}`}
+          />
+        ))}
+        <span className="ml-auto font-hand text-xl text-muted">{view} / {total}</span>
+        <span className="md:hidden"><RoundButton label="Next step" disabled={done} onClick={onNext}>›</RoundButton></span>
+      </div>
+      <div className="board-surface flex min-h-0 flex-1 flex-col justify-between gap-2 rounded-2xl border border-white/10 px-5 py-3.5">
+        {done ? (
+          <>
+            <span className="font-hand text-[28px] leading-tight text-teal">that&apos;s the whole solution ✓</span>
+            <button className="btn btn-primary h-[48px] w-full text-[15px]" onClick={onSummary}>See the summary</button>
+          </>
+        ) : (
+          <>
+            <div className="flex flex-col">
+              <span className="font-hand text-[28px] leading-tight text-chalk">your turn? step {view + 1}</span>
+              {nextRule && <span className="truncate text-sm text-muted">next move: {nextRule.toLowerCase()}</span>}
+              <span className="text-sm text-muted">Solve it on paper, then type it in.</span>
+            </div>
+            <button className="btn btn-primary h-[48px] w-full text-[15px]" onClick={onTry}>✎ I&apos;ll write step {view + 1}</button>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -1176,7 +1271,7 @@ function PracticeFocus({ result, wrong, showHint, hint, summary, error }: { resu
 
 // The finish board (frame K): every line in one column, and the boxed answer with a "Solved!" stamp.
 // Both sides scale their math up to fill the space they have (see useFill).
-function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] }) {
+function FinishBoard({ pkg, lines, comments }: { pkg: SolutionPackage; lines: BoardLine[]; comments: string[] }) {
   const col = useRef<HTMLDivElement>(null); // the left half (the space to fill)
   const list = useRef<HTMLDivElement>(null); // the lines themselves
   const side = useRef<HTMLDivElement>(null); // the right half
@@ -1195,23 +1290,29 @@ function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] 
   const landed = lines.length * 90 + 250; // when the last line has slid in (ms)
   return (
     <div className="no-bar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden py-3 md:flex-row md:gap-10 md:py-2">
-      <div ref={col} className="flex min-h-0 min-w-0 flex-1 flex-col justify-center md:basis-[56%]">
-        <div ref={list} className="flex w-max max-w-none flex-col gap-[0.2em]">
+      <div ref={col} className="flex min-h-0 min-w-0 flex-1 flex-col justify-center md:basis-[64%]">
+        {/* a grid, so the "// comments" line up in their own column like comments in code */}
+        <div ref={list} className="grid w-max max-w-none grid-cols-[auto_auto_auto] items-center gap-x-[0.4em] gap-y-[0.2em]">
           {lines.map((l, i) => (
             // row-in + a growing delay: the lines slide into the column one after another
-            <div key={i} className="row-in flex items-center gap-[0.4em] whitespace-nowrap opacity-90" style={{ animationDelay: `${i * 90}ms` }}>
-              <span className="w-[1em] shrink-0 text-center font-hand text-[0.7em] text-muted">{i + 1}</span>
-              <Tex latex={l.latex} />
-              <Mark mark={l.mark} size={size} />
-              {l.mark === "hinted" && <span className="font-hand text-[0.7em] text-gold">fixed</span>}
+            <div key={i} className="contents">
+              <span className="row-in w-[1em] text-center font-hand text-[0.7em] text-muted" style={{ animationDelay: `${i * 90}ms` }}>{i + 1}</span>
+              <span className="row-in flex items-center gap-[0.3em] whitespace-nowrap opacity-90" style={{ animationDelay: `${i * 90}ms` }}>
+                <Tex latex={l.latex} />
+                <Mark mark={l.mark} size={size} />
+                {l.mark === "hinted" && <span className="font-hand text-[0.7em] text-gold">fixed</span>}
+              </span>
+              <span className="comment-in pl-[0.6em] font-hand text-[0.6em] whitespace-nowrap text-gold/85" style={{ animationDelay: `${landed + 900 + i * 160}ms` }}>
+                {comments[i] ? <RichText text={`// ${comments[i]}`} /> : null}
+              </span>
             </div>
           ))}
         </div>
       </div>
       {/* phones: the answer comes first */}
-      <div ref={side} className="order-first flex min-w-0 flex-col items-center justify-center gap-[2vh] md:order-none md:basis-[44%]">
+      <div ref={side} className="order-first flex min-w-0 flex-col items-center justify-center gap-[2vh] md:order-none md:basis-[36%]">
         {/* the stamp lands, then the boxed answer writes in and glows, with a puff of chalk dust */}
-        <span className="stamp font-hand text-5xl font-semibold text-teal md:text-[80px]" style={{ animationDelay: `${landed}ms` }}>Solved!</span>
+        <span className="stamp font-hand text-5xl font-semibold text-teal md:text-[68px]" style={{ animationDelay: `${landed}ms` }}>Solved!</span>
         <div className="answer-box flex w-full justify-center" style={{ animationDelay: `${landed + 300}ms` }}>
           <span ref={frame} className="answer-frame relative flex rounded-2xl bg-teal/[.07] px-[0.6em] py-[0.35em] shadow-[inset_0_0_0_3px_var(--color-teal)]" style={{ animationDelay: `${landed + 700}ms` }}>
             <span className="whitespace-nowrap"><Tex latex={pkg.final_answer_latex} /></span>
@@ -1266,16 +1367,22 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
   }
 
   return (
-    <div className="absolute inset-x-2 bottom-2 top-12 z-20 flex flex-col md:inset-x-auto md:bottom-4 md:right-4 md:top-16 md:w-[36%] gap-3 overflow-y-auto rounded-2xl border border-white/10 bg-panel/95 p-5 text-text shadow-2xl">
+    <div className="fade-in absolute inset-x-2 bottom-2 top-12 z-20 flex flex-col gap-3 overflow-y-auto rounded-2xl border border-gold/25 bg-[#1A1F26] p-6 text-text shadow-[0_24px_60px_rgba(0,0,0,.55)] md:inset-x-auto md:bottom-4 md:right-4 md:top-16 md:w-[38%]">
       <div className="flex items-center justify-between">
-        <span className="eyebrow text-gold">{overlay.kind === "why" ? `WHY? · STEP ${overlay.stepIndex + 1}` : `SIDE WORK · STEP ${overlay.stepIndex + 1}`}</span>
-        <button className="btn h-8 px-3" onClick={onClose} aria-label="Close panel">✕</button>
+        <span className="font-hand text-[28px] leading-none text-gold">{overlay.kind === "why" ? `why step ${overlay.stepIndex + 1}?` : `side work · step ${overlay.stepIndex + 1}`}</span>
+        <button
+          onClick={onClose}
+          aria-label="Close panel"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-white/15 text-muted transition duration-200 hover:rotate-90 hover:border-white/35 hover:text-text"
+        >
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M3 3l10 10M13 3L3 13" /></svg>
+        </button>
       </div>
       {overlay.kind === "why" ? (
         <>
           <div className="board-surface rounded-xl px-4 py-3 text-xl"><Tex latex={step.latex} /></div>
-          <span className="font-semibold">{step.rule}</span>
-          <RichText className="text-base leading-relaxed text-muted" text={step.why} />
+          <span className="text-[17px] font-semibold">{step.rule}</span>
+          <RichText className="border-l-[3px] border-gold/70 pl-4 text-[18px] leading-relaxed text-text" text={step.why} />
           <div className="mt-auto flex flex-col gap-2">
             {answer && <RichText className="whitespace-pre-line text-base leading-relaxed" text={answer} />}
             <div className="flex gap-2">

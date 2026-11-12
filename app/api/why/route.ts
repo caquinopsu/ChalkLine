@@ -4,7 +4,7 @@ import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { askText, SMART, ThinkingLevel } from "@/lib/gemini";
 import { WHY_SYSTEM } from "@/lib/prompts";
 import { badRequest, errorResponse } from "@/lib/routeHelpers";
-import { PackageSchema } from "@/lib/schemas";
+import { PackageInput } from "@/lib/schemas";
 
 export const maxDuration = 60;
 
@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const limited = rateLimit(req, "light"); // too many requests from this visitor?
     if (limited) return limited;
     const body = await req.json().catch(() => ({}));
-    const pkg = PackageSchema.safeParse(body.pkg);
+    const pkg = PackageInput.safeParse(body.pkg);
     if (!pkg.success) return badRequest("Missing or invalid solution package.");
     const step = pkg.data.steps[body.stepIndex]; // the line the question is about
     if (!step) return badRequest("Unknown step.");

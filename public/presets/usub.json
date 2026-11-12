@@ -1,40 +1,30 @@
 {
   "problem_latex": "\\int x\\,e^{x^2}\\,dx",
+  "task": "Find the antiderivative.",
   "problem_sympy": "Integral(x*exp(x**2), x)",
-  "topic": "Integration by substitution",
+  "topic": "Integration",
   "techniques": [
-    "u-substitution",
-    "pull out a constant"
+    "Substitution"
   ],
   "check_mode": "antiderivative",
   "variable": "x",
   "steps": [
     {
       "id": "s1",
-      "latex": "u=\\htmlClass{role-a}{x^2},\\quad \\htmlClass{role-a}{du}=2x\\,dx",
-      "plain_latex": "u=x^2,\\quad du=2x\\,dx",
+      "latex": "u = \\htmlClass{role-a}{x^2}, \\quad du = \\htmlClass{role-a}{2x \\, dx}",
+      "plain_latex": "u = x^2, \\quad du = 2x \\, dx",
       "sympy": null,
       "chain": false,
-      "rule": "Choose u",
-      "summary": "Let u be the exponent x^2 and find du.",
-      "why": "The derivative of $x^2$ is $2x$, and an $x$ already sits next to $e^{x^2}$. That is the sign that $u=x^2$ will work.",
-      "hint": "Look for an inside function whose derivative also appears in the integrand, up to a constant.",
-      "side_work": {
-        "title": "Differentiate u",
-        "lines": [
-          "u=x^2",
-          "\\frac{du}{dx}=2x",
-          "du=2x\\,dx"
-        ]
-      },
+      "rule": "Substitution setup",
+      "comment": "choose u to match the exponent",
+      "summary": "Set up the substitution by letting $u = x^2$ and finding its differential $du = 2x \\, dx$.",
+      "why": "Choosing $u$ as the exponent $x^2$ is a good strategy because its derivative $2x$ appears right next to $dx$ in the integrand.",
+      "hint": "Look at the exponent of $e$. What substitution would simplify that part?",
+      "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Choosing u = e^{x^2}",
-          "hint": "Check whether the derivative of your u appears in the integrand."
-        },
-        {
-          "mistake": "Writing du = x dx",
-          "hint": "Differentiate x^2 carefully."
+          "mistake": "Forgetting the derivative factor when finding $du$.",
+          "hint": "Remember to use the power rule on $x^2$ when taking its differential."
         }
       ],
       "parts": [
@@ -45,86 +35,68 @@
         },
         {
           "id": "du",
-          "latex": "du",
+          "latex": "2x \\, dx",
           "role": "a"
         }
       ]
     },
     {
       "id": "s2",
-      "latex": "\\int e^{\\htmlClass{role-a}{u}}\\cdot\\htmlClass{role-c}{\\tfrac12}\\,\\htmlClass{role-a}{du}",
-      "plain_latex": "\\int e^{u}\\cdot\\tfrac12\\,du",
-      "sympy": null,
-      "chain": false,
-      "rule": "Substitute",
-      "summary": "Replace x^2 with u and x dx with (1/2) du.",
-      "why": "Since $du=2x\\,dx$, we get $x\\,dx=\\tfrac12\\,du$. The integral is now only in terms of $u$.",
-      "hint": "Solve du = 2x dx for x dx, then rewrite everything in u.",
-      "side_work": {
-        "title": "Solve for x dx",
-        "lines": [
-          "du=2x\\,dx",
-          "x\\,dx=\\tfrac12\\,du"
-        ]
-      },
+      "latex": "\\frac{1}{2} \\int \\htmlClass{role-a}{e^{x^2}} \\cdot \\htmlClass{role-a}{2x \\, dx}",
+      "plain_latex": "\\frac{1}{2} \\int e^{x^2} \\cdot 2x \\, dx",
+      "sympy": "Integral(x*exp(x**2), x)",
+      "chain": true,
+      "rule": "Adjust constants",
+      "comment": "balance the integral with a half",
+      "summary": "Rewrite the integral by introducing a factor of $2$ inside and $\\frac{1}{2}$ outside to match $du$.",
+      "why": "We need the exact differential $2x \\, dx$ inside the integral, so we multiply by $2$ and compensate by pulling out $\\frac{1}{2}$.",
+      "hint": "You need a $2$ inside the integral for $du$. How do you keep the value unchanged?",
+      "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Forgetting the 1/2",
-          "hint": "Compare x dx with du = 2x dx."
-        },
-        {
-          "mistake": "Leaving an x in the integral",
-          "hint": "Every x should be absorbed into u or du."
+          "mistake": "Leaving out the $\\frac{1}{2}$ outside the integral.",
+          "hint": "If you multiply the inside by $2$, what must you multiply the outside by to keep it equal?"
         }
       ],
       "parts": [
         {
-          "id": "u",
-          "latex": "u",
+          "id": "integrand",
+          "latex": "e^{x^2}",
           "role": "a"
         },
         {
-          "id": "half",
-          "latex": "\\tfrac12",
-          "role": "c"
-        },
-        {
-          "id": "du",
-          "latex": "du",
+          "id": "diff",
+          "latex": "2x \\, dx",
           "role": "a"
         }
       ]
     },
     {
       "id": "s3",
-      "latex": "\\htmlClass{role-c}{\\tfrac12}\\int e^{\\htmlClass{role-a}{u}}\\,\\htmlClass{role-a}{du}",
-      "plain_latex": "\\tfrac12\\int e^{u}\\,du",
-      "sympy": null,
+      "latex": "\\frac{1}{2} \\int \\htmlClass{role-a}{e^u} \\, \\htmlClass{role-a}{du}",
+      "plain_latex": "\\frac{1}{2} \\int e^u \\, du",
+      "sympy": "Integral(exp(u)/2, u)",
       "chain": false,
-      "rule": "Pull out a constant",
-      "summary": "Move the 1/2 outside the integral.",
-      "why": "Constants can be factored out of an integral, leaving a basic integral to evaluate.",
-      "hint": "Which factor is just a number?",
+      "rule": "Change variables",
+      "comment": "substitute u and du into the integral",
+      "summary": "Substitute $u = x^2$ and $du = 2x \\, dx$ into the integral to get it in terms of $u$.",
+      "why": "Writing the integral entirely in terms of $u$ makes it a standard, easily solvable form.",
+      "hint": "Replace $x^2$ with $u$ and $2x \\, dx$ with $du$.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Pulling out e^u too",
-          "hint": "Only constants can leave the integral, not things that depend on u."
+          "mistake": "Leaving leftover $x$ terms in the integral.",
+          "hint": "Every $x$ must be accounted for by your substitution before you integrate."
         }
       ],
       "parts": [
         {
-          "id": "half",
-          "latex": "\\tfrac12",
-          "role": "c"
-        },
-        {
-          "id": "u",
-          "latex": "u",
+          "id": "u_expr",
+          "latex": "e^u",
           "role": "a"
         },
         {
-          "id": "du",
+          "id": "du_expr",
           "latex": "du",
           "role": "a"
         }
@@ -132,81 +104,68 @@
     },
     {
       "id": "s4",
-      "latex": "\\htmlClass{role-c}{\\tfrac12}e^{\\htmlClass{role-a}{u}}\\htmlClass{role-c}{+C}",
-      "plain_latex": "\\tfrac12e^{u}+C",
-      "sympy": null,
+      "latex": "\\frac{1}{2} \\htmlClass{role-b}{e^u} + \\htmlClass{role-c}{C}",
+      "plain_latex": "\\frac{1}{2} e^u + C",
+      "sympy": "exp(u)/2 + C",
       "chain": false,
-      "rule": "Integrate e^u",
-      "summary": "Integrate e^u, which is its own antiderivative.",
-      "why": "The derivative of $e^u$ is $e^u$, so its integral is $e^u$ plus a constant.",
-      "hint": "What function is its own derivative?",
+      "rule": "Basic integration",
+      "comment": "integrate the exponential function",
+      "summary": "Integrate $e^u$ with respect to $u$, remembering the constant of integration $C$.",
+      "why": "The antiderivative of $e^u$ is simply $e^u$, and we multiply by the constant factor $\\frac{1}{2}$ from earlier.",
+      "hint": "What is the antiderivative of $e^u$?",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Forgetting + C",
-          "hint": "This is an indefinite integral."
+          "mistake": "Forgetting the $+ C$ at the end.",
+          "hint": "Indefinitely integrated expressions always need a constant of integration."
         }
       ],
       "parts": [
         {
-          "id": "half",
-          "latex": "\\tfrac12",
-          "role": "c"
+          "id": "antideriv",
+          "latex": "e^u",
+          "role": "b"
         },
         {
-          "id": "u",
-          "latex": "u",
-          "role": "a"
-        },
-        {
-          "id": "C",
-          "latex": "+C",
+          "id": "constant",
+          "latex": "C",
           "role": "c"
         }
       ]
     },
     {
       "id": "s5",
-      "latex": "\\htmlClass{role-c}{\\tfrac12}e^{\\htmlClass{role-a}{x^2}}\\htmlClass{role-c}{+C}",
-      "plain_latex": "\\tfrac12e^{x^2}+C",
+      "latex": "\\frac{1}{2} \\htmlClass{role-b}{e^{x^2}} + \\htmlClass{role-c}{C}",
+      "plain_latex": "\\frac{1}{2} e^{x^2} + C",
       "sympy": "exp(x**2)/2 + C",
       "chain": true,
-      "rule": "Back-substitute",
-      "summary": "Replace u with x^2 to get the answer in x.",
-      "why": "The original problem was in $x$, so the answer must be too. Substitute $u=x^2$ back.",
-      "hint": "Undo your substitution for u.",
+      "rule": "Substitute back",
+      "comment": "return to the original variable x",
+      "summary": "Substitute the original expression $x^2$ back in for $u$ to get the final answer in terms of $x$.",
+      "why": "Since the original problem was in terms of $x$, our final answer must also be expressed in terms of $x$.",
+      "hint": "Replace $u$ with what it equals in terms of $x$.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Leaving the answer in u",
-          "hint": "The question is in terms of x."
+          "mistake": "Leaving $u$ in the final answer.",
+          "hint": "Make sure to substitute $x^2$ back in for $u$ before finishing."
         }
       ],
       "parts": [
         {
-          "id": "half",
-          "latex": "\\tfrac12",
-          "role": "c"
+          "id": "final_expr",
+          "latex": "e^{x^2}",
+          "role": "b"
         },
         {
-          "id": "u",
-          "latex": "x^2",
-          "role": "a"
-        },
-        {
-          "id": "C",
-          "latex": "+C",
+          "id": "final_c",
+          "latex": "C",
           "role": "c"
         }
       ]
     }
   ],
-  "alternates": [
-    {
-      "label": "Recognize the chain rule",
-      "summary": "Notice that d/dx of e^{x^2} is 2x e^{x^2}, so half of that is the antiderivative."
-    }
-  ],
-  "final_answer_latex": "\\tfrac12 e^{x^2}+C",
+  "alternates": [],
+  "final_answer_latex": "\\frac{1}{2} e^{x^2} + C",
   "final_answer_sympy": "exp(x**2)/2 + C"
 }

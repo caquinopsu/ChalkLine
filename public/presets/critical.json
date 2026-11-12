@@ -1,0 +1,158 @@
+{
+  "problem_latex": "f(x)=x^3-3x^2+2",
+  "task": "Find the critical points and classify them.",
+  "problem_sympy": null,
+  "topic": "Curve Sketching",
+  "techniques": [
+    "Derivative",
+    "Critical Points",
+    "Second Derivative Test"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "f'(x) = \\htmlClass{role-a}{3x^2 - 6x}",
+      "plain_latex": "f'(x) = 3x^2 - 6x",
+      "sympy": "Derivative(x**3 - 3*x**2 + 2, x)",
+      "chain": true,
+      "rule": "Power rule",
+      "comment": "find the first derivative to locate critical points",
+      "summary": "Compute the first derivative $f'(x) = 3x^2 - 6x$.",
+      "why": "Critical points occur where the derivative is zero or undefined, so we start by finding the derivative.",
+      "hint": "Take the derivative of $x^3 - 3x^2 + 2$ term by term.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Incorrectly differentiating the second term as $-3x$.",
+          "hint": "Remember the power rule: the derivative of $-3x^2$ is $-6x$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "deriv",
+          "latex": "3x^2 - 6x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "3x(x - 2) = 0 \\implies \\htmlClass{role-b}{x = 0}, \\htmlClass{role-c}{x = 2}",
+      "plain_latex": "3x(x - 2) = 0 \\implies x = 0, x = 2",
+      "sympy": null,
+      "chain": false,
+      "rule": "Solve for zero",
+      "comment": "set derivative to zero and solve for x",
+      "summary": "Set $f'(x) = 0$ to find the critical numbers $x = 0$ and $x = 2$.",
+      "why": "Critical points are where $f'(x) = 0$. Factoring the derivative reveals these roots easily.",
+      "hint": "Factor out $3x$ from the derivative expression.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting that $x = 0$ is a solution when dividing by $3$.",
+          "hint": "Set each factor equal to zero: $3x = 0$ and $x - 2 = 0$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "crit1",
+          "latex": "x = 0",
+          "role": "b"
+        },
+        {
+          "id": "crit2",
+          "latex": "x = 2",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "f''(x) = \\htmlClass{role-a}{6x - 6}",
+      "plain_latex": "f''(x) = 6x - 6",
+      "sympy": "Derivative(x**3 - 3*x**2 + 2, (x, 2))",
+      "chain": false,
+      "rule": "Second derivative",
+      "comment": "find second derivative for the second derivative test",
+      "summary": "Compute the second derivative $f''(x) = 6x - 6$.",
+      "why": "The second derivative test uses concavity at the critical points to classify them as local maxima or minima.",
+      "hint": "Differentiate $f'(x) = 3x^2 - 6x$ one more time.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Diffrentiating incorrectly.",
+          "hint": "The derivative of $3x^2$ is $6x$, and the derivative of $-6x$ is $-6$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "sec_deriv",
+          "latex": "6x - 6",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "f''(0) = -6 < 0 \\implies \\text{local max at } \\htmlClass{role-b}{x = 0}",
+      "plain_latex": "f''(0) = -6 < 0 \\implies \\text{local max at } x = 0",
+      "sympy": null,
+      "chain": false,
+      "rule": "Second derivative test",
+      "comment": "evaluate second derivative at x = 0",
+      "summary": "Evaluate $f''(0) = -6$, which is negative, meaning $x = 0$ is a local maximum.",
+      "why": "A negative second derivative means the graph is concave down, forming a peak.",
+      "hint": "Plug $x = 0$ into $f''(x) = 6x - 6$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Confusing concave down with a minimum.",
+          "hint": "A frown (concave down, negative second derivative) represents a peak or maximum."
+        }
+      ],
+      "parts": [
+        {
+          "id": "max_pt",
+          "latex": "x = 0",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s5",
+      "latex": "f''(2) = 6 > 0 \\implies \\text{local min at } \\htmlClass{role-c}{x = 2}",
+      "plain_latex": "f''(2) = 6 > 0 \\implies \\text{local min at } x = 2",
+      "sympy": null,
+      "chain": false,
+      "rule": "Second derivative test",
+      "comment": "evaluate second derivative at x = 2",
+      "summary": "Evaluate $f''(2) = 6$, which is positive, meaning $x = 2$ is a local minimum.",
+      "why": "A positive second derivative means the graph is concave up, forming a valley.",
+      "hint": "Plug $x = 2$ into $f''(x) = 6x - 6$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Confusing concave up with a maximum.",
+          "hint": "A smile (concave up, positive second derivative) represents a valley or minimum."
+        }
+      ],
+      "parts": [
+        {
+          "id": "min_pt",
+          "latex": "x = 2",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "First Derivative Test",
+      "summary": "Use a sign chart for $f'(x)$ around $x = 0$ and $x = 2$ instead of the second derivative test."
+    }
+  ],
+  "final_answer_latex": "\\text{Local max at } (0, 2), \\text{ local min at } (2, -2)",
+  "final_answer_sympy": null
+}

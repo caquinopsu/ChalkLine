@@ -1,0 +1,135 @@
+{
+  "problem_latex": "\\lim_{x\\to 0}\\frac{\\sqrt{x+4}-2}{x}",
+  "task": "Evaluate the limit.",
+  "problem_sympy": "Limit((sqrt(x + 4) - 2)/x, x, 0)",
+  "topic": "Limits",
+  "techniques": [
+    "Conjugate multiplication",
+    "Algebraic manipulation"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\lim_{x \\to 0} \\frac{\\sqrt{x + 4} - 2}{x} \\cdot \\frac{\\htmlClass{role-a}{\\sqrt{x + 4} + 2}}{\\htmlClass{role-a}{\\sqrt{x + 4} + 2}}",
+      "plain_latex": "\\lim_{x \\to 0} \\frac{\\sqrt{x + 4} - 2}{x} \\cdot \\frac{\\sqrt{x + 4} + 2}{\\sqrt{x + 4} + 2}",
+      "sympy": "Limit((sqrt(x + 4) - 2)*(sqrt(x + 4) + 2)/(x*(sqrt(x + 4) + 2)), x, 0)",
+      "chain": true,
+      "rule": "Multiply by conjugate",
+      "comment": "multiply by the conjugate to clear roots",
+      "summary": "Multiply the numerator and denominator by the conjugate of the numerator, $\\sqrt{x + 4} + 2$.",
+      "why": "Direct substitution gives the indeterminate form $0/0$. Multiplying by the conjugate $\\sqrt{x + 4} + 2$ allows us to use the difference of squares formula to eliminate the square root in the numerator.",
+      "hint": "What is the conjugate of the numerator $\\sqrt{x + 4} - 2$?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Multiplying only the numerator by the conjugate.",
+          "hint": "Remember to multiply both numerator and denominator so the overall value of the fraction does not change."
+        }
+      ],
+      "parts": [
+        {
+          "id": "conj",
+          "latex": "\\sqrt{x + 4} + 2",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\lim_{x \\to 0} \\frac{(\\sqrt{x + 4})^2 - 2^2}{x(\\sqrt{x + 4} + 2)}",
+      "plain_latex": "\\lim_{x \\to 0} \\frac{(\\sqrt{x + 4})^2 - 2^2}{x(\\sqrt{x + 4} + 2)}",
+      "sympy": "Limit(((x + 4) - 4)/(x*(sqrt(x + 4) + 2)), x, 0)",
+      "chain": true,
+      "rule": "Difference of squares",
+      "comment": "expand numerator using difference of squares",
+      "summary": "Expand the numerator using $(a-b)(a+b) = a^2 - b^2$.",
+      "why": "Multiplying out the numerator gives $(\\sqrt{x+4})^2 - 2^2$, which simplifies to $(x + 4) - 4 = x$.",
+      "hint": "Apply $(a-b)(a+b) = a^2 - b^2$ to the top.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to square the $2$ to get $4$.",
+          "hint": "Square both terms of the numerator separately."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s3",
+      "latex": "\\lim_{x \\to 0} \\frac{\\htmlClass{role-a}{x}}{\\htmlClass{role-a}{x}(\\sqrt{x + 4} + 2)}",
+      "plain_latex": "\\lim_{x \\to 0} \\frac{x}{x(\\sqrt{x + 4} + 2)}",
+      "sympy": "Limit(x/(x*(sqrt(x + 4) + 2)), x, 0)",
+      "chain": true,
+      "rule": "Simplify expression",
+      "comment": "simplify the numerator",
+      "summary": "Simplify the numerator to $x$.",
+      "why": "Combining $4 - 4$ leaves just $x$ in the numerator, which matches the factor in the denominator.",
+      "hint": "Combine the constants in the numerator.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping the denominator.",
+          "hint": "Keep the denominator unchanged while simplifying the numerator."
+        }
+      ],
+      "parts": [
+        {
+          "id": "x_num",
+          "latex": "x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\lim_{x \\to 0} \\frac{1}{\\sqrt{x + 4} + 2}",
+      "plain_latex": "\\lim_{x \\to 0} \\frac{1}{\\sqrt{x + 4} + 2}",
+      "sympy": "Limit(1/(sqrt(x + 4) + 2), x, 0)",
+      "chain": true,
+      "rule": "Cancel common factor",
+      "comment": "cancel the x from top and bottom",
+      "summary": "Cancel the common factor of $x$ from the numerator and denominator.",
+      "why": "Canceling $x$ removes the zero in the denominator that caused the $0/0$ indeterminate form.",
+      "hint": "Divide both top and bottom by $x$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving a $0$ in the numerator after canceling $x$.",
+          "hint": "Canceling leaves a $1$ in the numerator."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s5",
+      "latex": "\\frac{1}{\\sqrt{0 + 4} + 2} = \\htmlClass{role-c}{\\frac{1}{4}}",
+      "plain_latex": "\\frac{1}{\\sqrt{0 + 4} + 2} = \\frac{1}{4}",
+      "sympy": "1/(sqrt(0 + 4) + 2)",
+      "chain": true,
+      "rule": "Direct substitution",
+      "comment": "substitute x = 0",
+      "summary": "Substitute $x = 0$ into the continuous simplified expression.",
+      "why": "Now that the troubling factor of $x$ is canceled, we can safely evaluate the limit by direct substitution.",
+      "hint": "Plug $0$ in for $x$ now.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to take the square root of $4$.",
+          "hint": "Evaluate $\\sqrt{4}$ as $2$ before adding."
+        }
+      ],
+      "parts": [
+        {
+          "id": "ans",
+          "latex": "\\frac{1}{4}",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\frac{1}{4}",
+  "final_answer_sympy": "1/4"
+}

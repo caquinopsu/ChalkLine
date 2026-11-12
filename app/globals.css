@@ -90,13 +90,19 @@ body {
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-primary { background: var(--color-gold); color: #14181d; border-color: var(--color-gold); }
 .btn-primary:hover:not(:disabled) { background: #f5d46b; }
+/* a gold button that can't be pressed yet turns neutral gray (not a muddy half-gold) */
+.btn-primary:disabled { opacity: 1; background: var(--color-panel-3); border-color: rgba(255, 255, 255, 0.08); color: var(--color-subtle); }
 
-/* Small uppercase label above a card ("STEP 3 · FOCUS"). */
+/* Small section labels ("step 2 · your turn", "techniques used"): handwritten, like the board's
+   own notes, so the dock speaks the same language as the chalkboard. Code may write them in capitals;
+   they always show in lowercase handwriting. */
 .eyebrow {
-  font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-family: var(--font-patrick), cursive;
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: 0;
+  text-transform: lowercase;
 }
 
 /* MathLive input: blend into the dark tray and hide its built-in menu/keyboard toggles. */
@@ -243,4 +249,24 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
 /* Respect people who ask their system for less motion. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Summary: each "// takeaway" writes itself in from left to right, after the answer lands */
+@keyframes comment-in { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+.comment-in { animation: comment-in 0.7s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .comment-in { animation: none; } }
+
+/* Mode cards (mini chalkboards): on hover, the sketch re-draws itself piece by piece (--d = delay),
+   the caret blinks, the pink ring pops and the voice bars bounce. Disabled cards stay readable but
+   quiet (no dim 40% look that reads as "broken"). */
+@keyframes sk-write { from { opacity: 0; clip-path: inset(0 100% 0 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+@keyframes sk-blink { 50% { opacity: 0; } }
+@keyframes sk-bar { 0%, 100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
+.mode-card:enabled:hover .sk { animation: sk-write 0.55s ease-out both; animation-delay: var(--d, 0s); }
+.mode-card:enabled:hover .sk-caret { animation: sk-blink 0.9s steps(1) infinite; }
+.mode-card:enabled:hover .sk-ring { animation: ring-in 0.4s ease-out 0.9s both; }
+.mode-card:enabled:hover .sk-bar { animation: sk-bar 0.7s ease-in-out infinite; transform-origin: bottom; }
+.mode-card.mode-off { filter: saturate(0.35) brightness(0.8); }
+@media (prefers-reduced-motion: reduce) {
+  .mode-card:enabled:hover .sk, .mode-card:enabled:hover .sk-caret, .mode-card:enabled:hover .sk-ring, .mode-card:enabled:hover .sk-bar { animation: none; }
 }

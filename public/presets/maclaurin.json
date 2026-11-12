@@ -1,0 +1,159 @@
+{
+  "problem_latex": "f(x)=\\cos x,\\quad a=0",
+  "task": "Find the Maclaurin series.",
+  "problem_sympy": null,
+  "topic": "Taylor and Maclaurin Series",
+  "techniques": [
+    "Maclaurin Series Expansion",
+    "Derivatives Pattern"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "f(0) = \\htmlClass{role-a}{1}, \\quad f'(0) = \\htmlClass{role-b}{0}, \\quad f''(0) = \\htmlClass{role-a}{-1}, \\quad f'''(0) = \\htmlClass{role-b}{0}",
+      "plain_latex": "f(0) = 1, \\quad f'(0) = 0, \\quad f''(0) = -1, \\quad f'''(0) = 0",
+      "sympy": null,
+      "chain": false,
+      "rule": "Evaluate derivatives at zero",
+      "comment": "odd derivatives vanish at zero",
+      "summary": "Compute the derivatives of $f(x) = \\cos(x)$ at $x = 0$.",
+      "why": "To write out the Maclaurin series, we need to evaluate the derivatives of $f(x)$ at the center $a = 0$. The derivatives cycle every four steps: $\\cos(x), -\\sin(x), -\\cos(x), \\sin(x)$. Evaluating at $0$ yields alternating values $1, 0, -1, 0$.",
+      "hint": "Find $f(0)$, $f'(0)$, $f''(0)$, and $f'''(0)$.",
+      "side_work": {
+        "title": "Derivatives of cos(x)",
+        "lines": [
+          "f(x) = \\cos(x)",
+          "f'(x) = -\\sin(x)",
+          "f''(x) = -\\cos(x)",
+          "f'''(x) = \\sin(x)"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Mixing up the signs of derivative of sine and cosine.",
+          "hint": "Remember that $\\frac{d}{dx}\\cos(x) = -\\sin(x)$ while $\\frac{d}{dx}\\sin(x) = \\cos(x)$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "f0",
+          "latex": "1",
+          "role": "a"
+        },
+        {
+          "id": "f1",
+          "latex": "0",
+          "role": "b"
+        },
+        {
+          "id": "f2",
+          "latex": "-1",
+          "role": "a"
+        },
+        {
+          "id": "f3",
+          "latex": "0",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "f^{(2n)}(0) = \\htmlClass{role-a}{(-1)^n}, \\quad f^{(2n+1)}(0) = \\htmlClass{role-b}{0}",
+      "plain_latex": "f^{(2n)}(0) = (-1)^n, \\quad f^{(2n+1)}(0) = 0",
+      "sympy": null,
+      "chain": false,
+      "rule": "Find derivative pattern",
+      "comment": "even derivatives alternate signs",
+      "summary": "State the general formula for the $n$-th derivative evaluated at zero.",
+      "why": "Only even powers of $x$ remain because all odd derivatives are zero at $x = 0$. The even derivatives cycle between $1$ and $-1$, represented by $(-1)^n$ for the $2n$-th derivative.",
+      "hint": "Express the $2n$-th derivative at $0$ using a power of $-1$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing $(-1)^{n+1}$ instead of $(-1)^n$.",
+          "hint": "Check $n = 0$: $f^{(0)}(0) = \\cos(0) = 1$, so $(-1)^0 = 1$ is correct."
+        }
+      ],
+      "parts": [
+        {
+          "id": "even_deriv",
+          "latex": "(-1)^n",
+          "role": "a"
+        },
+        {
+          "id": "odd_deriv",
+          "latex": "0",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\sum_{n=0}^{\\infty} \\frac{\\htmlClass{role-a}{f^{(2n)}(0)}}{(2n)!} x^{2n}",
+      "plain_latex": "\\sum_{n=0}^{\\infty} \\frac{f^{(2n)}(0)}{(2n)!} x^{2n}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Plug into Maclaurin formula",
+      "comment": "keep only the non-zero even terms",
+      "summary": "Substitute the derivative pattern into the Maclaurin series formula.",
+      "why": "The general Maclaurin series formula is $\\sum_{k=0}^{\\infty} \\frac{f^{(k)}(0)}{k!} x^k$. Since odd-indexed terms drop out, we re-index with $k = 2n$.",
+      "hint": "Replace the index with $2n$ since only even powers appear.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Using $n!$ instead of $(2n)!$ in the denominator.",
+          "hint": "The denominator must match the degree of $x$, which is $2n$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "deriv_sym",
+          "latex": "f^{(2n)}(0)",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\sum_{n=0}^{\\infty} \\frac{\\htmlClass{role-a}{(-1)^n}}{\\htmlClass{role-c}{(2n)!}} \\htmlClass{role-b}{x^{2n}}",
+      "plain_latex": "\\sum_{n=0}^{\\infty} \\frac{(-1)^n}{(2n)!} x^{2n}",
+      "sympy": "Sum((-1)**n * x**(2*n) / factorial(2*n), (n, 0, oo))",
+      "chain": true,
+      "rule": "Simplify series",
+      "comment": "final general sum formula",
+      "summary": "Substitute $f^{(2n)}(0) = (-1)^n$ to get the final Maclaurin series.",
+      "why": "Replacing $f^{(2n)}(0)$ with $(-1)^n$ gives the standard, fully simplified Maclaurin series expansion for $\\cos(x)$.",
+      "hint": "Replace $f^{(2n)}(0)$ with $(-1)^n$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Omitting the parentheses in $(2n)!$.",
+          "hint": "Write $(2n)!$, because $2n!$ means $2 \\cdot (n!)$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "sign",
+          "latex": "(-1)^n",
+          "role": "a"
+        },
+        {
+          "id": "power",
+          "latex": "x^{2n}",
+          "role": "b"
+        },
+        {
+          "id": "fact",
+          "latex": "(2n)!",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\sum_{n=0}^{\\infty} \\frac{(-1)^n}{(2n)!} x^{2n}",
+  "final_answer_sympy": "Sum((-1)**n * x**(2*n) / factorial(2*n), (n, 0, oo))"
+}

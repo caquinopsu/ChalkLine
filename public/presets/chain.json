@@ -1,94 +1,89 @@
 {
   "problem_latex": "\\frac{d}{dx}\\left[\\ln\\left(x^2+1\\right)\\right]^3",
-  "problem_sympy": "Derivative(log(x**2 + 1)**3, x)",
-  "topic": "Derivatives: chain rule",
+  "task": "Find the derivative.",
+  "problem_sympy": "Derivative((log(x**2 + 1))**3, x)",
+  "topic": "Chain Rule",
   "techniques": [
     "Chain rule",
     "Power rule",
-    "Derivative of ln"
+    "Logarithm rule"
   ],
   "check_mode": "value",
   "variable": "x",
   "steps": [
     {
       "id": "s1",
-      "latex": "3\\left(\\htmlClass{role-a}{\\ln(x^2+1)}\\right)^{2}\\cdot\\frac{d}{dx}\\left[\\htmlClass{role-a}{\\ln(x^2+1)}\\right]",
-      "plain_latex": "3\\left(\\ln(x^2+1)\\right)^{2}\\cdot\\frac{d}{dx}\\left[\\ln(x^2+1)\\right]",
-      "sympy": "3*log(x**2 + 1)**2*Derivative(log(x**2 + 1), x)",
+      "latex": "3\\left(\\htmlClass{role-a}{\\ln(x^2 + 1)}\\right)^2 \\cdot \\frac{d}{dx}\\left[\\htmlClass{role-a}{\\ln(x^2 + 1)}\\right]",
+      "plain_latex": "3(\\ln(x^2 + 1))^2 \\cdot \\frac{d}{dx}[\\ln(x^2 + 1)]",
+      "sympy": "3*(log(x**2 + 1))**2 * Derivative(log(x**2 + 1), x)",
       "chain": true,
-      "rule": "Chain rule (outer power)",
-      "summary": "Differentiate the cube, leaving the inside alone, then multiply by the derivative of the inside.",
-      "why": "The function is (something)^3, so the outer rule gives $3(\\text{something})^2$. The chain rule then requires multiplying by the derivative of that something.",
-      "hint": "Treat ln(x^2+1) as one block. Apply the power rule to the block, then multiply by the block's derivative.",
+      "rule": "Power chain rule",
+      "comment": "apply outer power rule first",
+      "summary": "We apply the power rule to the outermost cube, leaving the inside alone and multiplying by its derivative.",
+      "why": "The chain rule tells us to differentiate the outer function first while keeping the inner function $u = \\ln(x^2 + 1)$ unchanged, then multiply by the derivative of the inner function.",
+      "hint": "Start by bringing down the exponent $3$ and subtracting $1$ from it.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Forgetting to multiply by the derivative of the inside",
-          "hint": "After the power rule, is there still a derivative left to take?"
-        },
-        {
-          "mistake": "Writing 3 ln(x^2+1)^3 or changing the inside",
-          "hint": "The power drops by one, and the inside stays the same."
+          "mistake": "Forgetting to multiply by the derivative of the inside.",
+          "hint": "Remember that the chain rule requires multiplying by the derivative of whatever is inside the parentheses."
         }
       ],
       "parts": [
         {
-          "id": "inner",
-          "latex": "\\ln(x^2+1)",
+          "id": "u",
+          "latex": "\\ln(x^2 + 1)",
           "role": "a"
         }
       ]
     },
     {
       "id": "s2",
-      "latex": "3\\left(\\ln(x^2+1)\\right)^{2}\\cdot\\htmlClass{role-b}{\\frac{1}{x^2+1}}\\cdot\\frac{d}{dx}\\left[x^2+1\\right]",
-      "plain_latex": "3\\left(\\ln(x^2+1)\\right)^{2}\\cdot\\frac{1}{x^2+1}\\cdot\\frac{d}{dx}\\left[x^2+1\\right]",
-      "sympy": "3*log(x**2 + 1)**2*(1/(x**2 + 1))*Derivative(x**2 + 1, x)",
+      "latex": "3\\left(\\ln(x^2 + 1)\\right)^2 \\cdot \\frac{1}{\\htmlClass{role-b}{x^2 + 1}} \\cdot \\frac{d}{dx}\\left[\\htmlClass{role-b}{x^2 + 1}\\right]",
+      "plain_latex": "3(\\ln(x^2 + 1))^2 \\cdot \\frac{1}{x^2 + 1} \\cdot \\frac{d}{dx}[x^2 + 1]",
+      "sympy": "3*(log(x**2 + 1))**2 / (x**2 + 1) * Derivative(x**2 + 1, x)",
       "chain": true,
-      "rule": "Chain rule (ln)",
-      "summary": "Differentiate ln of something: 1 over that something, times its derivative.",
-      "why": "The derivative of $\\ln(g)$ is $\\frac{1}{g}\\cdot g'$. Here $g=x^2+1$.",
-      "hint": "What is the derivative of ln(g)? Remember g' as well.",
+      "rule": "Derivative of ln",
+      "comment": "differentiate the natural logarithm",
+      "summary": "We take the derivative of $\\ln(x^2 + 1)$ using the logarithmic rule, which gives $1 / (x^2 + 1)$ times the derivative of its inside.",
+      "why": "The derivative of $\\ln(u)$ is $1/u \\cdot u'$ by the chain rule.",
+      "hint": "Apply the rule for differentiating a natural logarithm.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Dropping the derivative of x^2+1",
-          "hint": "ln of a non-x expression still needs the chain rule."
+          "mistake": "Missing the further chain rule step for $x^2 + 1$.",
+          "hint": "The argument of the logarithm is also a function of $x$, so you need one more link in the chain."
         }
       ],
       "parts": [
         {
-          "id": "lnder",
-          "latex": "\\frac{1}{x^2+1}",
+          "id": "inner",
+          "latex": "x^2 + 1",
           "role": "b"
         }
       ]
     },
     {
       "id": "s3",
-      "latex": "3\\left(\\ln(x^2+1)\\right)^{2}\\cdot\\frac{1}{x^2+1}\\cdot\\htmlClass{role-c}{2x}",
-      "plain_latex": "3\\left(\\ln(x^2+1)\\right)^{2}\\cdot\\frac{1}{x^2+1}\\cdot 2x",
-      "sympy": "3*log(x**2 + 1)**2*(1/(x**2 + 1))*2*x",
+      "latex": "3\\left(\\ln(x^2 + 1)\\right)^2 \\cdot \\frac{1}{x^2 + 1} \\cdot \\htmlClass{role-c}{2x}",
+      "plain_latex": "3(\\ln(x^2 + 1))^2 \\cdot \\frac{1}{x^2 + 1} \\cdot 2x",
+      "sympy": "3*(log(x**2 + 1))**2 / (x**2 + 1) * (2*x)",
       "chain": true,
       "rule": "Power rule",
-      "summary": "Evaluate the derivative of x^2+1.",
-      "why": "The derivative of $x^2$ is $2x$ and the derivative of the constant 1 is 0.",
-      "hint": "Differentiate x^2+1 term by term.",
-      "side_work": {
-        "title": "Inner derivative",
-        "lines": [
-          "\\frac{d}{dx}[x^2+1]=2x+0=2x"
-        ]
-      },
+      "comment": "differentiate the innermost polynomial",
+      "summary": "We differentiate $x^2 + 1$ to get $2x$.",
+      "why": "By the power rule, the derivative of $x^2$ is $2x$ and the derivative of the constant $1$ is $0$.",
+      "hint": "Use the power rule on $x^2$.",
+      "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Keeping the +1 or writing x instead of 2x",
-          "hint": "Constants differentiate to 0; check the power rule's multiplier."
+          "mistake": "Dropping the derivative term completely.",
+          "hint": "Make sure you evaluate the derivative of $x^2 + 1$ and multiply it out."
         }
       ],
       "parts": [
         {
-          "id": "two_x",
+          "id": "poly",
           "latex": "2x",
           "role": "c"
         }
@@ -96,30 +91,32 @@
     },
     {
       "id": "s4",
-      "latex": "\\frac{6x\\left(\\ln(x^2+1)\\right)^{2}}{x^2+1}",
-      "plain_latex": "\\frac{6x\\left(\\ln(x^2+1)\\right)^{2}}{x^2+1}",
-      "sympy": "6*x*log(x**2 + 1)**2/(x**2 + 1)",
+      "latex": "\\frac{6x\\left(\\ln(x^2 + 1)\\right)^2}{x^2 + 1}",
+      "plain_latex": "\\frac{6x(\\ln(x^2 + 1))^2}{x^2 + 1}",
+      "sympy": "6*x*(log(x**2 + 1))**2 / (x**2 + 1)",
       "chain": true,
-      "rule": "Simplify",
-      "summary": "Combine the constants and x into one fraction.",
-      "why": "Multiplying $3\\cdot 2x=6x$ and putting everything over $x^2+1$ gives a tidy answer.",
-      "hint": "Multiply the numbers and x together, then put them over x^2+1.",
+      "rule": "Algebraic simplification",
+      "comment": "combine all factors into a single fraction",
+      "summary": "We multiply the coefficients and terms together to write the final simplified derivative.",
+      "why": "Combining numerator terms makes the final expression clean and standard.",
+      "hint": "Multiply $3$ and $2x$ to get the final numerator coefficient.",
       "side_work": null,
       "common_mistakes": [
         {
-          "mistake": "Cancelling x^2+1 with the ln term",
-          "hint": "The denominator is not a factor of the log, so nothing cancels."
+          "mistake": "Multiplying the inside of the log by $6x$.",
+          "hint": "The term $\\ln(x^2 + 1)$ is protected by the logarithm; you can only multiply coefficients outside of it."
         }
       ],
-      "parts": []
+      "parts": [
+        {
+          "id": "final_num",
+          "latex": "6x",
+          "role": "c"
+        }
+      ]
     }
   ],
-  "alternates": [
-    {
-      "label": "Substitute u = ln(x^2+1)",
-      "summary": "Differentiate u^3 to get 3u^2 u', then find u' with another chain rule."
-    }
-  ],
-  "final_answer_latex": "\\frac{6x\\left(\\ln(x^2+1)\\right)^{2}}{x^2+1}",
-  "final_answer_sympy": "6*x*log(x**2 + 1)**2/(x**2 + 1)"
+  "alternates": [],
+  "final_answer_latex": "\\frac{6x\\left(\\ln(x^2 + 1)\\right)^2}{x^2 + 1}",
+  "final_answer_sympy": "6*x*(log(x**2 + 1))**2 / (x**2 + 1)"
 }

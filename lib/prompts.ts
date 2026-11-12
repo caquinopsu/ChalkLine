@@ -26,6 +26,7 @@ Write the solution the way a strong student writes it on paper:
 
 Fields:
 - problem_latex: the problem in KaTeX-compatible LaTeX (e.g. "\\int x\\ln x\\,dx", "\\lim_{x\\to 0} ...", "\\frac{d}{dx}\\left[...\\right]", "\\sum_{n=1}^{\\infty} ...").
+- task: what the problem asks, as one short instruction in plain words with math in $...$ ("Find the antiderivative.", "Evaluate the limit.", "Find $\frac{dy}{dx}$.", "Decide whether the series converges."). If a Task line came with the problem, rephrase that.
 - problem_sympy: the problem's value in SymPy syntax (e.g. "Integral(x*log(x), x)"), or null for yes/no questions like "does this series converge?".
 - check_mode: "antiderivative" for indefinite integrals (answers may differ by a constant), otherwise "value".
 - variable: the main variable ("x", or "n" for series).
@@ -39,6 +40,7 @@ Fields:
 - steps[].sympy: the line in SymPy syntax, or null if the line is not a single expression (setup lines, conclusions).
 - steps[].chain: true if the line's value equals problem_sympy (up to + C in antiderivative mode). Lines in a derivative, limit or integral problem are usually chain = true; series-test lines (a_n, the ratio, its limit) are chain = false.
 - steps[].rule: a short rule label, 2-4 words ("Integration by parts", "Pull out a constant", "Chain rule").
+- steps[].comment: the takeaway of this line, written like a short code comment a student would leave in the margin: 3-8 words, lowercase start, no period, plain words with at most a tiny bit of math in $...$ ("ln x gets simpler when differentiated", "the x's cancel before integrating", "never forget the + C"). It says WHY or WHAT TO REMEMBER, not just the rule name.
 - steps[].summary: one plain sentence for the student about what this line does. Math goes in $...$.
 - steps[].why: 1-3 sentences explaining why this move works or why it's the right move here. ALL math goes in $...$, even single variables ($x$, $\\ln x$, $(x-1)$, $a = 1$); never write math as plain text.
 - steps[].hint: a nudge toward this line that does not give the line away. Math goes in $...$.

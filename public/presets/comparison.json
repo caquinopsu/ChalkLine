@@ -1,0 +1,81 @@
+{
+  "problem_latex": "\\sum_{n=1}^{\\infty}\\frac{1}{n^2+5}",
+  "task": "Decide whether the series converges.",
+  "problem_sympy": null,
+  "topic": "Series",
+  "techniques": [
+    "Comparison Test"
+  ],
+  "check_mode": "value",
+  "variable": "n",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\frac{1}{n^2 + 5} < \\frac{1}{n^2}",
+      "plain_latex": "\\frac{1}{n^2 + 5} < \\frac{1}{n^2}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Inequality setup",
+      "comment": "compare with a known p-series",
+      "summary": "Set up an inequality comparing our term to $\\frac{1}{n^2}$.",
+      "why": "The $5$ in the denominator makes our fraction smaller than $\\frac{1}{n^2}$ for all $n \\ge 1$, which sets us up to use a direct comparison.",
+      "hint": "Think about a simpler p-series where the constant is removed from the denominator.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Flipping the inequality sign.",
+          "hint": "A larger denominator means a smaller fraction."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "\\sum_{n=1}^{\\infty} \\frac{1}{n^2} \\text{ is a convergent p-series with } p = 2 > 1",
+      "plain_latex": "\\sum_{n=1}^{\\infty} \\frac{1}{n^2} \\text{ is a convergent p-series with } p = 2 > 1",
+      "sympy": null,
+      "chain": false,
+      "rule": "P-series test",
+      "comment": "p-series converges when p > 1",
+      "summary": "Identify the comparison series as a convergent p-series.",
+      "why": "Series of the form $\\sum \\frac{1}{n^p}$ are called p-series and we know they converge whenever $p > 1$.",
+      "hint": "Recall the convergence rule for p-series based on the exponent of $n$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Confusing p-series with geometric series.",
+          "hint": "Check where the variable $n$ is located; here it is in the base, not the exponent."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s3",
+      "latex": "\\text{The series converges by the direct comparison test}",
+      "plain_latex": "The series converges by the direct comparison test",
+      "sympy": null,
+      "chain": false,
+      "rule": "Comparison test conclusion",
+      "comment": "smaller than a convergent series",
+      "summary": "Conclude that the original series converges.",
+      "why": "Since our terms are smaller than the terms of a convergent series and all terms are positive, our series must also converge.",
+      "hint": "Apply the direct comparison test conclusion since the larger series converges.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Concluding divergence when a smaller series converges.",
+          "hint": "Being smaller than a convergent series means you are bounded above by a finite sum."
+        }
+      ],
+      "parts": []
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Limit Comparison Test",
+      "summary": "Compare with $\\frac{1}{n^2}$ using the limit comparison test instead of direct inequality."
+    }
+  ],
+  "final_answer_latex": "\\text{Converges}",
+  "final_answer_sympy": null
+}

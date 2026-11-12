@@ -1,0 +1,97 @@
+{
+  "problem_latex": "\\int_1^{\\infty}\\frac{1}{x^2}\\,dx",
+  "task": "Evaluate the improper integral.",
+  "problem_sympy": "Integral(1/x**2, (x, 1, oo))",
+  "topic": "Improper Integrals",
+  "techniques": [
+    "Limits",
+    "Power Rule"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\lim_{t\\to\\infty} \\int_{1}^{t} \\frac{1}{x^2}\\,dx",
+      "plain_latex": "\\lim_{t\\to\\infty} \\int_{1}^{t} \\frac{1}{x^2}\\,dx",
+      "sympy": "Limit(Integral(1/x**2, (x, 1, t)), t, oo)",
+      "chain": true,
+      "rule": "Rewrite as a limit",
+      "comment": "replace infinity with a limit variable",
+      "summary": "Rewrite the improper integral as a limit of a proper integral.",
+      "why": "We cannot directly plug in $\\infty$ as a bound, so we use a limit $t\\to\\infty$ to evaluate the integral over a finite interval first.",
+      "hint": "Replace the upper bound $\\infty$ with a variable like $t$ and put a limit in front.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Evaluating directly at infinity",
+          "hint": "Remember that infinity is not a number, so you must use a limit."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "\\lim_{t\\to\\infty} \\left[ -\\frac{1}{x} \\right]_{1}^{t}",
+      "plain_latex": "\\lim_{t\\to\\infty} \\left[ -\\frac{1}{x} \\right]_{1}^{t}",
+      "sympy": "Limit(-1/t - (-1/1), t, oo)",
+      "chain": true,
+      "rule": "Power rule for integration",
+      "comment": "find the antiderivative of $x^{-2}$",
+      "summary": "Integrate $1/x^2$ to get $-1/x$.",
+      "why": "Using the power rule $\\int x^n dx = \\frac{x^{n+1}}{n+1}$ with $n = -2$ gives $-\\frac{1}{x}$.",
+      "hint": "Rewrite $1/x^2$ as $x^{-2}$ before integrating.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Integrating as $\\ln(x^2)$",
+          "hint": "That rule only applies when the exponent in the denominator is $-1$, i.e., $1/x$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s3",
+      "latex": "\\lim_{t\\to\\infty} \\left( -\\frac{1}{t} - \\left(-\\frac{1}{1}\\right) \\right)",
+      "plain_latex": "\\lim_{t\\to\\infty} \\left( -\\frac{1}{t} - \\left(-\\frac{1}{1}\\right) \\right)",
+      "sympy": "Limit(-1/t + 1, t, oo)",
+      "chain": true,
+      "rule": "Fundamental theorem of calculus",
+      "comment": "plug in the upper and lower bounds",
+      "summary": "Evaluate the antiderivative at the limits $t$ and $1$.",
+      "why": "Substitute the upper bound $t$ and lower bound $1$ into the antiderivative and subtract.",
+      "hint": "Plug in $t$ first, then subtract the result of plugging in $1$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Subtracting in the wrong order",
+          "hint": "Always do (upper bound) minus (lower bound)."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s4",
+      "latex": "0 + 1 = 1",
+      "plain_latex": "0 + 1 = 1",
+      "sympy": "1",
+      "chain": true,
+      "rule": "Evaluate the limit",
+      "comment": "take the limit as $t$ goes to infinity",
+      "summary": "Evaluate the limit as $t$ approaches infinity.",
+      "why": "As $t\\to\\infty$, the term $1/t$ approaches $0$, leaving $0 + 1 = 1$.",
+      "hint": "What happens to a fraction with a constant numerator when the denominator grows without bound?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Thinking $1/t$ goes to infinity",
+          "hint": "As the denominator gets huge, the fraction gets closer and closer to zero."
+        }
+      ],
+      "parts": []
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "1",
+  "final_answer_sympy": "1"
+}

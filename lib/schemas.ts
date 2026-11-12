@@ -19,6 +19,7 @@ export const StepSchema = z.object({
   sympy: z.string().nullable(), // the line in SymPy syntax, or null if it isn't a single expression
   chain: z.boolean(), // true if this line equals the original problem's value (so SymPy can verify it)
   rule: z.string(), // short rule label, e.g. "Integration by parts"
+  comment: z.string(), // the takeaway, written like a code comment beside the line on the summary ("ln x gets simpler when differentiated")
   summary: z.string(), // one sentence for the Focus card
   why: z.string(), // 1-3 sentence explanation (may contain $inline math$)
   hint: z.string(), // a nudge that doesn't give the answer away
@@ -35,6 +36,7 @@ export const StepSchema = z.object({
 // The reference solution package: built once per problem, reused by every mode.
 export const PackageSchema = z.object({
   problem_latex: z.string(), // the problem, typeset
+  task: z.string(), // what the problem asks, in a few words ("Find the antiderivative.", "Does the series converge?")
   problem_sympy: z.string().nullable(), // the problem's value in SymPy (null for yes/no questions)
   topic: z.string(), // e.g. "Integration"
   techniques: z.array(z.string()), // e.g. ["integration by parts"]
@@ -187,3 +189,14 @@ export type SpeechRequest = {
   choices?: number; // how many "Did you mean…?" options are showing (0 = none)
   wrongStep?: boolean; // is a rejected step waiting to be fixed? ("show me the fix" makes sense)
 };
+
+// Packages coming back from the browser may be older than the newest fields (task, comment were
+// added later; a saved demo file or a cached solution may not have them). Fill those in with ""
+// before checking the shape, so an older package still works everywhere.
+function fillNewFields(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const pkg = raw as Record<string, unknown>;
+  const steps = Array.isArray(pkg.steps) ? pkg.steps.map((s) => (s && typeof s === "object" ? { comment: "", ...s } : s)) : pkg.steps;
+  return { task: "", ...pkg, steps };
+}
+export const PackageInput = z.preprocess(fillNewFields, PackageSchema); // use this to read a package sent by the browser

@@ -42,8 +42,8 @@ const OPS = /[=+\-−*/^·<>≤≥]/; // operator characters
 // Is this one word math? Only digits, operators, brackets and letters, where every run of letters is a
 // single letter or a known function ("x^2", "(x-1)", "ln", "2x" yes; "is", "first-year" no).
 function mathWord(w: string): boolean {
-  if (!/^[()[\]0-9a-zA-Zθπ=+\-−*/^·.<>≤≥|′']+$/.test(w)) return false;
-  const runs = w.match(/[a-zA-Zθ]+/g) ?? [];
+  if (!/^[()[\]{}\\0-9a-zA-Zθπ=+\-−*/^·.<>≤≥|′']+$/.test(w)) return false;
+  const runs = w.replace(/\\[a-zA-Z]+/g, "").match(/[a-zA-Zθ]+/g) ?? []; // LaTeX commands like \int always count
   return runs.every((r) => r.length === 1 || FUNCS.has(r));
 }
 
@@ -68,7 +68,7 @@ function mathifyPlain(text: string): string {
     const raw = group.join("");
     const words = group.filter((g) => !/^\s+$/.test(g));
     const isMath =
-      OPS.test(raw) || words.some((w) => (w.match(/[a-zA-Zθ]+/g) ?? []).some((r) => FUNCS.has(r))) ||
+      OPS.test(raw) || /\\[a-zA-Z]/.test(raw) || words.some((w) => (w.match(/[a-zA-Zθ]+/g) ?? []).some((r) => FUNCS.has(r))) ||
       (words.length === 1 && VARS.has(words[0])) || /\d[a-zA-Z]|[a-zA-Z]\d/.test(raw);
     out.push(isMath ? `$${toLatex(raw)}$` : raw, tail);
     group = [];

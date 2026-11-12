@@ -1,0 +1,97 @@
+{
+  "problem_latex": "\\int \\sin^2 x\\,dx",
+  "task": "Find the antiderivative.",
+  "problem_sympy": "Integral(sin(x)**2, x)",
+  "topic": "Trigonometric Integrals",
+  "techniques": [
+    "half-angle identity",
+    "u-substitution"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\int \\frac{1 - \\cos(2x)}{2}\\,dx",
+      "plain_latex": "\\int \\frac{1 - \\cos(2x)}{2}\\,dx",
+      "sympy": "Integral((1 - cos(2*x))/2, x)",
+      "chain": true,
+      "rule": "Half-angle identity",
+      "comment": "powers of sine need half-angle reduction",
+      "summary": "Rewrite $\\sin^2(x)$ using the half-angle identity.",
+      "why": "We cannot integrate $\\sin^2(x)$ directly with basic rules, so we use the half-angle identity $\\sin^2(x) = \\frac{1 - \\cos(2x)}{2}$ to lower the power.",
+      "hint": "Think about trigonometric identities that relate squared trig functions to single powers of cosine.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting the 2 inside the cosine argument.",
+          "hint": "Remember the identity is $\\cos(2x)$, not $\\cos(x)$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s2",
+      "latex": "\\frac{1}{2} \\int (1 - \\cos(2x))\\,dx",
+      "plain_latex": "\\frac{1}{2} \\int (1 - \\cos(2x))\\,dx",
+      "sympy": "Integral((1 - cos(2*x))/2, x)",
+      "chain": true,
+      "rule": "Pull out a constant",
+      "comment": "factor out constants to keep things clean",
+      "summary": "Pull the constant $\\frac{1}{2}$ out of the integral.",
+      "why": "Constants can be factored out of integrals to make the remaining expression simpler to integrate term by term.",
+      "hint": "Can you factor the denominator out of the integral?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving the 2 inside the integral incorrectly.",
+          "hint": "The denominator 2 applies to the whole integrand, so it comes out as $\\frac{1}{2}$."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s3",
+      "latex": "\\frac{1}{2} \\left( x - \\frac{\\sin(2x)}{2} \\right) + C",
+      "plain_latex": "\\frac{1}{2} \\left( x - \\frac{\\sin(2x)}{2} \\right) + C",
+      "sympy": "x/2 - sin(2*x)/4 + C",
+      "chain": true,
+      "rule": "Basic integration",
+      "comment": "integrate term by term and add + C",
+      "summary": "Integrate each term and add the constant of integration.",
+      "why": "The antiderivative of $1$ is $x$, and the antiderivative of $\\cos(2x)$ is $\\frac{\\sin(2x)}{2}$ by a quick mental u-substitution.",
+      "hint": "Integrate $1$ with respect to $x$, and use the chain rule backwards for $\\cos(2x)$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Dropping the constant of integration.",
+          "hint": "Never forget the $+ C$ for indefinite integrals."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{x}{2} - \\frac{\\sin(2x)}{4} + C",
+      "plain_latex": "\\frac{x}{2} - \\frac{\\sin(2x)}{4} + C",
+      "sympy": "x/2 - sin(2*x)/4 + C",
+      "chain": true,
+      "rule": "Algebraic simplification",
+      "comment": "distribute the half",
+      "summary": "Distribute the $\\frac{1}{2}$ to obtain the final answer.",
+      "why": "Distributing gives a clean, standard final form for the expression.",
+      "hint": "Multiply each term inside the parentheses by $\\frac{1}{2}$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Multiplying only the first term by $\\frac{1}{2}$.",
+          "hint": "Make sure to distribute the $\\frac{1}{2}$ to both terms inside the parentheses."
+        }
+      ],
+      "parts": []
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\frac{x}{2} - \\frac{\\sin(2x)}{4} + C",
+  "final_answer_sympy": "x/2 - sin(2*x)/4 + C"
+}
