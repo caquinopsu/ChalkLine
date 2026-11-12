@@ -6,7 +6,7 @@
 // (the finished line floats up and shrinks into the stack), and the new line fades in.
 // ✓ marks draw on, wrong parts shake, and the last step (the answer) gets a teal frame.
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
-import { Tex } from "./Tex";
+import { RichText, Tex } from "./Tex";
 
 // true if the visitor asked their system for less motion (then we skip the JavaScript animations;
 // the CSS ones are switched off in globals.css).
@@ -41,11 +41,12 @@ type Props = {
   children?: ReactNode; // anything extra (e.g. the finish layout)
   firstNumber?: number; // the step number of lines[0] (the home-screen demo passes only the last line)
   nav?: { prev?: () => void; next?: () => void }; // Walkthrough: big ‹ › arrows on the board's edges (laptops)
+  task?: string; // the worksheet's instructions, written small above the problem ("Find the Taylor series…")
 };
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1, nav }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1, nav, task }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find lines to glide
   const spots = useRef(new Map<string, DOMRect>()); // where each step's line was drawn last time
@@ -95,6 +96,7 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
       {/* board-drop: the board (and its ledge) unroll down from the rail when a problem opens */}
       <div className={`board-drop flex min-h-0 flex-1 flex-col ${fresh ? "board-fresh" : ""}`}>
       <div className="board-surface relative mx-2.5 flex min-h-0 flex-1 flex-col rounded-b-lg border-x-[6px] border-b-[6px] border-wood px-4 py-3 md:border-x-[12px] md:border-b-[12px] md:px-14 md:py-5">
+        {task && <RichText className="problem-ink -mb-1 truncate text-base text-muted md:text-lg" text={task} />}
         {/* Header row: the problem and a handwritten status */}
         <div className="flex items-center justify-between gap-4 border-b border-[rgba(236,232,221,.14)] pb-3">
           <span className="problem-ink flex min-w-0 flex-1"><FitTex latex={problemLatex} size={32} min={16} /></span>

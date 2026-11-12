@@ -170,6 +170,22 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Math notation: `mathify()` in `components/Tex.tsx` typesets plain-text math the AI left outside
   $...$ ("u = ln x", "(x-1)", "a = 1"); the prompts now ask for all math in $...$.
 
+## Worksheets and staying on the board ✅ (Nov 12, 2026)
+- **Problem sets from one photo:** `/api/read-photo` now returns every part on the page (`parts`, each
+  with its label) and the shared `instructions`. The Upload sheet shows "We found 4 parts", the
+  instructions and each part as a chalk card; pick one to start.
+- **Instructions reach the AI:** `/api/presolve` takes an optional `task`, so "f(x) = 1/x, a = 1" is
+  solved as "find the Taylor series", not guessed. The board shows the instructions above the problem.
+- **Part chips** in the header (a b c d): gold = open, teal ✓ = solved; click to switch. The summary's
+  main button becomes **Next: part c →** (the next unsolved part). The next part starts solving in
+  the background as soon as you open one, so moving on is instant (one extra AI call per part).
+- **New problem stays in the session:** the button opens a sheet over the board with Upload a photo
+  (default), Type it, Talk it through and Demo problem tabs. The logo still goes to the start screen.
+- Tested: 1 live photo read of a 4-part Taylor series worksheet (all 4 parts + instructions, 4.6 s);
+  the rest of the flow in the browser with that reply replayed and pre-solving mocked (no AI).
+- Not yet: progress inside a part isn't kept when you switch parts (you restart at step 1); the
+  solved ✓ marks reset on reload.
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.

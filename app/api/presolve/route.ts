@@ -1,4 +1,4 @@
-// POST /api/presolve  { problem: "..." }  ->  { ok, pkg, verification }
+// POST /api/presolve  { problem: "...", task?: "..." }  ->  { ok, pkg, verification }
 // Builds the reference solution package for a typed problem (presets skip this: theirs are saved in data/presets).
 import { rateLimit } from "@/lib/rateLimit"; // per-visitor speed bump (Phase 5)
 import { presolve } from "@/lib/presolve";
@@ -14,8 +14,9 @@ export async function POST(req: Request) {
     const problem = typeof body.problem === "string" ? body.problem.trim() : ""; // the problem text
     if (!problem) return badRequest("Please type a problem first.");
     if (problem.length > 500) return badRequest("That problem is too long (500 characters max).");
+    const task = typeof body.task === "string" ? body.task.trim().slice(0, 400) : ""; // the worksheet's instructions, if any
     const origin = new URL(req.url).origin; // our own site address, used to reach the SymPy checker
-    const { pkg, verification } = await presolve(problem, origin);
+    const { pkg, verification } = await presolve(problem, origin, task);
     return Response.json({ ok: true, pkg, verification });
   } catch (err) {
     return errorResponse(err);

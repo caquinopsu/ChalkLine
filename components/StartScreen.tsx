@@ -7,7 +7,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
 import { KEYS_PROBLEM, MathInput, type MathInputHandle } from "./MathInput";
-import { Tex } from "./Tex";
+import { RichText, Tex } from "./Tex";
 import { Logo } from "./Logo";
 import { MicButton } from "./MicButton";
 import { PRESETS, loadPreset } from "@/lib/presets";
@@ -19,9 +19,12 @@ import { useVoice } from "@/lib/useVoice";
 import type { SolutionPackage, Submission } from "@/lib/schemas";
 
 export type StartMode = "walkthrough" | "practice" | "check" | "voice"; // "voice" = Think-aloud
+// A worksheet read from one photo: every part, the instructions they share, and which part is open.
+export type SetPart = { label: string; latex: string };
+export type ProblemSet = { instructions: string; parts: SetPart[]; index: number };
 export type StartChoice =
   | { kind: "preset"; presetId: string; mode: StartMode } // a demo problem
-  | { kind: "typed"; latex: string; mode: StartMode; work?: Submission }; // typed or photographed (with any work in the photo)
+  | { kind: "typed"; latex: string; mode: StartMode; work?: Submission; set?: ProblemSet }; // typed or photographed (with any work in the photo, or a whole worksheet)
 
 type Panel = "none" | "upload" | "type" | "practice" | "talk"; // which sheet is open
 
@@ -99,6 +102,41 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
       {panel === "talk" && <Sheet title="Talk it through" icon={<MicIcon />} tint="bg-gold text-[#14181D]" onClose={close}><TalkPanel onStart={onStart} onType={() => setPanel("type")} /></Sheet>}
       {panel === "practice" && <Sheet title="Try a demo problem" icon={<span className="text-gold">▶</span>} tint="bg-gold/15" onClose={close}><PracticePanel onStart={onStart} /></Sheet>}
     </div>
+  );
+}
+
+// "New problem" from inside a session: the same four ways to bring a problem, as tabs in one sheet
+// over the board, so the student never has to go back to the start screen. Opens on Upload a photo.
+type PickTab = "upload" | "type" | "talk" | "practice";
+export function NewProblemSheet({ onStart, onClose }: { onStart: (choice: StartChoice) => void; onClose: () => void }) {
+  const [tab, setTab] = useState<PickTab>("upload");
+  const TABS: { id: PickTab; label: string; icon: ReactNode; on: string }[] = [
+    { id: "upload", label: "Upload a photo", icon: <CameraIcon />, on: "border-blue/70 bg-blue/10 text-text" },
+    { id: "type", label: "Type it", icon: <span className="font-display text-xl leading-none">∫</span>, on: "border-teal/70 bg-teal/10 text-text" },
+    { id: "talk", label: "Talk it through", icon: <MicIcon />, on: "border-gold/70 bg-gold/10 text-text" },
+    { id: "practice", label: "Demo problem", icon: <span className="text-sm">▶</span>, on: "border-gold/70 bg-gold/10 text-text" },
+  ];
+  return (
+    <Sheet title="New problem" icon={<span className="text-2xl leading-none">+</span>} tint="bg-gold/15 text-gold" onClose={onClose}>
+      <div role="tablist" aria-label="How to bring the problem" className="flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            role="tab"
+            aria-selected={tab === t.id}
+            onClick={() => setTab(t.id)}
+            className={`flex h-12 items-center gap-2.5 rounded-full border px-5 text-[15px] font-semibold transition ${tab === t.id ? t.on : "border-white/12 text-muted hover:border-white/30 hover:text-text"}`}
+          >
+            <span className="flex h-6 w-6 items-center justify-center [&_svg]:h-5 [&_svg]:w-5">{t.icon}</span>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tab === "upload" && <UploadPanel onStart={onStart} />}
+      {tab === "type" && <TypePanel onStart={onStart} />}
+      {tab === "talk" && <TalkPanel onStart={onStart} onType={() => setTab("type")} />}
+      {tab === "practice" && <PracticePanel onStart={onStart} />}
+    </Sheet>
   );
 }
 
@@ -297,19 +335,24 @@ function DemoBoard() {
   );
 }
 
-// "Upload a photo" sheet (frame B): photo → "We read this as" + the problem → Edit / Retake → mode.
+// "Upload a photo" sheet (frame B): photo → "We read this as" (every part on the page, plus the
+// worksheet's instructions) → Edit / Retake → pick a part → mode.
 function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const [thumb, setThumb] = useState<string | null>(null); // the photo, shown small
   const [status, setStatus] = useState<"idle" | "reading" | "read" | "error">("idle");
-  const [latex, setLatex] = useState(""); // the problem we read (editable)
+  const [parts, setParts] = useState<SetPart[]>([]); // every problem found on the page (editable)
+  const [pickI, setPickI] = useState(0); // which part to start with
+  const [instructions, setInstructions] = useState(""); // the task the parts share ("" if none)
   const [work, setWork] = useState<Submission | null>(null); // any solution lines found under the problem
   const [message, setMessage] = useState(""); // error or note from the reader
   const [editing, setEditing] = useState(false); // is the Edit box open?
   const [dragging, setDragging] = useState(false); // is a file being dragged over the drop zone?
   const fileInput = useRef<HTMLInputElement>(null); // the hidden <input type="file">
   const input = useRef<MathInputHandle>(null);
+  const latex = parts[pickI]?.latex ?? ""; // the part that will start
+  const setLatex = (v: string) => setParts((ps) => ps.map((p, i) => (i === pickI ? { ...p, latex: v } : p)));
 
-  // Reads one photo: shrink it, show it, send it to the AI, then start pre-solving right away.
+  // Reads one photo: shrink it, show it, send it to the AI, then start pre-solving the first part right away.
   async function handleFile(file: File) {
     setStatus("reading");
     setEditing(false);
@@ -318,20 +361,24 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
       const photo = await preparePhoto(file);
       setThumb(photo.thumb);
       const read = await readPhoto(photo);
-      if (!read.readable || !read.problem_latex) {
+      // older replies (or a single problem) may come without parts: fall back to problem_latex
+      const found = read.parts?.length ? read.parts : read.problem_latex ? [{ label: "1", latex: read.problem_latex }] : [];
+      if (!read.readable || !found.length) {
         setStatus("error");
         setMessage(read.note || "I couldn't find a problem in that photo. Try another one, or type it.");
         return;
       }
-      setLatex(read.problem_latex);
+      setParts(found);
+      setPickI(0);
+      setInstructions(read.instructions ?? "");
       setWork(
-        read.lines.length
+        read.lines.length && found.length === 1
           ? { source: "photo", thumb: photo.thumb, lines: read.lines.map((l) => l.latex), unclear: read.lines.map((l) => l.unclear), note: read.note }
           : null,
       );
       setMessage(read.note);
       setStatus("read");
-      getPackage(read.problem_latex).catch(() => {}); // start pre-solving now (errors show up later, when a mode is picked)
+      getPackage(found[0].latex, read.instructions ?? "").catch(() => {}); // start pre-solving part 1 now (errors show up later)
     } catch (err) {
       setStatus("error");
       setMessage(messageOf(err, "Couldn't read that photo."));
@@ -350,7 +397,8 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
 
   function pick(mode: StartMode) {
     if (!latex.trim()) return;
-    onStart({ kind: "typed", latex, mode, work: mode === "check" && work ? work : undefined });
+    const set = parts.length > 1 || instructions ? { instructions, parts, index: pickI } : undefined; // a worksheet: remember every part
+    onStart({ kind: "typed", latex, mode, work: mode === "check" && work ? work : undefined, set });
   }
 
   return (
@@ -383,30 +431,48 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
         >
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-blue/15 text-blue"><CameraIcon /></span>
           <span className="text-xl font-semibold md:text-2xl">Take or choose a photo</span>
-          <span className="px-4 text-center text-sm text-muted md:text-base">a textbook problem, a screenshot, or your handwritten work · drag it here · or paste (Ctrl+V)</span>
+          <span className="px-4 text-center text-sm text-muted md:text-base">a worksheet, a textbook problem, a screenshot, or your handwritten work · drag it here · or paste (Ctrl+V)</span>
         </button>
       ) : (
-        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
+        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-start">
           {thumb && (
             // eslint-disable-next-line @next/next/no-img-element -- a local data URL, nothing for next/image to optimize
             <img src={thumb} alt="Your photo" className="h-[140px] w-[200px] shrink-0 rounded-2xl object-cover" />
           )}
-          <span aria-hidden className="hidden text-3xl text-subtle md:block">⇢</span>
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">WE READ THIS AS</span>
+            <span className="font-mono text-[15px] font-medium tracking-[.08em] text-muted">
+              {parts.length > 1 ? `WE FOUND ${parts.length} PARTS · PICK ONE TO START` : "WE READ THIS AS"}
+            </span>
             {status === "reading" && <span className="font-hand text-3xl text-muted">reading your photo…</span>}
             {status === "error" && <span className="text-base text-pink">{message}</span>}
-            {status === "read" && !editing && (
+            {status === "read" && instructions && <RichText className="text-lg leading-snug text-text" text={instructions} />}
+            {status === "read" && parts.length > 1 && !editing && (
+              // every part as a chalk card; the gold one starts (you can switch parts later from the board)
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {parts.map((p, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setPickI(i)}
+                    aria-pressed={pickI === i}
+                    className={`board-surface flex min-h-[72px] items-center gap-3 rounded-2xl px-4 text-left text-[22px] transition ${pickI === i ? "outline outline-[2.5px] outline-gold" : "opacity-75 hover:opacity-100"}`}
+                  >
+                    <span className={`font-hand text-2xl ${pickI === i ? "text-gold" : "text-muted"}`}>{p.label}.</span>
+                    <span className="min-w-0 overflow-hidden whitespace-nowrap py-1"><Tex latex={p.latex} /></span>
+                  </button>
+                ))}
+              </div>
+            )}
+            {status === "read" && parts.length <= 1 && !editing && (
               <div className="board-surface flex min-h-[88px] items-center rounded-2xl px-5 text-3xl"><Tex latex={latex} /></div>
             )}
             {status === "read" && editing && (
-              <MathInput ref={input} initialValue={latex} onChange={setLatex} ariaLabel="Edit the problem" />
+              <MathInput key={pickI} ref={input} initialValue={latex} onChange={setLatex} ariaLabel="Edit the problem" />
             )}
             {status === "read" && message && !editing && <span className="text-sm text-muted">{message}</span>}
           </div>
           <div className="flex shrink-0 gap-2 md:flex-col">
             {status === "read" && (
-              <button className="btn h-10" onClick={() => setEditing((e) => !e)}>{editing ? "Done" : "Edit"}</button>
+              <button className="btn h-10" onClick={() => setEditing((e) => !e)}>{editing ? "Done" : parts.length > 1 ? `Edit part ${parts[pickI]?.label}` : "Edit"}</button>
             )}
             <button className="btn h-10" disabled={status === "reading"} onClick={() => fileInput.current?.click()}>Retake photo</button>
           </div>
@@ -430,7 +496,9 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
           status === "read"
             ? work
               ? `LOOKS RIGHT? PICK HOW TO WORK ON IT · I ALSO FOUND ${work.lines.length} LINE${work.lines.length > 1 ? "S" : ""} OF YOUR WORK (CHECK MY WORK)`
-              : "LOOKS RIGHT? PICK HOW TO WORK ON IT"
+              : parts.length > 1
+                ? `PICK HOW TO WORK ON PART ${parts[pickI]?.label}`
+                : "LOOKS RIGHT? PICK HOW TO WORK ON IT"
             : "SNAP THE PROBLEM, THEN PICK HOW TO WORK ON IT"
         }
       />

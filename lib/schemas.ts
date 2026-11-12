@@ -78,6 +78,13 @@ export type CheckResult = AiCheck & {
 export const PhotoReadSchema = z.object({
   readable: z.boolean(), // false if there's no math in the photo or it can't be read
   problem_latex: z.string().nullable(), // the problem statement, typeset (null if the photo has none)
+  instructions: z.string(), // the task shared by every part ("Find the Taylor series centered at $a$."), "" if none
+  parts: z.array(
+    z.object({
+      label: z.string(), // how the page labels it: "a", "b", "3", "23"
+      latex: z.string(), // that part, typeset
+    }),
+  ), // every separate problem on the page, in order (one entry for a single problem)
   lines: z.array(
     z.object({
       latex: z.string(), // one line of the student's work, exactly as written (mistakes kept)

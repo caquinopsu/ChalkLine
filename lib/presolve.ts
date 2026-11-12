@@ -7,12 +7,14 @@ import { sympyCompare, type Verdict } from "./sympy";
 
 export type Verification = Record<string, Verdict>; // step id -> did SymPy confirm it?
 
-// Asks Gemini for a package. `extra` adds a note (used when asking it to fix a previous attempt).
-async function askModel(problem: string, extra?: string): Promise<SolutionPackage> {
+// Asks Gemini for a package. `task` = the instructions the problem came with ("Find the Taylor
+// series centered at a"), so the solution does what was asked. `extra` adds a note (used when asking
+// it to fix a previous attempt).
+async function askModel(problem: string, task: string, extra?: string): Promise<SolutionPackage> {
   return askJson({
     models: SMART,
     system: PRESOLVE_SYSTEM,
-    contents: `Problem: ${problem}${extra ? `\n\n${extra}` : ""}`,
+    contents: `${task ? `Task (from the student's worksheet): ${task}\n` : ""}Problem: ${problem}${extra ? `\n\n${extra}` : ""}`,
     schema: PackageSchema, // the reply must match PackageSchema
     thinking: ThinkingLevel.LOW, // SymPy double-checks every line, so we can keep thinking short (faster)
     timeoutMs: 45_000, // per model; a slow model falls back to the next one
@@ -33,15 +35,15 @@ export async function verifyPackage(pkg: SolutionPackage, origin: string): Promi
 }
 
 // Full pre-solve: ask, verify, and if SymPy finds a wrong line, ask once more with the errors listed.
-export async function presolve(problem: string, origin: string) {
-  let pkg = await askModel(problem); // first attempt
+export async function presolve(problem: string, origin: string, task = "") {
+  let pkg = await askModel(problem, task); // first attempt
   let verification = await verifyPackage(pkg, origin);
   const failed = Object.entries(verification).filter(([, v]) => v === false).map(([id]) => id); // lines SymPy rejected
   if (failed.length > 0) {
     const note =
       `A previous attempt had lines that our SymPy checker says are NOT equal to the problem: ${failed.join(", ")}. ` +
       `Re-check those lines (and their sympy fields) and return a corrected package.\nPrevious attempt:\n${JSON.stringify(pkg)}`;
-    pkg = await askModel(problem, note); // second attempt
+    pkg = await askModel(problem, task, note); // second attempt
     verification = await verifyPackage(pkg, origin);
   }
   return { pkg, verification };

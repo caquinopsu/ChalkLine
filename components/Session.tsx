@@ -6,6 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
 import { Board, ChalkDust, Mark, type BoardLine, type CurrentLine } from "./Board";
+import type { ProblemSet } from "./StartScreen";
 import { KEYS_PRACTICE, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex, ringError } from "./Tex";
 import { Logo } from "./Logo";
@@ -37,11 +38,15 @@ type Props = {
   initialWork: Submission | null; // solution lines already read from a photo (Check my work)
   loadError: string | null; // if preparing the solution failed
   onRetry: () => void; // try preparing it again
-  onNewProblem: () => void; // back to the start screen
+  onNewProblem: () => void; // open the "New problem" sheet over the board
+  onHome: () => void; // back to the start screen (the logo)
   onSimilar: (pkg: SolutionPackage, mode: WorkMode) => void; // start a "similar problem"
+  set: (ProblemSet & { solved: boolean[] }) | null; // the worksheet this problem belongs to, if any
+  onPickPart: (index: number, mode: WorkMode) => void; // open another part of the worksheet
+  onSolved: () => void; // this part was finished (marks its chip with a ✓)
 };
 
-export function Session({ pkg, problemId, problemLatex, initialMode, initialWork, loadError, onRetry, onNewProblem, onSimilar }: Props) {
+export function Session({ pkg, problemId, problemLatex, initialMode, initialWork, loadError, onRetry, onNewProblem, onHome, onSimilar, set, onPickPart, onSolved }: Props) {
   const [mode, setMode] = useState<SessionMode>(initialMode);
   const [view, setView] = useState(1); // Walkthrough: how many reference steps are shown
   const [playing, setPlaying] = useState(false); // Walkthrough autoplay on/off
@@ -127,6 +132,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   useEffect(() => {
     stopSpeaking();
     if (mode === "finished" && finishedFrom === "voice") speak("That's the answer. Nice work, you solved it out loud!");
+    if (mode === "finished") onSolved(); // a worksheet part gets its ✓
   }, [mode]); // eslint-disable-line react-hooks/exhaustive-deps -- only when the mode changes
 
   // Think-aloud header timer: tick once a second (the clock starts when Think-aloud is entered).
@@ -515,6 +521,8 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     : mode === "practice" ? "text-[#FF9AA3] bg-pink/15"
     : mode === "voice" ? "text-[#14181D] bg-gold" // Think-aloud: solid gold
     : "text-teal bg-teal/15";
+  // Worksheet: the next part that isn't solved yet (after this one first, then from the start), or null.
+  const nextPart = set ? ([...set.parts.keys()].filter((i) => i > set.index).concat([...set.parts.keys()].filter((i) => i < set.index)).find((i) => !set.solved[i]) ?? null) : null;
   const dockLine = // thin colored line on top of the tray: blue / pink / gold / teal like the mode chip
     mode === "walkthrough" ? "bg-blue/70" : mode === "practice" ? "bg-pink/70" : mode === "voice" ? "bg-gold" : "bg-teal/70";
   const elapsed = voiceStart ? Math.max(0, Math.floor((now - voiceStart) / 1000)) : 0; // Think-aloud timer, in seconds
@@ -600,8 +608,28 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       {/* Header: logo, mode chip (switch modes), new problem */}
       <header className="flex h-14 shrink-0 items-center justify-between gap-2 px-3 md:h-16 md:px-10">
         <div className="flex items-center gap-3.5">
-          <button aria-label="Chalkline home" onClick={onNewProblem}><Logo /></button>
+          <button aria-label="Chalkline home" onClick={onHome}><Logo /></button>
           <ModeChip label={chip} color={chipColor} disabled={!pkg} onPick={switchMode} live={mode === "voice"} />
+          {set && set.parts.length > 1 && (
+            // Worksheet parts: the open one is gold, solved ones get a teal ✓. Click to switch parts.
+            <div className="ml-1 flex items-center gap-1.5 rounded-full border border-white/10 bg-panel px-1.5 py-1" aria-label="Parts of this worksheet">
+              <span className="hidden pl-2 pr-1 text-sm text-muted md:inline">Part</span>
+              {set.parts.map((p, i) => (
+                <button
+                  key={i}
+                  aria-label={`Part ${p.label}${set.solved[i] ? " (solved)" : ""}`}
+                  aria-current={i === set.index}
+                  onClick={() => i !== set.index && onPickPart(i, mode === "finished" ? finishedFrom : mode)}
+                  className={`relative flex h-9 min-w-9 items-center justify-center rounded-full px-2 font-hand text-[22px] leading-none transition ${
+                    i === set.index ? "bg-gold text-[#14181D]" : set.solved[i] ? "bg-teal/15 text-teal hover:bg-teal/25" : "text-text hover:bg-panel-3"
+                  }`}
+                >
+                  {p.label}
+                  {set.solved[i] && i !== set.index && <span aria-hidden className="absolute -right-0.5 -top-1 text-xs">✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
           {mode === "voice" && <span className="font-mono text-[13px] text-muted" aria-label="Time in Think-aloud">{timer}</span>}
         </div>
         <button className="btn h-10" onClick={onNewProblem}>New problem</button>
@@ -611,6 +639,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <div className="min-h-0 flex-1 px-1 md:px-10">
         <Board
           problemLatex={pkg?.problem_latex ?? problemLatex}
+          task={set?.instructions || undefined}
           status={!pkg ? (loadError ? "couldn't prepare it" : "preparing…") : mode === "finished" ? "the whole solution" : status}
           lines={lines}
           current={current}
@@ -993,7 +1022,13 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 </>
               ) : (
                 <>
-                  <button className="btn btn-primary h-[52px] w-full" disabled={similar.state === "loading"} onClick={askSimilar}>
+                  {nextPart !== null && set && (
+                    // the next part of the worksheet, already solving in the background
+                    <button className="btn btn-primary h-[52px] w-full text-[16px]" onClick={() => onPickPart(nextPart, finishedFrom)}>
+                      Next: part {set.parts[nextPart].label} →
+                    </button>
+                  )}
+                  <button className={`btn h-[52px] w-full ${nextPart === null ? "btn-primary" : ""}`} disabled={similar.state === "loading"} onClick={askSimilar}>
                     {similar.state === "loading" ? "Writing a new problem…" : "Give me a similar problem"}
                   </button>
                   <span className={`text-center text-sm ${similar.state === "error" ? "text-pink" : "text-muted"}`}>
