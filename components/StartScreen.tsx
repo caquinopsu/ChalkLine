@@ -46,7 +46,7 @@ export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => voi
       </div>
 
       {/* Centered when resting; moves up when a dropdown is open so the panel fits without scrolling */}
-      <main className={`flex min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto px-4 py-4 md:gap-8 md:overflow-visible md:py-0 ${panel === "none" ? "justify-center" : "justify-start pt-8"}`}>
+      <main className={`fade-up flex min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto px-4 py-4 md:gap-8 md:overflow-visible md:py-0 ${panel === "none" ? "justify-center" : "justify-start pt-8"}`}>
         <div className={`text-center ${dim}`}>
           <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[56px]">What are we solving today?</h1>
           <p className="mt-2 text-base italic text-[#C9C3B5] md:text-xl">See the math move.</p>

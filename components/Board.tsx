@@ -4,7 +4,7 @@
 // current line is big. Older lines shrink and dim, and anything older folds into one pill.
 // Phase 4 adds the motion (DESIGN.md section 10): new lines ink in, older lines shrink smoothly,
 // colored parts slide from the previous line into the new one, ✓ marks draw on, wrong parts shake.
-import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { Tex } from "./Tex";
 
 // true if the visitor asked their system for less motion (then we skip the JavaScript animations;
@@ -48,6 +48,12 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find parts to slide
   const prevCount = useRef(lines.length); // how many finished lines there were last time
+  // "fresh" for the first moments after the board drops, so step 1 waits for the drop to finish.
+  const [fresh, setFresh] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setFresh(false), 1600);
+    return () => clearTimeout(t); // clean up if the board goes away first
+  }, []);
 
   // Carry-over slide: when a step is finished (one more line), each colored part of the line that
   // just moved up flies down to the same-colored part of the new current line.
@@ -72,10 +78,12 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
   return (
     <div className="flex h-full flex-col">
       <div aria-hidden className="h-3 rounded bg-wood" /> {/* the rail */}
+      {/* board-drop: the board (and its ledge) unroll down from the rail when a problem opens */}
+      <div className={`board-drop flex min-h-0 flex-1 flex-col ${fresh ? "board-fresh" : ""}`}>
       <div className="board-surface relative mx-2.5 flex min-h-0 flex-1 flex-col rounded-b-lg border-x-[6px] border-b-[6px] border-wood px-4 py-3 md:border-x-[12px] md:border-b-[12px] md:px-14 md:py-6">
         {/* Header row: the problem and a handwritten status */}
         <div className="flex items-center justify-between border-b border-[rgba(236,232,221,.14)] pb-3">
-          <span className="min-w-0 truncate text-[20px] md:text-[28px]"><Tex latex={problemLatex} /></span>
+          <span className="problem-ink min-w-0 truncate text-[20px] md:text-[28px]"><Tex latex={problemLatex} /></span>
           <span className="shrink-0 pl-3 font-hand text-lg text-muted md:text-2xl">{status}</span>
         </div>
 
@@ -117,6 +125,7 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
         <span className="h-1.5 w-[34px] rounded bg-[#E9E5DA]" />
         <span className="h-1.5 w-[22px] rounded bg-gold" />
         <span className="h-1.5 w-[26px] rounded bg-blue-chalk" />
+      </div>
       </div>
     </div>
   );

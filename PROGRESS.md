@@ -111,8 +111,21 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Checked at 375×812 in the browser: start screen, demo sheet, Walkthrough and Step practice fit with
   no sideways scrolling; the tray tabs work. Not checked on a real phone yet.
 
+## Phase 6: Design polish ✅ (Nov 12, 2026)
+- **Entrance motion (DESIGN.md section 10):** the board unrolls down from the rail when a problem
+  opens, the problem is chalked into the header, the tray slides up, then step 1 writes in.
+  Start-screen dropdowns unfold; the start screen fades up.
+- **Finish:** the lines slide into one column one after another, then the boxed answer writes in.
+- Fixed a stray sideways scrollbar on the finish board.
+- **README.md** rewritten in the bootcamp format (Try it, How to test it with exact steps for judges,
+  Track, How it works, Superpowers, Why it matters to me, Built with, Built by).
+- Checked in the browser on the by-parts preset (all the entrance and finish animations run).
+- Not done: the typing preview inking each new symbol (MathLive draws its own input).
+
 ## Next
-Test Phases 3-5 by hand (real voice, a real phone, a private window). Then Phase 6: design polish.
+Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
+window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.
+Stretch if time allows: the Skills dashboard (knowledge tracing from the attempts already logged).
 
 ## Known issues
 - Think-aloud was tested with computer-generated speech, not a real human voice or mic yet; check

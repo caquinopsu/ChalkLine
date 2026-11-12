@@ -633,7 +633,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <section
         ref={tray}
         aria-label="Tray"
-        className="tray flex h-[236px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:grid md:h-[220px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-10 md:pb-5 md:pt-4"
+        className="tray tray-in flex h-[236px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:grid md:h-[220px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-10 md:pb-5 md:pt-4"
       >
         {pkg && mode === "walkthrough" && (
           <>
@@ -1100,10 +1100,11 @@ function PracticeFocus({ result, wrong, showHint, hint, summary, error }: { resu
 // The finish board (frame K): every line in one column, and the boxed answer to the right.
 function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] }) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-y-auto py-3 md:flex-row md:items-center md:gap-10 md:py-4">
+    <div className="flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-y-auto overflow-x-hidden py-3 md:flex-row md:items-center md:gap-10 md:py-4">
       <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden opacity-75">
         {lines.map((l, i) => (
-          <div key={i} className="flex min-w-0 items-center gap-4">
+          // row-in + a growing delay: the lines slide into the column one after another
+          <div key={i} className="row-in flex min-w-0 items-center gap-4" style={{ animationDelay: `${i * 90}ms` }}>
             <span className="w-[22px] shrink-0 font-mono text-[13px] text-muted">{i + 1}</span>
             <span className="min-w-0 truncate text-xl"><Tex latex={l.latex} /></span>
             <Mark mark={l.mark} size={20} />
@@ -1113,7 +1114,10 @@ function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] 
       </div>
       <div className="flex shrink-0 flex-col items-center gap-2">
         <span className="font-hand text-2xl text-muted">answer</span>
-        <span className="-rotate-1 rounded-lg border-[2.5px] border-teal px-6 py-4 text-[40px]"><Tex latex={pkg.final_answer_latex} /></span>
+        {/* the boxed answer writes in after the last line has arrived */}
+        <span className="answer-box -rotate-1 rounded-lg border-[2.5px] border-teal px-6 py-4 text-[32px] md:text-[40px]" style={{ animationDelay: `${lines.length * 90 + 200}ms` }}>
+          <Tex latex={pkg.final_answer_latex} />
+        </span>
       </div>
     </div>
   );

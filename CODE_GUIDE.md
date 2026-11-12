@@ -153,6 +153,9 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
 4. **Marks:** the ✓ path has `pathLength=1`, so the CSS can "draw" it; the pink ring is a `::after`
    outline that wipes on; a wrong line shakes.
 5. `prefers-reduced-motion` turns it all off.
+6. **Entrance (Phase 6):** `Board` wraps the surface in `.board-drop` (unrolls from the rail) and is
+   "fresh" for 1.6 s so step 1 waits; the tray has `.tray-in`; the finish rows get `.row-in` with a
+   growing `animationDelay`. All the timings live in the "Phase 6" block of `globals.css`.
 
 ### Protecting the demo (Phase 5)
 - **Rate limiting:** every AI route starts with `rateLimit(req, "heavy" | "light")` from

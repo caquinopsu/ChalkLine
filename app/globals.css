@@ -156,6 +156,35 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
 @keyframes tag-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
 .tag-in { animation: tag-in 0.4s ease-out 0.5s both; }
 
+/* ---------- Phase 6: entrance motion (DESIGN.md section 10, items 1, 2, 9, 11) ---------- */
+
+/* 1. Board drop: the board unrolls down from the rail, with a small settle at the end. */
+@keyframes board-drop {
+  0% { clip-path: inset(0 0 100% 0); transform: translateY(-6px); }
+  80% { clip-path: inset(0 0 0 0); transform: translateY(3px); }
+  100% { clip-path: inset(0 0 0 0); transform: none; }
+}
+.board-drop { animation: board-drop 0.55s cubic-bezier(.3,.7,.3,1) backwards; } /* backwards = no clip left over afterwards (keeps the shadow) */
+/* 2. Problem first: the problem is chalked into the header once the board is down... */
+.board-drop .problem-ink { animation: ink 0.6s ease-out 0.45s both; }
+/* ...then the tray slides up... */
+@keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+.tray-in { animation: rise 0.45s ease-out 0.7s both; }
+/* ...and step 1 writes in last. */
+.board-fresh [data-current] .ink { animation-delay: 0.95s; }
+
+/* 9. Finish: the lines slide into one tidy column one after another, then the answer box draws. */
+@keyframes row-in { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
+.row-in { animation: row-in 0.4s ease-out both; }
+.answer-box { animation: ink 0.6s ease-out both; }
+
+/* 11. Dropdown panels unfold down from their button. */
+@keyframes unfold { from { opacity: 0; transform: translateY(-8px) scaleY(0.94); } to { opacity: 1; transform: none; } }
+.sheet { transform-origin: top center; animation: unfold 0.25s ease-out both; }
+
+/* The start screen fades up when the app opens (and when you come back from a problem). */
+.fade-up { animation: rise 0.5s ease-out both; }
+
 /* ---------- Phase 5: phones (under 768px wide) ---------- */
 /* Start-screen dropdowns become full-screen sheets. (Plain CSS like this wins over Tailwind's
    classes, so it can override their absolute position and fixed 760px width.) */
