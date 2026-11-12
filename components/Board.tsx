@@ -39,11 +39,12 @@ type Props = {
   overlay?: ReactNode; // the Why? / Side work panel, drawn over the right third
   speaking?: boolean; // the tutor is talking: the colored parts glow while it speaks
   children?: ReactNode; // anything extra (e.g. the finish layout)
+  firstNumber?: number; // the step number of lines[0] (the home-screen demo passes only the last line)
 };
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1 }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find lines to glide
   const spots = useRef(new Map<string, DOMRect>()); // where each step's line was drawn last time
@@ -116,14 +117,14 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
                   // The hidden lines, drawn over the top of the board (never pushes the layout).
                   <div className="board-surface absolute left-0 top-12 z-10 flex flex-col gap-3 rounded-xl border border-white/10 p-4">
                     {hidden.map((l, i) => (
-                      <Row key={i} n={i + 1} line={l} size={24} opacity={0.85} />
+                      <Row key={i} n={firstNumber + i} line={l} size={24} opacity={0.85} />
                     ))}
                   </div>
                 )}
               </div>
             )}
             {visible.map((l, i) => (
-              <Row key={hidden.length + i} n={hidden.length + i + 1} line={l} size={sizes[i + offset]} opacity={opacity[i + offset]} glide />
+              <Row key={firstNumber + hidden.length + i} n={firstNumber + hidden.length + i} line={l} size={sizes[i + offset]} opacity={opacity[i + offset]} glide />
             ))}
             {/* key = step number, so a new step mounts fresh and fades in (typing doesn't re-animate) */}
             {current && <Current key={current.number} line={current} />}

@@ -159,6 +159,13 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
    "fresh" for 1.6 s so step 1 waits; the tray has `.tray-in`; the finish rows get `.row-in` with a
    growing `animationDelay`. All the timings live in the "Phase 6" block of `globals.css`.
 
+### Home screen and summary sizing
+- `DemoBoard` (in `StartScreen.tsx`) is the real `Board` fed a saved solution, advancing one step every
+  2.6 s. It sits in a CSS grid row that animates from `1fr` to `0fr` when a dropdown opens, which is
+  how the page slides instead of jumping.
+- `fill()` (in `Session.tsx`) draws the summary at 30 px, measures it, and scales the font so the
+  lines fill the left half and the answer fills the right half.
+
 ### Protecting the demo (Phase 5)
 - **Rate limiting:** every AI route starts with `rateLimit(req, "heavy" | "light")` from
   `lib/rateLimit.ts`. It remembers when each IP address made its recent requests and answers

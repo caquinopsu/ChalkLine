@@ -3,9 +3,9 @@
 // The session screen (DESIGN.md frames F-K): header + board + tray.
 // Holds all the state for Walkthrough (Mode A), Check my work (Mode B), Step practice (Mode C),
 // Think-aloud (Mode D: Step practice by voice) and the finish board.
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
-import { Board, ChalkDust, FitTex, Mark, type BoardLine, type CurrentLine } from "./Board";
+import { Board, ChalkDust, Mark, type BoardLine, type CurrentLine } from "./Board";
 import { KEYS_PRACTICE, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex, ringError } from "./Tex";
 import { Logo } from "./Logo";
@@ -1108,36 +1108,69 @@ function PracticeFocus({ result, wrong, showHint, hint, summary, error }: { resu
 }
 
 // The finish board (frame K): every line in one column, and the boxed answer with a "Solved!" stamp.
+// Both sides scale their math up to fill the space they have (see useFill).
 function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] }) {
-  const phone = typeof window !== "undefined" && window.innerWidth < 768; // smaller chalk on a phone
-  const size = phone ? 22 : lines.length <= 5 ? 38 : lines.length <= 7 ? 30 : 24; // fewer lines = bigger chalk
+  const col = useRef<HTMLDivElement>(null); // the left half (the space to fill)
+  const list = useRef<HTMLDivElement>(null); // the lines themselves
+  const side = useRef<HTMLDivElement>(null); // the right half
+  const frame = useRef<HTMLSpanElement>(null); // the teal answer box
+  const [size, setSize] = useState(28); // the lines' font size (the ✓ marks match it)
+  useLayoutEffect(() => {
+    const fit = () => {
+      setSize(fill(col.current, list.current, list.current, 56, 0.96, true)); // the lines fill the left half
+      fill(side.current, frame.current, frame.current, 64, 0.85, false); // the answer box: up to 85% of the right half's width
+    };
+    fit();
+    const observer = new ResizeObserver(fit); // re-fit when the window resizes
+    if (col.current) observer.observe(col.current);
+    return () => observer.disconnect();
+  }, [lines, pkg.final_answer_latex]);
   const landed = lines.length * 90 + 250; // when the last line has slid in (ms)
   return (
-    <div className="no-bar flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-y-auto overflow-x-hidden py-3 md:flex-row md:items-center md:gap-12">
-      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
-        {lines.map((l, i) => (
-          // row-in + a growing delay: the lines slide into the column one after another
-          <div key={i} className="row-in flex min-w-0 items-center gap-4 opacity-90" style={{ animationDelay: `${i * 90}ms` }}>
-            <span className="w-7 shrink-0 text-center font-hand text-2xl text-muted">{i + 1}</span>
-            <FitTex latex={l.latex} size={size} min={14} grow={false} />
-            <Mark mark={l.mark} size={size} />
-            {l.mark === "hinted" && <span className="shrink-0 font-hand text-2xl text-gold">fixed</span>}
-          </div>
-        ))}
+    <div className="no-bar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden py-3 md:flex-row md:gap-10 md:py-2">
+      <div ref={col} className="flex min-h-0 min-w-0 flex-1 flex-col justify-center md:basis-[56%]">
+        <div ref={list} className="flex w-max max-w-none flex-col gap-[0.2em]">
+          {lines.map((l, i) => (
+            // row-in + a growing delay: the lines slide into the column one after another
+            <div key={i} className="row-in flex items-center gap-[0.4em] whitespace-nowrap opacity-90" style={{ animationDelay: `${i * 90}ms` }}>
+              <span className="w-[1em] shrink-0 text-center font-hand text-[0.7em] text-muted">{i + 1}</span>
+              <Tex latex={l.latex} />
+              <Mark mark={l.mark} size={size} />
+              {l.mark === "hinted" && <span className="font-hand text-[0.7em] text-gold">fixed</span>}
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="order-first flex min-w-0 shrink-0 flex-col items-center gap-2 md:order-none md:max-w-[46%] md:gap-3">{/* phones: the answer comes first */}
+      {/* phones: the answer comes first */}
+      <div ref={side} className="order-first flex min-w-0 flex-col items-center justify-center gap-[2vh] md:order-none md:basis-[44%]">
         {/* the stamp lands, then the boxed answer writes in and glows, with a puff of chalk dust */}
-        <span className="stamp font-hand text-4xl font-semibold text-teal md:text-[64px]" style={{ animationDelay: `${landed}ms` }}>Solved!</span>
-        <span className="answer-box flex max-w-full" style={{ animationDelay: `${landed + 300}ms` }}>
-          <span className="answer-frame relative flex max-w-full rounded-xl bg-teal/[.07] px-5 py-3 shadow-[inset_0_0_0_3px_var(--color-teal)] md:px-9 md:py-6" style={{ animationDelay: `${landed + 700}ms` }}>
-            <FitTex latex={pkg.final_answer_latex} size={phone ? 30 : 46} min={18} grow={false} />
+        <span className="stamp font-hand text-5xl font-semibold text-teal md:text-[80px]" style={{ animationDelay: `${landed}ms` }}>Solved!</span>
+        <div className="answer-box flex w-full justify-center" style={{ animationDelay: `${landed + 300}ms` }}>
+          <span ref={frame} className="answer-frame relative flex rounded-2xl bg-teal/[.07] px-[0.6em] py-[0.35em] shadow-[inset_0_0_0_3px_var(--color-teal)]" style={{ animationDelay: `${landed + 700}ms` }}>
+            <span className="whitespace-nowrap"><Tex latex={pkg.final_answer_latex} /></span>
             <ChalkDust delay={landed + 600} />
           </span>
-        </span>
-        <span className="font-hand text-2xl text-muted md:text-3xl">final answer</span>
+        </div>
+        <span className="font-hand text-2xl text-muted md:text-4xl">final answer</span>
       </div>
     </div>
   );
+}
+
+// Sets the font size of `el` so it fills `box` (by width, and by height on a laptop), never above
+// `max` px, and returns that size. byHeight = also fit the box's height (laptop only). share = how much of the box's width to use (0.85 = 85%).
+// How: draw it at 30 px, measure, then scale 30 px by how much room is left.
+function fill(box: HTMLElement | null, el: HTMLElement | null, measured: HTMLElement | null, max: number, share: number, byHeight: boolean): number {
+  if (!box || !el || !measured) return 28;
+  const base = 30;
+  el.style.fontSize = `${base}px`;
+  const w = measured.scrollWidth, h = measured.scrollHeight;
+  const phone = window.innerWidth < 768; // phones scroll, so only the width counts there
+  const W = box.clientWidth * share;
+  const H = phone || !byHeight ? Infinity : box.clientHeight * 0.95;
+  const next = Math.max(14, Math.min(max, Math.floor(base * Math.min(W / w, H / h))));
+  el.style.fontSize = `${next}px`;
+  return next;
 }
 
 // The Why? / Side work panel over the right third of the board.

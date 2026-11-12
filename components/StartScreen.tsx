@@ -7,12 +7,13 @@ import { KEYS_PROBLEM, MathInput, type MathInputHandle } from "./MathInput";
 import { Tex } from "./Tex";
 import { Logo } from "./Logo";
 import { MicButton } from "./MicButton";
-import { PRESETS } from "@/lib/presets";
+import { PRESETS, loadPreset } from "@/lib/presets";
+import { Board } from "./Board"; // the home-screen demo board
 import { getPackage } from "@/lib/packages";
 import { imageFrom, preparePhoto, readPhoto } from "@/lib/photo";
 import { hear, type Clip } from "@/lib/recorder";
 import { useVoice } from "@/lib/useVoice";
-import type { Submission } from "@/lib/schemas";
+import type { SolutionPackage, Submission } from "@/lib/schemas";
 
 export type StartMode = "walkthrough" | "practice" | "check" | "voice"; // "voice" = Think-aloud
 export type StartChoice =
@@ -24,95 +25,178 @@ type Panel = "none" | "upload" | "type" | "practice" | "talk"; // which dropdown
 export function StartScreen({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const [panel, setPanel] = useState<Panel>("none");
   const toggle = (p: Panel) => setPanel((cur) => (cur === p ? "none" : p)); // click again to close
-  const dim = panel !== "none" ? "opacity-40 pointer-events-none" : ""; // dim everything except the open panel
+  const open = panel !== "none";
+  const dim = open ? "opacity-40 pointer-events-none" : ""; // dim everything except the open panel
+  const fade = (p: Panel) => (open && panel !== p ? "pointer-events-none opacity-35" : ""); // the other entry cards
 
   return (
     <div className="flex h-full flex-col">
-      {/* Header: logo left, skills/history right (stretch features, not built yet) */}
-      <header className={`flex h-14 items-center justify-between px-4 md:h-[72px] md:px-10 ${dim}`}>
+      {/* Header: logo and name left, a short promise right */}
+      <header className={`flex h-14 shrink-0 items-center justify-between px-4 transition-opacity md:h-[68px] md:px-10 ${dim}`}>
         <div className="flex items-center gap-3">
           <Logo />
           <span className="font-display text-xl font-semibold">Chalkline</span>
         </div>
-        <div className="hidden gap-2 md:flex">
-          <button className="btn" disabled title="Coming later">My skills</button>
-          <button className="btn" disabled title="Coming later">History</button>
-        </div>
+        <span className="hidden text-sm text-subtle md:block">Calculus I &amp; II · free · no sign-up</span>
       </header>
 
-      {/* The rail the board is "rolled up" in */}
-      <div className={`relative mx-6 h-4 shrink-0 rounded bg-wood md:mx-20 ${dim}`}>
-        <span className="absolute left-1/2 top-full h-3 w-10 -translate-x-1/2 rounded-b bg-wood" />
-      </div>
-
-      {/* Centered when resting; moves up when a dropdown is open so the panel fits without scrolling */}
-      <main className={`fade-up flex min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto px-4 py-4 md:gap-8 md:overflow-visible md:py-0 ${panel === "none" ? "justify-center" : "justify-start pt-8"}`}>
-        <div className={`text-center ${dim}`}>
-          <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[56px]">What are we solving today?</h1>
-          <p className="mt-2 text-base italic text-[#C9C3B5] md:text-xl">See the math move.</p>
+      {/* The page never jumps: everything stays put, and when a dropdown opens the demo board
+          rolls up smoothly (its grid row shrinks to 0) so the dropdown has room below the buttons. */}
+      <main className="no-bar fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-y-auto px-4 pb-6 md:justify-start md:gap-7 md:overflow-visible md:pt-[2vh]">
+        {/* Laptop: a live chalkboard that solves a demo problem on its own (hidden on phones) */}
+        <div
+          className={`hidden w-full max-w-[1040px] transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(.3,.7,.3,1)] md:grid ${
+            open ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100"
+          }`}
+          aria-hidden
+        >
+          <div className="min-h-0 overflow-hidden">
+            <DemoBoard paused={open} />
+          </div>
         </div>
 
-        {/* The action row */}
-        <div className="relative flex w-full max-w-md flex-col items-stretch gap-3 md:w-auto md:max-w-none md:flex-row md:items-end md:gap-6">
-          <div className="flex flex-col gap-2">
-            <span className={`eyebrow text-subtle ${dim}`}>BRING A PROBLEM</span>
-            <div className="flex gap-2 rounded-[18px] bg-panel p-2">
-              <button
-                className={`btn h-16 flex-1 justify-between md:w-[230px] md:flex-none ${panel === "upload" ? "bg-panel-3" : panel === "type" ? dim : ""}`}
-                aria-expanded={panel === "upload"}
-                onClick={() => toggle("upload")}
-              >
-                Upload a photo <span aria-hidden>{panel === "upload" ? "▴" : "▾"}</span>
-              </button>
-              <button
-                className={`btn h-16 flex-1 justify-between md:w-[230px] md:flex-none ${panel === "type" ? "bg-panel-3" : panel === "upload" ? dim : ""}`}
-                aria-expanded={panel === "type"}
-                onClick={() => toggle("type")}
-              >
-                Type it <span aria-hidden>{panel === "type" ? "▴" : "▾"}</span>
-              </button>
-            </div>
-          </div>
-          <span className={`text-center text-muted md:pb-5 ${dim}`}>or</span>
-          <button
-            className={`flex h-24 items-center gap-4 rounded-[22px] border border-gold/60 bg-panel px-5 text-left shadow-[0_0_28px_rgba(242,201,76,.12)] ${
-              panel === "talk" ? "bg-panel-3" : panel === "none" ? "hover:bg-panel-2" : "pointer-events-none opacity-30"
-            }`}
-            aria-expanded={panel === "talk"}
+        <div className={`text-center transition-opacity ${dim}`}>
+          <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[50px]">What are we solving today?</h1>
+          <p className="mt-1 font-hand text-2xl text-gold md:text-[32px]">See the math move.</p>
+        </div>
+
+        {/* Three ways to bring a problem. The dropdowns open under this row. */}
+        <div className="relative grid w-full max-w-md grid-cols-1 gap-3 md:max-w-[1040px] md:grid-cols-3 md:gap-4">
+          <EntryCard
+            icon={<CameraIcon />}
+            tint="bg-blue/15 text-blue"
+            title="Upload a photo"
+            sub="A textbook page, screenshot or your work"
+            open={panel === "upload"}
+            className={fade("upload")}
+            onClick={() => toggle("upload")}
+          />
+          <EntryCard
+            icon={<span className="font-display text-[28px] leading-none">∫</span>}
+            tint="bg-teal/15 text-teal"
+            title="Type it"
+            sub="Math keys and a live chalk preview"
+            open={panel === "type"}
+            className={fade("type")}
+            onClick={() => toggle("type")}
+          />
+          <EntryCard
+            icon={<MicIcon />}
+            tint="bg-gold text-[#14181D]"
+            title="Talk it through"
+            badge="SIGNATURE"
+            sub="Say the problem, then solve it out loud"
+            open={panel === "talk"}
+            gold
+            className={fade("talk")}
             onClick={() => toggle("talk")}
-          >
-            <span className="flex h-[60px] w-[60px] shrink-0 items-center justify-center rounded-full bg-gold text-2xl text-[#14181D]">🎙</span>
-            <span className="flex flex-col">
-              <span className="flex items-center gap-2 font-semibold">
-                Talk it through <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] text-gold">SIGNATURE</span>
-              </span>
-              <span className="text-sm text-muted">Say the problem, solve it on paper, out loud</span>
-            </span>
-          </button>
+          />
 
           {panel === "talk" && <TalkPanel onStart={onStart} onType={() => setPanel("type")} />}
           {panel === "upload" && <UploadPanel onStart={onStart} />}
           {panel === "type" && <TypePanel onStart={onStart} />}
-          {panel === "practice" && <PracticePanel onStart={onStart} />}
         </div>
 
-        <button
-          className={`btn ${panel === "practice" ? "bg-panel-3" : ""} ${panel === "type" || panel === "upload" ? dim : ""}`}
-          aria-expanded={panel === "practice"}
-          onClick={() => toggle("practice")}
-        >
-          Practice · demo problems <span aria-hidden>{panel === "practice" ? "▴" : "▾"}</span>
-        </button>
+        <div className="relative flex w-full max-w-md flex-col items-center md:max-w-[1040px]">
+          <button
+            className={`flex h-12 items-center gap-2 rounded-full border border-white/15 px-6 text-[15px] font-semibold transition hover:bg-panel-2 ${panel === "practice" ? "bg-panel-3" : ""} ${fade("practice")}`}
+            aria-expanded={panel === "practice"}
+            onClick={() => toggle("practice")}
+          >
+            <span className="text-gold">▶</span> Try a demo problem <span aria-hidden className="text-muted">{panel === "practice" ? "▴" : "▾"}</span>
+          </button>
+          {panel === "practice" && <PracticePanel onStart={onStart} />}
+        </div>
       </main>
 
       {/* Phones: panels open as full-screen sheets that cover their button, so give them a close button */}
-      {panel !== "none" && (
+      {open && (
         <div className="fixed right-3 top-2 z-50 md:hidden">
           <button className="btn h-10 bg-panel" onClick={() => setPanel("none")} aria-label="Close panel">✕ Close</button>
         </div>
       )}
 
-      <footer className={`hidden pb-5 text-center text-sm text-subtle md:block ${dim}`}>Talk it through: hold space (or the mic) and say the problem</footer>
+      <footer className={`hidden shrink-0 pb-4 text-center text-sm text-subtle transition-opacity md:block ${dim}`}>
+        Talk it through: hold space (or the mic) and say the problem
+      </footer>
+    </div>
+  );
+}
+
+// One of the three big "bring a problem" cards: an icon, a title, one line of help, a ▾.
+function EntryCard({ icon, tint, title, sub, badge, open, gold = false, className = "", onClick }: {
+  icon: React.ReactNode; tint: string; title: string; sub: string; badge?: string; open: boolean; gold?: boolean; className?: string; onClick: () => void;
+}) {
+  return (
+    <button
+      aria-expanded={open}
+      onClick={onClick}
+      className={`group relative flex h-[92px] items-center gap-4 rounded-[20px] border px-4 text-left transition duration-200 md:h-[104px] md:px-5 ${
+        open
+          ? "border-gold/70 bg-panel-3"
+          : gold
+            ? "border-gold/50 bg-panel shadow-[0_0_30px_rgba(242,201,76,.12)] hover:-translate-y-0.5 hover:border-gold"
+            : "border-white/10 bg-panel hover:-translate-y-0.5 hover:border-white/25 hover:bg-panel-2"
+      } ${className}`}
+    >
+      <span className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full ${tint}`}>{icon}</span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="flex items-center gap-2 text-[17px] font-semibold">
+          {title}
+          {badge && <span className="absolute -top-2.5 right-5 rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-[#14181D]">{badge}</span>}
+        </span>
+        <span className="text-sm leading-snug text-muted">{sub}</span>
+      </span>
+      <span aria-hidden className="text-muted transition group-hover:text-text">{open ? "▴" : "▾"}</span>
+    </button>
+  );
+}
+
+// Simple line icons (drawn with SVG so they match the chalk style better than emoji).
+function CameraIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+function MicIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="9" y="3" width="6" height="11" rx="3" />
+      <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21" />
+    </svg>
+  );
+}
+
+// The home-screen chalkboard: plays the integration-by-parts demo by itself, one step every
+// ~2.6 s, so a first-time visitor sees the glide, the colors and the "answer" moment right away.
+// It's the real Board component with a saved solution (no AI calls). It pauses while a dropdown is open.
+function DemoBoard({ paused }: { paused: boolean }) {
+  const [pkg, setPkg] = useState<SolutionPackage | null>(null);
+  const [view, setView] = useState(1); // which step is showing (1-based)
+  useEffect(() => {
+    loadPreset("byparts").then(setPkg).catch(() => {}); // a saved file; if it fails, the board just stays empty
+  }, []);
+  useEffect(() => {
+    if (!pkg || paused) return;
+    const last = view >= pkg.steps.length;
+    const t = setTimeout(() => setView((v) => (last ? 1 : v + 1)), last ? 4500 : 2600); // linger on the answer, then start over
+    return () => clearTimeout(t);
+  }, [pkg, view, paused]);
+  if (!pkg) return <div className="h-[370px]" />;
+  const steps = pkg.steps;
+  const last = view === steps.length;
+  return (
+    <div className="pointer-events-none h-[370px]">
+      <Board
+        problemLatex={pkg.problem_latex}
+        status={last ? "solved ✓" : `step ${view} of ${steps.length}`}
+        lines={view >= 2 ? [{ latex: steps[view - 2].latex, mark: "none" }] : []} // just the line before
+        firstNumber={view - 1}
+        current={{ latex: steps[view - 1].latex, number: view, badge: "gold", tag: steps[view - 1].rule, final: last }}
+      />
     </div>
   );
 }
@@ -185,7 +269,7 @@ function UploadPanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   }
 
   return (
-    <div className="absolute left-0 top-full z-20 mt-3 sheet flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute left-1/2 top-full z-20 mt-3 sheet flex w-[760px] md:-translate-x-1/2 flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       {/* Hidden file picker. On a phone, "image/*" offers both the camera and the photo library. */}
       <input
         ref={fileInput}
@@ -271,7 +355,7 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const input = useRef<MathInputHandle>(null); // handle for inserting math keys
   const empty = latex.trim() === "";
   return (
-    <div className="absolute left-0 top-full z-20 mt-3 sheet flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute left-1/2 top-full z-20 mt-3 sheet flex w-[760px] md:-translate-x-1/2 flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="flex flex-col gap-2">
           <span className="eyebrow text-subtle">TYPE THE PROBLEM</span>
@@ -301,7 +385,7 @@ function TypePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
 function PracticePanel({ onStart }: { onStart: (choice: StartChoice) => void }) {
   const [selected, setSelected] = useState<string | null>(null); // which card is picked
   return (
-    <div className="absolute left-1/2 top-full z-20 mt-16 sheet flex w-[760px] flex-col md:-translate-x-1/2 gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute left-1/2 top-full z-20 mt-3 sheet flex w-[760px] flex-col md:-translate-x-1/2 gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       <span className="eyebrow text-subtle">PICK A DEMO PROBLEM</span>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {PRESETS.map((p) => (
@@ -314,7 +398,7 @@ function PracticePanel({ onStart }: { onStart: (choice: StartChoice) => void }) 
             }`}
           >
             <span className="self-start rounded-full bg-blue/15 px-2 py-0.5 text-[11px] font-medium text-blue">{p.tag}</span>
-            <span className="text-lg"><Tex latex={p.latex} /></span>
+            <span className="chalk text-xl"><Tex latex={p.latex} /></span>
           </button>
         ))}
       </div>
@@ -377,7 +461,7 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
   });
 
   return (
-    <div className="absolute right-0 top-full z-20 mt-3 sheet flex w-[760px] flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
+    <div className="absolute left-1/2 top-full z-20 mt-3 sheet flex w-[760px] md:-translate-x-1/2 flex-col gap-4 rounded-[20px] border border-white/10 bg-panel p-5 shadow-2xl">
       <div className="flex items-center gap-6">
         <MicButton
           phase={voice.phase}

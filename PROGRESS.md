@@ -137,6 +137,17 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Checked in the browser (desktop 1440×900 and phone 375×812) on the by-parts, partial-fractions
   and L'Hôpital demos. No AI calls.
 
+## Home screen + summary sizing ✅ (Nov 12, 2026)
+- **New home screen:** a live chalkboard plays the by-parts demo by itself (glide, colors, the answer
+  moment; no AI), then the title, three equal cards with icons (Upload a photo, Type it, Talk it
+  through with a SIGNATURE badge) and a **Try a demo problem** button. Removed the disabled
+  My skills / History buttons. Phones skip the demo board.
+- **No more jumping:** opening a dropdown no longer re-centers the page; the demo board rolls up
+  smoothly (0.5 s) and the dropdown unfolds under its button.
+- **Summary fills its space:** the steps scale up until they fill the left half (by width and height),
+  and the boxed answer scales to fill the right half's width.
+- Demo problem cards use the chalk font too.
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.

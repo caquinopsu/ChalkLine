@@ -19,7 +19,7 @@ phone.
 ## How to test it (about 5 minutes)
 
 1. **Walkthrough (no AI needed, instant).**
-   Click **Practice · demo problems** → **Integration by parts** (∫ x ln x dx) → **Walkthrough**.
+   Click **Try a demo problem** → **Integration by parts** (∫ x ln x dx) → **Walkthrough**.
    - The board drops down and step 1 is written in. Press **▶** (autoplay) or **›** (next).
    - Watch the blue `ln x` and gold `x dx` slide from step 1 into step 2, and the rule tag
      "← Integration by parts" appear.
@@ -31,7 +31,7 @@ phone.
    - Type something wrong on purpose (for example, drop the ½): the wrong part gets a pink ring
      and a hint. **Show the fix** writes the correct line beside it.
 3. **Think-aloud (Voice superpower).**
-   Go back to the start screen and pick **Practice · demo problems** → **u-substitution**
+   Go back to the start screen and pick **Try a demo problem** → **u-substitution**
    (∫ x e^{x²} dx) → **Talk it through**. Allow the microphone.
    - Hold the **space bar** (or hold the mic button) and say: *"u equals x squared, d u equals two
      x d x"*. Let go. Your words appear, the math is typeset, and a correct step is accepted

@@ -49,11 +49,11 @@ body {
 /* Chalk handwriting for the math on the board: letters, numbers, + and = use a hand font, while
    KaTeX keeps its own fonts for the big symbols (∫, Σ, brackets, fraction bars, roots). */
 :root { --font-chalk: var(--font-patrick); }
-.board-surface .katex { font-family: var(--font-chalk), cursive; }
-.board-surface .katex .mathnormal,
-.board-surface .katex .mathit,
-.board-surface .katex .mathrm,
-.board-surface .katex .textrm { font-family: var(--font-chalk), cursive; font-style: normal; }
+.board-surface .katex, .chalk .katex { font-family: var(--font-chalk), cursive; }
+.board-surface .katex .mathnormal, .chalk .katex .mathnormal,
+.board-surface .katex .mathit, .chalk .katex .mathit,
+.board-surface .katex .mathrm, .chalk .katex .mathrm,
+.board-surface .katex .textrm, .chalk .katex .textrm { font-family: var(--font-chalk), cursive; font-style: normal; }
 
 /* Role colors for parts of an expression (the AI wraps them in \htmlClass{role-a}{...}). */
 .role-a { color: var(--color-blue-chalk); } /* first role: u, du */
