@@ -36,7 +36,11 @@ export async function speechToMath(req: SpeechRequest): Promise<Heard> {
     maxOutputTokens: 2000,
   });
 
+  // The model sometimes doubles its backslashes ("\\ln x" instead of "\ln x"), which breaks the math.
+  // Turn a doubled backslash before a command letter or a spacing mark back into a single one.
+  const fix = (s: string) => s.replace(/\\\\(?=[a-zA-Z,;:!])/g, "\\").trim();
+  const latex = heard.latex ? fix(heard.latex) || null : null;
   // Tidy up: drop alternatives that repeat the main reading, keep at most 2.
-  const alternatives = heard.alternatives.filter((a) => a.trim() && a !== heard.latex).slice(0, 2);
-  return { ...heard, alternatives, latex: heard.latex?.trim() || null };
+  const alternatives = heard.alternatives.map(fix).filter((a) => a && a !== latex).slice(0, 2);
+  return { ...heard, alternatives, latex };
 }

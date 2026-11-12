@@ -46,7 +46,7 @@ Live: https://chalk-line-five.vercel.app · Repo: https://github.com/caquinopsu/
   SymPy-confirmed), similar problems, Why?. Step checks now take about 1-3 s.
 - The 6 preset solutions were made by Claude earlier; they're saved files and still work as-is.
 
-## Phase 3: Think-aloud voice (push-to-talk) 🟡 built, live test pending (Nov 12, 2026)
+## Phase 3: Think-aloud voice (push-to-talk) ✅ (Nov 12, 2026)
 Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and the browser speaks.
 - **Think-aloud (Mode D):** hold space or the mic (or tap to start / tap to stop, max 15 s). The clip
   is converted to WAV in the browser and sent to `/api/speech-to-math` (Gemini FAST), which returns
@@ -71,17 +71,18 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   routes mocked: hold-to-talk, tap mode, Did you mean + key 1, silent ✓, spoken hint on a wrong
   step, why, hint, show the fix, "other", solving to the finish, Read aloud + autoplay, the Talk
   panel, and a blocked mic. Clips arrive at the server as `audio/wav`.
-- **Not yet tested:** the live Gemini batch (about 5-8 requests: a few spoken steps, one "why?", one
-  ambiguous phrase), waiting for the Gemini key. Not merged to `main` yet (lives on branch
-  `claude/ecstatic-franklin-lcuuk5`).
+- **Live Gemini test (7 requests, clips made with the Windows voice):** every clip heard right in
+  1.1-1.8 s (4.3 s for a spoken problem). A correct by-parts setup passed, a wrong step got a hint,
+  "why do we pick u as ln x?" became a why question, and "one over two x" offered 1/(2x) or (1/2)x.
+  Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
+- Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
 ## Next
-Phase 3 live test with the Gemini key (a few real spoken steps, one "why?", one ambiguous phrase),
-then merge to `main`. After that: Phase 4, the visual engine.
+Try the mic by hand with a real voice (Chrome, then Safari/iPhone). Then Phase 4, the visual engine.
 
 ## Known issues
-- Think-aloud hasn't heard a real voice yet (live Gemini test pending). Speech-to-LaTeX quality and
-  speed (~2 s expected) still need confirming, especially on Safari/iPhone.
+- Think-aloud was tested with computer-generated speech, not a real human voice or mic yet; check
+  accents, background noise and Safari/iPhone recording by hand.
 - The browser voice differs per browser and computer (Chrome's "Google US English" is the best we pick).
 - Space starts the mic anywhere on the Think-aloud screen except inside a text/math box.
 - MathLive's typing shortcuts (`^`, `/`) weren't testable by automation; check them by hand.
