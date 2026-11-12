@@ -46,6 +46,15 @@ body {
   color: var(--color-chalk);
 }
 
+/* Chalk handwriting for the math on the board: letters, numbers, + and = use a hand font, while
+   KaTeX keeps its own fonts for the big symbols (∫, Σ, brackets, fraction bars, roots). */
+:root { --font-chalk: var(--font-patrick); }
+.board-surface .katex { font-family: var(--font-chalk), cursive; }
+.board-surface .katex .mathnormal,
+.board-surface .katex .mathit,
+.board-surface .katex .mathrm,
+.board-surface .katex .textrm { font-family: var(--font-chalk), cursive; font-style: normal; }
+
 /* Role colors for parts of an expression (the AI wraps them in \htmlClass{role-a}{...}). */
 .role-a { color: var(--color-blue-chalk); } /* first role: u, du */
 .role-b { color: var(--color-gold); } /* second role: dv, v */
@@ -85,7 +94,7 @@ body {
 /* Small uppercase label above a card ("STEP 3 · FOCUS"). */
 .eyebrow {
   font-family: var(--font-jetbrains-mono), monospace;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.08em;
 }
@@ -122,9 +131,10 @@ math-field::part(virtual-keyboard-toggle) { display: none; }
 
 /* ---------- Phase 4: the visual engine (DESIGN.md section 10) ---------- */
 
-/* Ink reveal: new math is "written" left to right, like chalk (a clip-path wipe). */
-@keyframes ink { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
-.ink { animation: ink 0.6s ease-out both; }
+/* Ink: new math appears with a soft fade and a slight lift (simple on purpose; the step-to-step
+   glide in Board.tsx does the moving). */
+@keyframes ink { from { opacity: 0; transform: translateY(8px); filter: blur(3px); } to { opacity: 1; transform: none; filter: none; } }
+.ink { animation: ink 0.5s ease-out both; }
 .ink-late { animation-delay: 0.5s; }
 
 /* Colored parts glow briefly once the new line has inked in, so your eye finds what changed. */
@@ -149,8 +159,9 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
   inset: -2.5px;
   border: 2.5px solid var(--color-pink);
   border-radius: 50%;
-  animation: ink 0.5s ease-out both;
+  animation: ring-in 0.4s ease-out both;
 }
+@keyframes ring-in { from { opacity: 0; transform: scale(1.35); } to { opacity: 1; transform: none; } }
 
 /* Rule tag fades and slides in from the right after the line is written. */
 @keyframes tag-in { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
@@ -185,6 +196,17 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
 /* The start screen fades up when the app opens (and when you come back from a problem). */
 .fade-up { animation: rise 0.5s ease-out both; }
 
+/* ---------- Answer reached ---------- */
+/* The answer line's teal frame glows twice when it appears. */
+@keyframes answer-glow { 0%, 100% { box-shadow: inset 0 0 0 2.5px var(--color-teal), 0 0 0 0 rgba(79, 209, 181, 0); } 50% { box-shadow: inset 0 0 0 2.5px var(--color-teal), 0 0 34px 4px rgba(79, 209, 181, 0.35); } }
+.answer-frame { animation: answer-glow 1.4s ease-in-out 0.4s 2; }
+/* Chalk dust: specks burst out from the middle and fade (each gets its own --dx/--dy direction). */
+@keyframes dust { from { opacity: 0.9; transform: translate(0, 0) scale(1); } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.4); } }
+.dust { position: absolute; width: 6px; height: 6px; border-radius: 50%; opacity: 0; animation: dust 0.9s ease-out both; }
+/* "Solved!" stamp on the summary: drops in big and settles at a slight tilt. */
+@keyframes stamp { 0% { opacity: 0; transform: scale(1.8) rotate(-8deg); } 60% { opacity: 1; transform: scale(0.95) rotate(-4deg); } 100% { opacity: 1; transform: scale(1) rotate(-4deg); } }
+.stamp { animation: stamp 0.55s cubic-bezier(.3,.7,.3,1) both; }
+
 /* ---------- Phase 5: phones (under 768px wide) ---------- */
 /* Start-screen dropdowns become full-screen sheets. (Plain CSS like this wins over Tailwind's
    classes, so it can override their absolute position and fixed 760px width.) */
@@ -203,8 +225,8 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
   }
 }
 /* The swipeable tray strip: no visible scrollbar (you swipe or use the tabs). */
-.tray { scrollbar-width: none; }
-.tray::-webkit-scrollbar { display: none; }
+.tray, .no-bar { scrollbar-width: none; }
+.tray::-webkit-scrollbar, .no-bar::-webkit-scrollbar { display: none; }
 
 /* Respect people who ask their system for less motion. */
 @media (prefers-reduced-motion: reduce) {

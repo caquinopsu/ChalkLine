@@ -5,7 +5,7 @@
 // Think-aloud (Mode D: Step practice by voice) and the finish board.
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
-import { Board, Mark, type BoardLine, type CurrentLine } from "./Board";
+import { Board, ChalkDust, FitTex, Mark, type BoardLine, type CurrentLine } from "./Board";
 import { KEYS_PRACTICE, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex, ringError } from "./Tex";
 import { Logo } from "./Logo";
@@ -510,9 +510,10 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   let ghost: string | null = null;
   if (pkg && mode === "walkthrough") {
     lines = steps.slice(0, view - 1).map((s) => ({ latex: s.latex, mark: "none" }));
-    current = { latex: steps[view - 1].latex, number: view, badge: "gold", tag: steps[view - 1].rule }; // tag = rule label beside the line
-    status = `step ${view} of ${total}`;
-    ghost = view < total ? `next: ${steps[view].rule.toLowerCase()}` : "that's the answer";
+    const last = view === total; // the last step is the answer: teal frame + "the answer!"
+    current = { latex: steps[view - 1].latex, number: view, badge: "gold", tag: steps[view - 1].rule, final: last }; // tag = rule label beside the line
+    status = last ? "solved ✓" : `step ${view} of ${total}`;
+    ghost = last ? null : `next: ${steps[view].rule.toLowerCase()}`;
   } else if (pkg && mode === "practice") {
     lines = progress;
     const n = progress.length + 1;
@@ -633,14 +634,14 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <section
         ref={tray}
         aria-label="Tray"
-        className="tray tray-in flex h-[236px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:grid md:h-[220px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-10 md:pb-5 md:pt-4"
+        className="tray tray-in flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:grid md:h-[250px] md:grid-cols-3 md:gap-4 md:overflow-visible md:px-10 md:pb-5 md:pt-4"
       >
         {pkg && mode === "walkthrough" && (
           <>
             <Card>
               <span className="eyebrow text-gold">STEP {view} · FOCUS</span>
               <span className="text-lg font-semibold">{steps[view - 1].rule}</span>
-              <RichText className="text-sm leading-relaxed text-muted" text={steps[view - 1].summary} />
+              <RichText className="text-base leading-relaxed text-muted" text={steps[view - 1].summary} />
               <div className="mt-auto flex gap-2">
                 <button className="btn h-10" onClick={() => setOverlay({ kind: "why", stepIndex: view - 1 })}>Why?</button>
                 <button className="btn h-10" disabled={!steps[view - 1].side_work} onClick={() => setOverlay({ kind: "side", stepIndex: view - 1 })}>Side work</button>
@@ -654,7 +655,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 </RoundButton>
                 <RoundButton label="Next step" disabled={view >= total} onClick={() => { setPlaying(false); setView((v) => Math.min(total, v + 1)); }}>›</RoundButton>
               </div>
-              <label className="flex items-center gap-2 text-[13px] text-muted">
+              <label className="flex items-center gap-2 text-sm text-muted">
                 Read aloud
                 <input
                   type="checkbox"
@@ -672,12 +673,12 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               {view < total ? (
                 <>
                   <button className="btn btn-primary h-[52px] w-full text-[15px]" onClick={() => goPractice(view)}>Let me try the next step</button>
-                  <span className="text-center text-[13px] text-muted">You write step {view + 1}, and the board checks it.</span>
+                  <span className="text-center text-sm text-muted">You write step {view + 1}, and the board checks it.</span>
                 </>
               ) : (
                 <>
                   <button className="btn btn-primary h-[52px] w-full text-[15px]" onClick={() => finish("walkthrough")}>See the summary</button>
-                  <span className="text-center text-[13px] text-muted">That&apos;s the whole solution.</span>
+                  <span className="text-center text-sm text-muted">That&apos;s the whole solution.</span>
                 </>
               )}
             </Card>
@@ -696,7 +697,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               </div>
             </Card>
             <Card>
-              <label className="text-xs uppercase tracking-[.06em] text-muted">Type step {progress.length + 1}</label>
+              <label className="text-sm uppercase tracking-[.06em] text-muted">Type step {progress.length + 1}</label>
               <MathInput ref={input} onChange={setDraft} onSubmit={() => checkThisStep()} ariaLabel={`Type step ${progress.length + 1}`} />
               <button className="btn btn-primary h-[46px]" disabled={!draft.trim() || checking} onClick={() => checkThisStep()}>
                 {checking ? "Checking…" : "Check this step"}
@@ -710,7 +711,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                   </button>
                 ))}
               </div>
-              <button className="mt-auto h-10 text-left text-[13px] font-medium text-muted hover:text-text" onClick={showMeThisStep}>
+              <button className="mt-auto h-10 text-left text-sm font-medium text-muted hover:text-text" onClick={showMeThisStep}>
                 Stuck? Show me this step →
               </button>
             </Card>
@@ -725,13 +726,13 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 STEP {progress.length + 1} · {result && wrongLine !== null ? steps[expected].rule.toUpperCase() : "HEARD"}
               </span>
               {result && wrongLine !== null ? (
-                <RichText className="min-h-0 overflow-y-auto text-sm leading-relaxed text-text" text={result.display_feedback} />
+                <RichText className="min-h-0 overflow-y-auto text-base leading-relaxed text-text" text={result.display_feedback} />
               ) : heard ? (
-                <span className="min-h-0 overflow-y-auto font-mono text-[13px] leading-relaxed text-text">“{heard}”</span>
+                <span className="min-h-0 overflow-y-auto font-mono text-sm leading-relaxed text-text">“{heard}”</span>
               ) : (
-                <span className="text-sm leading-relaxed text-muted">Solve on paper and say each step out loud. Hold space (or the mic), talk, let go.</span>
+                <span className="text-base leading-relaxed text-muted">Solve on paper and say each step out loud. Hold space (or the mic), talk, let go.</span>
               )}
-              {showHint && <RichText className="text-sm text-gold" text={`Hint: ${(wrongLine !== null && result?.hint) || steps[expected].hint}`} />}
+              {showHint && <RichText className="text-base text-gold" text={`Hint: ${(wrongLine !== null && result?.hint) || steps[expected].hint}`} />}
               <div className="mt-auto flex flex-wrap gap-2">
                 <button className="btn h-10" onClick={() => switchMode("practice")}>Type instead</button>
                 <button className="btn h-10" onClick={() => setOverlay({ kind: "why", stepIndex: expected })}>Why?</button>
@@ -765,22 +766,22 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                       </button>
                     ))}
                   </div>
-                  <span className="text-[13px] text-muted">Or just say “the first one”.</span>
+                  <span className="text-sm text-muted">Or just say “the first one”.</span>
                 </>
               ) : voice.phase === "error" ? (
                 <>
                   <span className="eyebrow text-pink">MIC</span>
-                  <span className="text-sm leading-relaxed text-pink">{voice.error}</span>
+                  <span className="text-base leading-relaxed text-pink">{voice.error}</span>
                   <button className="btn mt-auto h-10 self-start" onClick={() => switchMode("practice")}>Type instead</button>
                 </>
               ) : (
                 <>
                   <span className="eyebrow text-teal">TUTOR</span>
                   <RichText
-                    className="min-h-0 overflow-y-auto text-sm leading-relaxed text-text"
+                    className="min-h-0 overflow-y-auto text-base leading-relaxed text-text"
                     text={tutor ?? (progress.length ? "✓ Keep going. Say your next step." : "Correct steps get a quiet ✓. If something's off, I'll say so.")}
                   />
-                  <button className="mt-auto h-8 text-left text-[13px] font-medium text-muted hover:text-text" onClick={showMeThisStep}>
+                  <button className="mt-auto h-8 text-left text-sm font-medium text-muted hover:text-text" onClick={showMeThisStep}>
                     Stuck? Show me this step →
                   </button>
                 </>
@@ -794,9 +795,9 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
             <Card>
               <span className="eyebrow text-teal">CHECK MY WORK · YOUR SOLUTION</span>
               {workError ? (
-                <span className="text-sm text-pink">{workError}</span>
+                <span className="text-base text-pink">{workError}</span>
               ) : (
-                <span className="text-sm leading-relaxed text-muted">
+                <span className="text-base leading-relaxed text-muted">
                   {work.note ||
                     "Write your whole solution, one line per step (Enter adds a line), or upload a photo of your work. Tap a line on the board to edit it."}
                 </span>
@@ -823,7 +824,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               </div>
             </Card>
             <Card>
-              <label className="text-xs uppercase tracking-[.06em] text-muted">
+              <label className="text-sm uppercase tracking-[.06em] text-muted">
                 {editIndex !== null ? `Editing line ${editIndex + 1}` : `Line ${work.lines.length + 1}`}
               </label>
               <MathInput ref={workInput} onChange={setWorkDraft} onSubmit={addLine} ariaLabel="Type a line of your solution" />
@@ -850,7 +851,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 ))}
               </div>
               <button
-                className="mt-auto h-10 text-left text-[13px] font-medium text-muted hover:text-text disabled:opacity-40"
+                className="mt-auto h-10 text-left text-sm font-medium text-muted hover:text-text disabled:opacity-40"
                 disabled={work.lines.length === 0}
                 onClick={() => { setWork(EMPTY_WORK); setEditIndex(null); workInput.current?.clear(); }}
               >
@@ -867,7 +868,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 <>
                   <span className="eyebrow text-teal">STEP {slip + 1} · FIRST SLIP</span>
                   <span className="text-lg font-semibold">{workResult.title}</span>
-                  <RichText className="min-h-0 overflow-y-auto text-sm leading-relaxed text-muted" text={workResult.explanation} />
+                  <RichText className="min-h-0 overflow-y-auto text-base leading-relaxed text-muted" text={workResult.explanation} />
                   <div className="mt-auto flex gap-2">
                     <button className="btn h-10" onClick={() => setOverlay({ kind: "why", stepIndex: Math.min(workResult.resumeIndex, total - 1) })}>Why?</button>
                   </div>
@@ -876,12 +877,12 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 <>
                   <span className="eyebrow text-teal">{workResult.complete ? "ALL CORRECT" : "CORRECT SO FAR"}</span>
                   <span className="text-lg font-semibold">{workResult.title}</span>
-                  <RichText className="min-h-0 overflow-y-auto text-sm leading-relaxed text-muted" text={workResult.complete ? workResult.praise : "Every line checks out, but it doesn't reach the final answer yet."} />
+                  <RichText className="min-h-0 overflow-y-auto text-base leading-relaxed text-muted" text={workResult.complete ? workResult.praise : "Every line checks out, but it doesn't reach the final answer yet."} />
                 </>
               )}
             </Card>
             <Card center>
-              <div className="flex gap-4 text-sm">
+              <div className="flex gap-4 text-base">
                 <span className="text-teal">● {tally.correct} correct</span>
                 {tally.slips > 0 && <span className="text-pink">● {tally.slips} slip</span>}
                 {tally.redo > 0 && <span className="text-muted">◌ {tally.redo} to redo</span>}
@@ -902,7 +903,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 // eslint-disable-next-line @next/next/no-img-element -- a local data URL
                 <img src={work.thumb} alt="Your submitted work" className="h-[72px] w-[110px] rounded-lg object-cover" />
               )}
-              <span className="text-sm text-muted">
+              <span className="text-base text-muted">
                 {work.source === "photo" ? "Photo" : "Typed"} · {workResult.lines.length} line{workResult.lines.length === 1 ? "" : "s"} {work.source === "photo" ? "read" : ""}
               </span>
               <button className="btn h-10" onClick={() => { setWorkResult(null); setWorkError(null); setWorkDraft(""); setEditIndex(null); }}>Resubmit</button>
@@ -916,9 +917,18 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               <span className="eyebrow text-teal">TECHNIQUES USED</span>
               <div className="flex flex-wrap gap-2">
                 {pkg.techniques.map((t) => (
-                  <span key={t} className="rounded-full bg-teal/15 px-3 py-1 text-sm text-teal">{t}</span>
+                  <span key={t} className="rounded-full bg-teal/15 px-3.5 py-1.5 text-lg font-semibold text-teal">{t}</span>
                 ))}
               </div>
+              {/* What each step did, so the techniques connect back to the board */}
+              <ol className="no-bar mt-1 flex min-h-0 flex-col gap-1 overflow-y-auto">
+                {steps.map((st, i) => (
+                  <li key={i} className="flex items-baseline gap-2.5 text-[15px] text-muted">
+                    <span className="w-5 shrink-0 text-center font-hand text-xl text-subtle">{i + 1}</span>
+                    {st.rule}
+                  </li>
+                ))}
+              </ol>
             </Card>
             <Card center>
               {finishedFrom === "practice" || finishedFrom === "voice" ? (
@@ -945,9 +955,9 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                   <span className="eyebrow self-start text-gold">NEXT UP · SAME TECHNIQUE</span>
                   <span className="max-w-full truncate text-xl"><Tex latex={similar.pkg.problem_latex} /></span>
                   <div className="flex flex-wrap justify-center gap-1.5">
-                    <button className="btn h-9 px-3 text-sm" onClick={() => onSimilar(similar.pkg!, "walkthrough")}>Walkthrough</button>
-                    <button className="btn btn-primary h-9 px-3 text-sm" onClick={() => onSimilar(similar.pkg!, "practice")}>Step practice</button>
-                    <button className="btn h-9 px-3 text-sm" onClick={() => onSimilar(similar.pkg!, "check")}>Check my work</button>
+                    <button className="btn h-9 px-3 text-base" onClick={() => onSimilar(similar.pkg!, "walkthrough")}>Walkthrough</button>
+                    <button className="btn btn-primary h-9 px-3 text-base" onClick={() => onSimilar(similar.pkg!, "practice")}>Step practice</button>
+                    <button className="btn h-9 px-3 text-base" onClick={() => onSimilar(similar.pkg!, "check")}>Check my work</button>
                   </div>
                 </>
               ) : (
@@ -955,7 +965,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                   <button className="btn btn-primary h-[52px] w-full" disabled={similar.state === "loading"} onClick={askSimilar}>
                     {similar.state === "loading" ? "Writing a new problem…" : "Give me a similar problem"}
                   </button>
-                  <span className={`text-center text-[13px] ${similar.state === "error" ? "text-pink" : "text-muted"}`}>
+                  <span className={`text-center text-sm ${similar.state === "error" ? "text-pink" : "text-muted"}`}>
                     {similar.state === "loading"
                       ? "Solving and double-checking it first (about 30 s)."
                       : similar.state === "error"
@@ -1055,8 +1065,8 @@ function RoundButton({ children, label, big = false, disabled, onClick }: { chil
 function Stat({ n, label }: { n: number; label: string }) {
   return (
     <div className="flex flex-col">
-      <span className="font-display text-3xl font-semibold">{n}</span>
-      <span className="text-xs text-muted">{label}</span>
+      <span className="font-display text-5xl font-semibold">{n}</span>
+      <span className="text-sm text-muted">{label}</span>
     </div>
   );
 }
@@ -1067,14 +1077,14 @@ function ModeChip({ label, color, disabled, live = false, onPick }: { label: str
   const [open, setOpen] = useState(false);
   return (
     <div className="relative">
-      <button disabled={disabled} aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`flex items-center gap-1.5 rounded-full px-3 py-[7px] text-[13px] font-semibold ${color}`}>
+      <button disabled={disabled} aria-expanded={open} onClick={() => setOpen((o) => !o)} className={`flex items-center gap-1.5 rounded-full px-3 py-[7px] text-sm font-semibold ${color}`}>
         {live && <span aria-hidden className="live-dot h-2 w-2 rounded-full bg-[#E5484D]" />}
         {label} ▾
       </button>
       {open && (
         <div className="absolute left-0 top-10 z-30 flex w-44 flex-col rounded-xl border border-white/10 bg-panel p-1.5 shadow-xl">
           {(["walkthrough", "practice", "voice", "check"] as const).map((m) => (
-            <button key={m} className="rounded-lg px-3 py-2 text-left text-sm hover:bg-panel-2" onClick={() => { setOpen(false); onPick(m); }}>
+            <button key={m} className="rounded-lg px-3 py-2 text-left text-base hover:bg-panel-2" onClick={() => { setOpen(false); onPick(m); }}>
               {{ walkthrough: "Walkthrough", practice: "Step practice", voice: "Think-aloud", check: "Check my work" }[m]}
             </button>
           ))}
@@ -1086,9 +1096,9 @@ function ModeChip({ label, color, disabled, live = false, onPick }: { label: str
 
 // The Focus card body in Step practice: the latest feedback, or what to do next.
 function PracticeFocus({ result, wrong, showHint, hint, summary, error }: { result: CheckResult | null; wrong: boolean; showHint: boolean; hint: string; summary: string; error: string | null }) {
-  if (error) return <span className="text-sm text-pink">{error}</span>;
+  if (error) return <span className="text-base text-pink">{error}</span>;
   return (
-    <div className="flex min-h-0 flex-col gap-1 overflow-y-auto text-sm leading-relaxed">
+    <div className="flex min-h-0 flex-col gap-1 overflow-y-auto text-base leading-relaxed">
       {result && wrong && <RichText className="text-text" text={result.display_feedback} />}
       {result && !wrong && <RichText className="text-teal" text={`✓ ${result.display_feedback}`} />}
       {!result && <RichText className="text-muted" text={summary} />}
@@ -1097,27 +1107,34 @@ function PracticeFocus({ result, wrong, showHint, hint, summary, error }: { resu
   );
 }
 
-// The finish board (frame K): every line in one column, and the boxed answer to the right.
+// The finish board (frame K): every line in one column, and the boxed answer with a "Solved!" stamp.
 function FinishBoard({ pkg, lines }: { pkg: SolutionPackage; lines: BoardLine[] }) {
+  const phone = typeof window !== "undefined" && window.innerWidth < 768; // smaller chalk on a phone
+  const size = phone ? 22 : lines.length <= 5 ? 38 : lines.length <= 7 ? 30 : 24; // fewer lines = bigger chalk
+  const landed = lines.length * 90 + 250; // when the last line has slid in (ms)
   return (
-    <div className="flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-y-auto overflow-x-hidden py-3 md:flex-row md:items-center md:gap-10 md:py-4">
-      <div className="flex min-w-0 flex-1 flex-col gap-3 overflow-hidden opacity-75">
+    <div className="no-bar flex min-h-0 flex-1 flex-col items-stretch gap-4 overflow-y-auto overflow-x-hidden py-3 md:flex-row md:items-center md:gap-12">
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5">
         {lines.map((l, i) => (
           // row-in + a growing delay: the lines slide into the column one after another
-          <div key={i} className="row-in flex min-w-0 items-center gap-4" style={{ animationDelay: `${i * 90}ms` }}>
-            <span className="w-[22px] shrink-0 font-mono text-[13px] text-muted">{i + 1}</span>
-            <span className="min-w-0 truncate text-xl"><Tex latex={l.latex} /></span>
-            <Mark mark={l.mark} size={20} />
-            {l.mark === "hinted" && <span className="font-hand text-lg text-gold">fixed</span>}
+          <div key={i} className="row-in flex min-w-0 items-center gap-4 opacity-90" style={{ animationDelay: `${i * 90}ms` }}>
+            <span className="w-7 shrink-0 text-center font-hand text-2xl text-muted">{i + 1}</span>
+            <FitTex latex={l.latex} size={size} min={14} grow={false} />
+            <Mark mark={l.mark} size={size} />
+            {l.mark === "hinted" && <span className="shrink-0 font-hand text-2xl text-gold">fixed</span>}
           </div>
         ))}
       </div>
-      <div className="flex shrink-0 flex-col items-center gap-2">
-        <span className="font-hand text-2xl text-muted">answer</span>
-        {/* the boxed answer writes in after the last line has arrived */}
-        <span className="answer-box -rotate-1 rounded-lg border-[2.5px] border-teal px-6 py-4 text-[32px] md:text-[40px]" style={{ animationDelay: `${lines.length * 90 + 200}ms` }}>
-          <Tex latex={pkg.final_answer_latex} />
+      <div className="order-first flex min-w-0 shrink-0 flex-col items-center gap-2 md:order-none md:max-w-[46%] md:gap-3">{/* phones: the answer comes first */}
+        {/* the stamp lands, then the boxed answer writes in and glows, with a puff of chalk dust */}
+        <span className="stamp font-hand text-4xl font-semibold text-teal md:text-[64px]" style={{ animationDelay: `${landed}ms` }}>Solved!</span>
+        <span className="answer-box flex max-w-full" style={{ animationDelay: `${landed + 300}ms` }}>
+          <span className="answer-frame relative flex max-w-full rounded-xl bg-teal/[.07] px-5 py-3 shadow-[inset_0_0_0_3px_var(--color-teal)] md:px-9 md:py-6" style={{ animationDelay: `${landed + 700}ms` }}>
+            <FitTex latex={pkg.final_answer_latex} size={phone ? 30 : 46} min={18} grow={false} />
+            <ChalkDust delay={landed + 600} />
+          </span>
         </span>
+        <span className="font-hand text-2xl text-muted md:text-3xl">final answer</span>
       </div>
     </div>
   );
@@ -1158,12 +1175,12 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
         <>
           <div className="board-surface rounded-xl px-4 py-3 text-xl"><Tex latex={step.latex} /></div>
           <span className="font-semibold">{step.rule}</span>
-          <RichText className="text-sm leading-relaxed text-muted" text={step.why} />
+          <RichText className="text-base leading-relaxed text-muted" text={step.why} />
           <div className="mt-auto flex flex-col gap-2">
-            {answer && <RichText className="whitespace-pre-line text-sm leading-relaxed" text={answer} />}
+            {answer && <RichText className="whitespace-pre-line text-base leading-relaxed" text={answer} />}
             <div className="flex gap-2">
               <input
-                className="h-10 min-w-0 flex-1 rounded-xl border border-white/20 bg-[#12161B] px-3 text-sm"
+                className="h-10 min-w-0 flex-1 rounded-xl border border-white/20 bg-[#12161B] px-3 text-base"
                 placeholder="Ask a follow-up… (e.g. why not u = x?)"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
@@ -1181,7 +1198,7 @@ function OverlayPanel({ pkg, overlay, onClose }: { pkg: SolutionPackage; overlay
           </div>
         </>
       ) : (
-        <span className="text-sm text-muted">No side work for this step.</span>
+        <span className="text-base text-muted">No side work for this step.</span>
       )}
     </div>
   );

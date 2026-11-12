@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Caveat, Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google"; // fonts from DESIGN.md
+import { Caveat, Inter, JetBrains_Mono, Patrick_Hand, Space_Grotesk } from "next/font/google"; // fonts from DESIGN.md
 import "katex/dist/katex.min.css"; // styles + fonts KaTeX needs to draw math (MathLive reuses these fonts)
 import "./globals.css";
 
@@ -8,6 +8,8 @@ const spaceGrotesk = Space_Grotesk({ variable: "--font-space-grotesk", subsets: 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"] });
 const caveat = Caveat({ variable: "--font-caveat", subsets: ["latin"], weight: ["500", "600"] });
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-jetbrains-mono", subsets: ["latin"], weight: ["500"] });
+// Patrick Hand: the handwriting used for the math on the board (clear digits, chalky look).
+const patrick = Patrick_Hand({ variable: "--font-patrick", subsets: ["latin"], weight: ["400"] });
 
 export const metadata: Metadata = {
   title: "Chalkline", // browser tab title
@@ -18,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${caveat.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${caveat.variable} ${jetbrainsMono.variable} ${patrick.variable} h-full antialiased`}
     >
       <body className="h-dvh overflow-hidden font-sans">{children}</body>
     </html>

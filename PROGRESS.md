@@ -122,6 +122,21 @@ All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works 
 - Checked in the browser on the by-parts preset (all the entrance and finish animations run).
 - Not done: the typing preview inking each new symbol (MathLive draws its own input).
 
+## Polish pass ✅ (Nov 12, 2026)
+- **Chalk handwriting for the math:** the board's letters and digits use Patrick Hand (clearer digits
+  than Kalam, which was also tried); KaTeX keeps its own ∫, Σ, brackets and fraction bars.
+- **Bigger handwriting:** step counter, rule tags, notes, line numbers, "next:" line and placeholders.
+- **Step-to-step glide:** when you move to another step, the finished line floats up and shrinks into
+  the stack and older lines slide up (replaces the colored-part copies). New math fades in softly.
+- **Answer reached:** the last step turns teal (✓ badge, glowing frame, "← the answer!", chalk dust,
+  status "solved ✓"); the summary stamps **Solved!** and boxes the answer.
+- **No more clipped math:** tall math (fractions, limits) is no longer cut at the top or bottom; the
+  problem in the header shrinks to fit instead of being cut.
+- **Sizes:** summary lines much bigger (and the answer first on phones); Techniques card has larger
+  chips plus what each step did; bigger tray text, labels and stats.
+- Checked in the browser (desktop 1440×900 and phone 375×812) on the by-parts, partial-fractions
+  and L'Hôpital demos. No AI calls.
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.
@@ -139,5 +154,4 @@ Stretch if time allows: the Skills dashboard (knowledge tracing from the attempt
 - Free-tier models were often busy during testing (the fallback handled it, but it can add
   10-45 s to a request). If that hurts the demo, enabling billing on the Gemini key fixes it.
 - Real phone photos (glare, slanted pages, messy handwriting) not tested yet; generated images read perfectly.
-- Layout is desktop-first; phone layout comes in Phase 5.
 - `/api/check` has no rate limiting, and a deliberately huge expression could be slow (8 s cap per comparison).

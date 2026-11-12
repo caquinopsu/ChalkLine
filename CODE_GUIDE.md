@@ -143,15 +143,17 @@ state and the same `/api/check-step` as typing.
 
 ### How the board animates (Phase 4)
 Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globals.css`.
-1. **Ink reveal:** the current line has the CSS class `ink`, a clip-path wipe from left to right. The
-   line is keyed by its step number, so it re-inks only when a new step arrives, not while typing.
-2. **Carry-over slide:** when the board gets exactly one more finished line, `slidePart()` copies
-   each colored part (`.role-a`, `.role-b`, `.role-c`) of that line, places the copy on top of the
-   page, and animates it to the matching part in the new line, then removes it.
-3. **Shrink-on-arrival:** each older line remembers its last size; when it gets smaller it plays a
-   quick scale animation from the old size.
+1. **Ink:** the current line has the CSS class `ink`, a short fade with a slight lift. The line is
+   keyed by its step number, so it appears again only when a new step arrives, not while typing.
+2. **Glide between steps (FLIP):** every visible line has `data-n` = its step number. After each
+   step change, `Board` measures where each numbered line is now, compares it to where it was
+   (saved in the `spots` ref), and plays a transform from the old spot and size to the new one. So
+   the line you just finished floats up and shrinks into the stack, and older lines slide up.
+3. **The answer:** in Walkthrough the last step gets `final: true`: teal ✓ badge, teal frame that
+   glows (`.answer-frame`), "← the answer!" and a puff of chalk dust (`ChalkDust`, CSS `.dust`).
+   The summary stamps "Solved!" and boxes the answer the same way.
 4. **Marks:** the ✓ path has `pathLength=1`, so the CSS can "draw" it; the pink ring is a `::after`
-   outline that wipes on; a wrong line shakes.
+   outline that pops in; a wrong line shakes.
 5. `prefers-reduced-motion` turns it all off.
 6. **Entrance (Phase 6):** `Board` wraps the surface in `.board-drop` (unrolls from the rail) and is
    "fresh" for 1.6 s so step 1 waits; the tray has `.tray-in`; the finish rows get `.row-in` with a
@@ -199,7 +201,10 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 - **CSS animation / @keyframes:** a named list of looks over time (e.g. hidden → shown) the browser plays on an element.
 - **Web Animations API (`element.animate`):** the same thing started from JavaScript, used when the motion depends on measured positions.
 - **`useLayoutEffect`:** like an effect, but runs right after the page updates and before it's painted, so we can measure and animate without a flicker.
-- **clip-path:** shows only part of an element (we grow the visible part left to right for the chalk "ink").
+- **clip-path:** shows only part of an element (used for the board unrolling from the rail).
+- **FLIP animation:** First (old position), Last (new position), Invert (jump back with a transform), Play (animate to none). How lines glide between steps.
+- **`overflow-x: clip`:** cuts off only the sides of a box, so tall math (fractions, integrals) is never cut at the top or bottom.
+- **Board font:** `--font-chalk` in `globals.css` (Patrick Hand) replaces KaTeX's letters and digits on the board; KaTeX keeps its own big symbols (∫, Σ, brackets).
 - **Responsive design / breakpoints:** one page that rearranges itself by screen width (`md:` = 768 px and up).
 - **Rate limit / HTTP 429:** a cap on requests per visitor; 429 is the standard "too many requests" status.
 - **Promise cache:** remembering an unfinished request, so asking twice for the same thing waits for one answer.
