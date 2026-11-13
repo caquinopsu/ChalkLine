@@ -25,7 +25,7 @@ web-development ideas behind them. Updated at the end of every phase (last: **Ph
 │                          │          │                    presolve + SymPy check      │
 │ mic ► lib/recorder (WAV) │          │ /api/speech-to-math ─► Gemini (fast): listen,  │
 │ voice ◄ lib/speak        │          │                    words + LaTeX + intent      │
-│                          │          │ /api/tts (optional) ─► ElevenLabs voice        │
+│                          │          │ /api/tts (optional) ─► Cartesia voice          │
 │                          │          │ /api/check (Python) = SymPy itself             │
 └──────────────────────────┘          └───────────────────────────────────────────────┘
 ```
@@ -137,7 +137,7 @@ state and the same `/api/check-step` as typing.
    (no talking, to stay fast). Wrong → the pink ring, and the hint is shown *and* spoken. "Why?" goes
    to `/api/why` and the answer is read out. Hint / show the fix work like the buttons.
 4. **Speak:** `lib/speak.ts` uses the browser's built-in voice (`speechSynthesis`). If the server has
-   an `ELEVENLABS_API_KEY`, it tries `/api/tts` first and falls back to the browser voice on any error.
+   a `CARTESIA_API_KEY`, it tries `/api/tts` first and falls back to the browser voice on any error.
    `latexToWords()` turns math into speech: `\frac{x^2}{2}` → "x squared, over 2".
 5. **Read aloud** in Walkthrough reads each step with the same voice, with no AI calls; autoplay
    waits for each step to be read.

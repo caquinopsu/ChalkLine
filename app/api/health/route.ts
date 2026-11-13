@@ -8,6 +8,6 @@ export async function GET() {
   return Response.json({
     ok: true, // the Next.js server itself is up
     gemini: Boolean(process.env.GEMINI_API_KEY), // true if the key exists, false if missing/empty
-    elevenlabs: Boolean(process.env.ELEVENLABS_API_KEY), // same check for ElevenLabs
+    cartesia: Boolean(process.env.CARTESIA_API_KEY), // same check for the Cartesia voice
   });
 }

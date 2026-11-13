@@ -1,10 +1,10 @@
 // Browser helpers for the tutor's voice.
-// speak() tries ElevenLabs through our /api/tts route (only if the server has a key), and falls back
+// speak() tries Cartesia through our /api/tts route (only if the server has a key), and falls back
 // to the browser's built-in voice (speechSynthesis) on ANY problem. latexToWords() turns math into
 // something a voice can read: "\frac{x^2}{2}" -> "x squared over 2".
 
-let ttsOff = false; // set once /api/tts says ElevenLabs isn't set up, so we stop asking
-let audio: HTMLAudioElement | null = null; // the ElevenLabs clip that's playing, if any
+let ttsOff = false; // set once /api/tts says Cartesia isn't set up, so we stop asking
+let audio: HTMLAudioElement | null = null; // the Cartesia clip that's playing, if any
 let finishCurrent: (() => void) | null = null; // ends the promise of whatever is speaking now
 
 // Can this browser speak at all?
@@ -15,7 +15,7 @@ export function canSpeak(): boolean {
 // Stops whatever the tutor is saying (the "tap to interrupt" button, or leaving the screen).
 export function stopSpeaking() {
   if (audio) {
-    audio.pause(); // stop the ElevenLabs clip
+    audio.pause(); // stop the Cartesia clip
     audio = null;
   }
   if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel(); // stop the browser voice
@@ -28,12 +28,12 @@ export async function speak(text: string): Promise<void> {
   stopSpeaking(); // one voice at a time
   const clean = text.trim();
   if (!clean) return;
-  if (!ttsOff && (await speakElevenLabs(clean))) return; // the nicer voice, when it's available
+  if (!ttsOff && (await speakCartesia(clean))) return; // the nicer voice, when it's available
   await speakBrowser(clean);
 }
 
-// ElevenLabs via our server route. Returns false if it couldn't play (the caller then uses the browser voice).
-async function speakElevenLabs(text: string): Promise<boolean> {
+// Cartesia via our server route. Returns false if it couldn't play (the caller then uses the browser voice).
+async function speakCartesia(text: string): Promise<boolean> {
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
@@ -41,7 +41,7 @@ async function speakElevenLabs(text: string): Promise<boolean> {
       body: JSON.stringify({ text }),
       signal: AbortSignal.timeout(9000), // don't keep the student waiting
     });
-    if (res.status === 501) ttsOff = true; // no ElevenLabs key on the server: never ask again this visit
+    if (res.status === 501) ttsOff = true; // no Cartesia key on the server: never ask again this visit
     if (!res.ok) return false;
     const url = URL.createObjectURL(await res.blob()); // the MP3 as a temporary local link
     const clip = new Audio(url);

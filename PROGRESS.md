@@ -63,8 +63,8 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Start solving out loud), "Talk it through" in Practice's "Start as" row, and the mode chip.
 - **Read aloud** in Walkthrough: browser voice reads each step (rule, the math in words, summary);
   autoplay waits for it. No AI calls.
-- **Speaking:** `lib/speak.ts` (browser voice + LaTeX → words). Optional `/api/tts` (ElevenLabs,
-  "Rachel" voice) is used only if `ELEVENLABS_API_KEY` is set; any error falls back to the browser voice.
+- **Speaking:** `lib/speak.ts` (browser voice + LaTeX → words). Optional `/api/tts` (Cartesia, Sonic 3.6
+  model) is used only if `CARTESIA_API_KEY` is set; any error falls back to the browser voice. ElevenLabs was dropped (account blocked with 401).
 - **Fallbacks:** mic blocked / missing / unsupported → message + "Type instead". Gemini busy → friendly
   error in the mic area, retry or type.
 - **Tested (free checks only):** `tsc`, lint, build; a browser run with a fake microphone and the AI

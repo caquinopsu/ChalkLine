@@ -120,7 +120,7 @@ Carlos ([@caquinopsu](https://github.com/caquinopsu)), bootcamp final project, N
 ## Run it locally
 
 1. `npm install`
-2. Copy `.env.example` to `.env.local` and fill in `GEMINI_API_KEY` (ElevenLabs is optional).
+2. Copy `.env.example` to `.env.local` and fill in `GEMINI_API_KEY` (`CARTESIA_API_KEY` for the nicer voice is optional).
 3. Set up the Python checker once:
    ```bash
    python -m venv .venv
