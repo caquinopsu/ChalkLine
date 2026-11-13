@@ -1,4 +1,6 @@
-// Browser helpers for the microphone: record one push-to-talk clip, then send it to /api/speech-to-math.
+// Browser helpers for the microphone: record one clip, then send it to /api/speech-to-math.
+// A clip ends when the button is let go, on a second tap, or (in tap and hands-free mode) by itself
+// once the student has spoken and then gone quiet: a simple "voice activity" check on the volume.
 import type { Heard, SpeechRequest } from "./schemas";
 
 export type Clip = { base64: string; mimeType: string; ms: number }; // one recorded clip, ready to send
@@ -6,6 +8,19 @@ export type Clip = { base64: string; mimeType: string; ms: number }; // one reco
 export const MAX_CLIP_MS = 15_000; // clips stop by themselves after 15 seconds
 const MIN_CLIP_MS = 400; // anything shorter was probably a misclick
 const SAMPLE_RATE = 16_000; // 16 kHz mono is plenty for speech, and keeps uploads small
+const SPEECH_LEVEL = 0.12; // volume (0-1, see the meter below) that counts as talking rather than room noise
+const SILENCE_MS = 1_400; // this long quiet after talking = the student is done with this clip
+const MIN_SPEECH_MS = 250; // a click or a cough shorter than this isn't speech
+const WAIT_MS = 12_000; // hands-free: nobody spoke for this long, so start a fresh (empty) recording
+
+// What start() should do while it records.
+export type ListenOptions = {
+  onLevel: (level: number) => void; // the volume (0-1) about 60 times a second, for the waveform
+  onLimit: () => void; // the 15 s limit was reached
+  onSilence?: () => void; // they talked and then went quiet (only watched when given)
+  onIdle?: () => void; // hands-free: WAIT_MS passed with no speech at all
+  onSpeech?: () => void; // the moment speech is first heard (hands-free shows "listening" from then on)
+};
 
 // Can this browser record audio at all?
 export function micSupported(): boolean {
@@ -32,8 +47,8 @@ export class Recorder {
   private frame = 0; // animation-frame id for the level meter
   private autoStop: ReturnType<typeof setTimeout> | null = null;
 
-  // Starts recording. `onLevel` gets the volume (0-1) about 60 times a second; `onLimit` fires at 15 s.
-  async start(onLevel: (level: number) => void, onLimit: () => void): Promise<void> {
+  // Starts recording. See ListenOptions for the callbacks.
+  async start({ onLevel, onLimit, onSilence, onIdle, onSpeech }: ListenOptions): Promise<void> {
     if (!this.stream || !this.stream.active) {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 } }); // asks permission the first time
       this.ctx = new AudioContext();
@@ -42,12 +57,19 @@ export class Recorder {
       this.ctx.createMediaStreamSource(this.stream).connect(this.analyser); // mic -> volume meter (not to the speakers)
     }
     await this.ctx?.resume(); // some browsers start it paused
+    this.clearTimers(); // (a restart from hands-free waiting)
     this.chunks = [];
     this.media = new MediaRecorder(this.stream);
     this.media.ondataavailable = (e) => e.data.size && this.chunks.push(e.data);
     this.media.start(250); // hand us a chunk every 250 ms
     this.startedAt = performance.now();
-    this.autoStop = setTimeout(onLimit, MAX_CLIP_MS);
+    // The 15 s limit. Hands-free waits for speech first, so its limit starts when they start talking.
+    if (!onIdle) this.autoStop = setTimeout(onLimit, MAX_CLIP_MS);
+
+    // Voice activity: when did they start talking, and when was it last loud?
+    let speechAt = 0; // first loud moment (0 = not yet)
+    let loudAt = 0; // latest loud moment
+    let ended = false; // onSilence/onIdle already fired
 
     // Volume meter: the loudness of the latest sound samples, for the waveform bars.
     const buf = new Uint8Array(this.analyser!.fftSize);
@@ -55,7 +77,25 @@ export class Recorder {
       this.analyser!.getByteTimeDomainData(buf); // the raw wave, 128 = silence
       let sum = 0;
       for (const v of buf) sum += ((v - 128) / 128) ** 2;
-      onLevel(Math.min(1, Math.sqrt(sum / buf.length) * 5)); // root-mean-square volume, scaled up
+      const level = Math.min(1, Math.sqrt(sum / buf.length) * 5); // root-mean-square volume, scaled up
+      onLevel(level);
+      const now = performance.now();
+      if (level > SPEECH_LEVEL) {
+        if (!speechAt) speechAt = now;
+        loudAt = now;
+        if (now - speechAt >= MIN_SPEECH_MS && onIdle && !this.autoStop) {
+          this.autoStop = setTimeout(onLimit, MAX_CLIP_MS); // hands-free: real speech, so the 15 s clock starts
+          onSpeech?.();
+        }
+      }
+      const spoke = speechAt && loudAt - speechAt >= MIN_SPEECH_MS; // talked for real, not just a click
+      if (!ended && onSilence && spoke && now - loudAt > SILENCE_MS) {
+        ended = true;
+        onSilence(); // done talking
+      } else if (!ended && onIdle && !spoke && now - this.startedAt > WAIT_MS) {
+        ended = true;
+        onIdle(); // nobody said anything: the caller starts a fresh recording
+      }
       this.frame = requestAnimationFrame(tick);
     };
     tick();

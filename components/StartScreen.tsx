@@ -17,6 +17,8 @@ import { getPackage } from "@/lib/packages";
 import { imageFrom, preparePhoto, readPhoto } from "@/lib/photo";
 import { hear, type Clip } from "@/lib/recorder";
 import { useVoice } from "@/lib/useVoice";
+import { latexToWords, speak } from "@/lib/speak";
+import { VoiceTools, useHandsFree } from "./VoiceGuide";
 import type { SolutionPackage, Submission } from "@/lib/schemas";
 
 export type StartMode = "walkthrough" | "practice" | "check" | "voice"; // "voice" = Think-aloud
@@ -669,29 +671,51 @@ export function ProblemCard({ problem, solved, selected = false, onClick }: { pr
 }
 
 // "Talk it through" sheet: say the problem, check how it was heard, then start Think-aloud.
+// Spoken commands work here too: "next" starts solving, "scratch that" clears it, "the first one" picks.
 function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void; onType: () => void }) {
   const [latex, setLatex] = useState(""); // the problem as heard (editable)
   const [heard, setHeard] = useState<string | null>(null); // the words, as heard
+  const [note, setNote] = useState<string | null>(null); // a short reply to a spoken command
   const [options, setOptions] = useState<string[] | null>(null); // "Did you mean…?" readings
   const [editing, setEditing] = useState(false);
+  const [handsFree, setHandsFree] = useHandsFree(); // keep the mic open (shared with Think-aloud)
   const input = useRef<MathInputHandle>(null);
-  const voice = useVoice({ enabled: true, onClip: handleClip });
+  const voice = useVoice({ enabled: true, onClip: handleClip, handsFree });
 
-  // A clip finished: turn it into the problem's LaTeX.
+  // A clip finished: turn it into the problem's LaTeX, or do the command that was said.
   async function handleClip(clip: Clip) {
     try {
-      const h = await hear(clip, { kind: "problem" });
+      const h = await hear(clip, { kind: "problem", choices: options?.length ?? 0, handsFree });
       setHeard(h.transcript || null);
-      if (!h.latex) {
+      setNote(null);
+      if (h.intent === "next") {
+        if (latex.trim() && !options) return onStart({ kind: "typed", latex, mode: "voice" }); // hands-free: "next" = start solving
+        setNote(options ? "Pick one first: say “the first one” or “the second one”." : "Say the problem first, then “next”.");
+      } else if (h.intent === "undo") {
+        setOptions(null); // "scratch that": clear it and listen again
+        setLatex("");
+        setNote("Okay, cleared. Say the problem again.");
+      } else if (h.intent === "choose") {
+        const pick = options?.[(h.choice ?? 0) - 1];
+        if (pick) choose(pick);
+        else setNote("There's nothing to choose right now.");
+      } else if (h.intent === "repeat") {
+        if (latex) speak(`I heard: ${latexToWords(latex)}.`);
+        else setNote("I haven't heard a problem yet.");
+      } else if (h.intent === "pause") {
+        if (handsFree) voice.pause();
+        setNote("Paused. Tap the mic when you're ready.");
+      } else if (h.latex) {
+        setEditing(false);
+        if (h.alternatives.length) {
+          setOptions([h.latex, ...h.alternatives].slice(0, 2)); // ask which one before pre-solving
+          setLatex("");
+        } else choose(h.latex);
+      } else if (!handsFree) {
         voice.fail("I didn't catch a problem there. Try again, or type it.");
         return;
-      }
-      setEditing(false);
-      if (h.alternatives.length) {
-        setOptions([h.latex, ...h.alternatives].slice(0, 2)); // ask which one before pre-solving
-        setLatex("");
-      } else choose(h.latex);
-      voice.setPhase("idle");
+      } // (hands-free: thinking out loud is ignored)
+      if (!(handsFree && h.intent === "pause")) voice.setPhase("idle");
     } catch (err) {
       voice.fail(messageOf(err, "I couldn't hear that. Try again, or type it."));
     }
@@ -718,14 +742,18 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
   return (
     <>
       <div className="flex flex-col items-center gap-6 md:flex-row md:items-center md:gap-10">
-        <div className="shrink-0">
+        <div className="flex shrink-0 flex-col items-center gap-3">
           <MicButton
             phase={voice.phase}
             level={voice.level}
             onPress={voice.press}
             onRelease={voice.release}
-            labels={{ idle: "Hold space or the mic, say the problem", writing: "Writing it down…" }}
+            labels={{ idle: "Hold space or the mic (or tap), say the problem", writing: "Writing it down…" }}
+            handsFree={handsFree}
+            waiting={voice.waiting}
+            paused={voice.paused}
           />
+          <VoiceTools handsFree={handsFree} onHandsFree={setHandsFree} onOpenGuide={() => handsFree && voice.pause()} />
         </div>
         <div className="flex w-full min-w-0 flex-1 flex-col gap-2">
           <span className="eyebrow text-muted">{options ? "DID YOU MEAN…?" : "WE HEARD THIS AS"}</span>
@@ -743,11 +771,15 @@ function TalkPanel({ onStart, onType }: { onStart: (choice: StartChoice) => void
               {latex ? <Tex latex={latex} /> : <span className="font-hand text-2xl text-muted">e.g. “the integral of x times log x, dx”</span>}
             </div>
           )}
-          {voice.phase === "error" ? (
-            <span className="text-sm text-pink">{voice.error}</span>
-          ) : (
-            heard && <span className="font-mono text-xs text-muted">“{heard}”</span>
-          )}
+          <span aria-live="polite" className="flex flex-col gap-1">
+            {voice.phase === "error" ? (
+              <span className="text-sm text-pink">{voice.error}</span>
+            ) : (
+              heard && <span className="font-mono text-xs text-muted">“{heard}”</span>
+            )}
+            {note && <span className="text-sm text-text">{note}</span>}
+          </span>
+          {latex && !options && <span className="text-sm text-muted">Looks right? Say “next” or press Start. Wrong? Say “scratch that”.</span>}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2">

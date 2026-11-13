@@ -171,7 +171,7 @@ export type CheckRequest = {
 // What the AI returns after listening to one push-to-talk clip.
 export const HeardSchema = z.object({
   transcript: z.string(), // the words, written out as heard ("x squared over two log x")
-  intent: z.enum(["step", "why", "choose", "show_fix", "hint", "other"]), // what the student wants
+  intent: z.enum(["step", "why", "choose", "show_fix", "hint", "undo", "next", "repeat", "pause", "other"]), // what the student wants (a step, a question, or a spoken command)
   latex: z.string().nullable(), // the spoken math as KaTeX LaTeX (for a step, or the problem itself)
   alternatives: z.array(z.string()), // other readings of the math when it's ambiguous (0-2), as LaTeX
   choice: z.number().int().nullable(), // for "choose": 1 or 2 ("the first one" -> 1)
@@ -188,6 +188,7 @@ export type SpeechRequest = {
   board?: string[]; // the last lines on the board (more context)
   choices?: number; // how many "Did you mean…?" options are showing (0 = none)
   wrongStep?: boolean; // is a rejected step waiting to be fixed? ("show me the fix" makes sense)
+  handsFree?: boolean; // is the mic open all the time? (then thinking out loud is common, and it's not a step)
 };
 
 // Packages coming back from the browser may be older than the newest fields (task, comment were

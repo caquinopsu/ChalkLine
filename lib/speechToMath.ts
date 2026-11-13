@@ -6,14 +6,23 @@ import { HeardSchema, type Heard, type SpeechRequest } from "./schemas";
 
 export async function speechToMath(req: SpeechRequest): Promise<Heard> {
   // The context sent along with the audio, so "x squared over two" can be read in light of the problem.
+  const choices = req.choices ? `On screen: ${req.choices} "Did you mean…?" options, numbered 1 and 2.` : "No options are showing.";
+  const mic = req.handsFree
+    ? "Mic: hands-free (always open), so expect thinking out loud: only use \"step\" for a line they clearly state."
+    : "Mic: push-to-talk (they pressed the button to say this).";
   const context =
     req.kind === "problem"
-      ? "Context: the student is saying the PROBLEM they want to solve (not a step). Use intent \"step\" and put the problem in latex, without words like \"evaluate\"."
+      ? [
+          "Context: the student is saying the PROBLEM they want to solve (not a step). Use intent \"step\" and put the problem in latex, without words like \"evaluate\". Commands still count: \"next\" or \"start\" = next, \"scratch that\" = undo, \"the first one\" = choose, \"repeat that\" = repeat.",
+          choices,
+          mic,
+        ].join("\n")
       : [
           `Problem: ${req.problemLatex ?? "(unknown)"}`,
           req.board?.length ? `Last lines on the board:\n${req.board.map((l) => `  ${l}`).join("\n")}` : "Nothing on the board yet.",
-          req.choices ? `On screen: ${req.choices} "Did you mean…?" options, numbered 1 and 2.` : "No options are showing.",
+          choices,
           req.wrongStep ? "Their last step was marked wrong and is waiting to be fixed." : "",
+          mic,
         ]
           .filter(Boolean)
           .join("\n");

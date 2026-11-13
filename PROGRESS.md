@@ -77,6 +77,24 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
 - Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
+## Voice pass 2: slips, commands, hands-free, guide ✅ (Nov 12, 2026)
+- **Tutor voice:** Cartesia (Sonic 3.6) through `/api/tts` when `CARTESIA_API_KEY` is set (replaces
+  ElevenLabs); the browser voice is still the fallback.
+- **Filler words and slips:** the speech prompt drops "um/uh/so…", keeps only the corrected version
+  after "no wait / I mean / sorry / actually", and still keeps real math mistakes.
+- **Spoken commands:** "scratch that / undo / go back" (takes back a misheard line without counting
+  a wrong try, or the last accepted line), "next / start" (starts solving from the Talk sheet, or
+  takes the shown fix and moves on), "repeat that", "pause / stop listening".
+- **Tap mode stops on silence**, and a new **Hands-free** switch keeps the mic open and sends a clip
+  at each pause (thinking out loud gets no reply). Remembered per browser.
+- **"How talking works" guide:** an accessible dialog under the mic (Talk sheet and Think-aloud).
+- **Tested:** `tsc`, lint; a browser run with a fake mic and mocked AI routes (guide open/Esc/focus,
+  Talk sheet "scratch that" and "next", Think-aloud wrong step → "scratch that" → ring gone and try
+  given back, "repeat", hands-free switch). Live: 2 clips made with Cartesia: "So, um, I think it's
+  x squared, no wait, x cubed over three, plus C" → `\frac{x^3}{3} + C`; "Hmm, okay, scratch that" → undo.
+- **Not tested with a real microphone** in a real room (hands-free in a noisy room may pick up
+  background talk; headphones help).
+
 ## Phase 4: Visual engine ✅ (Nov 12, 2026)
 All motion is in `components/Board.tsx` + `app/globals.css`; no AI calls, works in every mode.
 - **Ink reveal:** each new step writes in left to right (0.6 s). Typing doesn't re-ink.

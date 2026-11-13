@@ -29,6 +29,7 @@ export async function POST(req: Request) {
       board: Array.isArray(body.board) ? body.board.filter((l) => typeof l === "string").slice(-3).map((l) => l.slice(0, 400)) : [],
       choices: Number.isInteger(body.choices) ? Math.min(2, Math.max(0, body.choices!)) : 0,
       wrongStep: body.wrongStep === true,
+      handsFree: body.handsFree === true,
     };
     const heard = await speechToMath(request);
     return Response.json({ ok: true, heard });

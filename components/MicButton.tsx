@@ -11,12 +11,15 @@ type Props = {
   onPress: () => void; // pointer down (or tap)
   onRelease: () => void; // pointer up
   labels?: Partial<Record<VoicePhase, string>>; // override the text under the button
+  handsFree?: boolean; // hands-free mode is on
+  waiting?: boolean; // hands-free: the mic is open, nobody is talking yet
+  paused?: boolean; // hands-free: paused (tap to resume)
 };
 
 // Words under the button, per state.
 const LABEL: Record<VoicePhase, string> = {
-  idle: "Ready when you are · hold space or the mic",
-  listening: "Listening… let go when you're done",
+  idle: "Ready · hold space or the mic, or tap once",
+  listening: "Listening… let go, or just stop talking",
   writing: "Writing it on the board…",
   checking: "Checking your step…",
   speaking: "Tutor speaking · tap to interrupt",
@@ -34,10 +37,19 @@ const LEGEND: { phase: VoicePhase; word: string; color: string }[] = [
 
 const BARS = [0.45, 0.8, 1, 0.65, 0.35]; // relative heights of the waveform bars on each side
 
-export function MicButton({ phase, level, disabled, onPress, onRelease, labels }: Props) {
+// Words under the button in hands-free mode (where they differ).
+function handsLabel(phase: VoicePhase, waiting: boolean, paused: boolean): string | null {
+  if (paused && (phase === "idle" || phase === "error")) return "Hands-free paused · tap the mic to resume";
+  if (phase === "listening") return waiting ? "Hands-free · just start talking" : "Listening… pause when you're done";
+  if (phase === "idle") return "Hands-free · opening the mic…";
+  return null;
+}
+
+export function MicButton({ phase, level, disabled, onPress, onRelease, labels, handsFree = false, waiting = false, paused = false }: Props) {
   // Button colors per state: chalk outline (idle), blue (listening/writing), gold (checking), teal (tutor), pink (error).
   const look =
-    phase === "listening" ? "border-blue bg-blue/20 text-blue mic-glow"
+    phase === "listening" && waiting ? "border-blue/70 bg-blue/10 text-blue" // hands-free, mic open but quiet: no glow yet
+    : phase === "listening" ? "border-blue bg-blue/20 text-blue mic-glow"
     : phase === "writing" ? "border-blue bg-blue/10 text-blue"
     : phase === "checking" ? "border-gold/40 bg-gold/10 text-gold"
     : phase === "speaking" ? "border-teal bg-teal/15 text-teal"
@@ -54,7 +66,11 @@ export function MicButton({ phase, level, disabled, onPress, onRelease, labels }
         <Wave show={showWave} color={waveColor} amp={amp} mirrored />
         <button
           type="button"
-          aria-label={phase === "listening" ? "Stop listening" : phase === "speaking" ? "Stop the tutor" : "Hold to talk"}
+          aria-label={
+            phase === "speaking" ? "Stop the tutor"
+            : handsFree ? (phase === "listening" ? (waiting ? "Pause hands-free listening" : "Send what I said now") : "Resume hands-free listening")
+            : phase === "listening" ? "Stop listening" : "Hold or tap to talk"
+          }
           aria-pressed={phase === "listening"}
           disabled={disabled}
           // Pointer events cover mouse, touch and pen. setPointerCapture: letting go outside the button still counts.
@@ -83,7 +99,7 @@ export function MicButton({ phase, level, disabled, onPress, onRelease, labels }
         </button>
         <Wave show={showWave} color={waveColor} amp={amp} />
       </div>
-      <span role="status" className="text-center text-[13px] text-muted">{labels?.[phase] ?? LABEL[phase]}</span>
+      <span role="status" className="text-center text-[13px] text-muted">{(handsFree && handsLabel(phase, waiting, paused)) || labels?.[phase] || LABEL[phase]}</span>
       <span aria-hidden className="font-mono text-[11px] text-subtle">
         {LEGEND.map((l, i) => (
           <span key={l.phase}>

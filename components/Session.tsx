@@ -12,6 +12,7 @@ import { RichText, Tex, ringError } from "./Tex";
 import { Logo } from "./Logo";
 import { WorkBoard } from "./WorkBoard";
 import { MicButton } from "./MicButton";
+import { VoiceTools, useHandsFree } from "./VoiceGuide";
 import { logAttempt } from "@/lib/attempts";
 import { preparePhoto, readPhoto } from "@/lib/photo";
 import { hear, type Clip } from "@/lib/recorder";
@@ -88,6 +89,10 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   const [tutor, setTutor] = useState<string | null>(null); // the tutor's last message (also spoken)
   const [voiceStart, setVoiceStart] = useState<number | null>(() => (initialMode === "voice" ? Date.now() : null)); // when Think-aloud started (header timer)
   const [now, setNow] = useState(() => Date.now()); // ticks once a second while the timer shows
+  const [handsFree, setHandsFree] = useHandsFree(); // keep the mic open (remembered in this browser)
+  const lastSaid = useRef<{ text: string; shown?: string } | null>(null); // for "repeat that"
+  // Undo ("scratch that"): what to go back to for each line added to the board in this session.
+  const history = useRef<{ expected: number; stats: { firstTry: number; hints: number } }[]>([]);
 
   // Walkthrough "Read aloud" state
   const tray = useRef<HTMLElement>(null); // the tray strip (on phones it scrolls sideways)
@@ -105,7 +110,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   const steps = pkg?.steps ?? [];
   const total = steps.length;
   const reading = readAloud && mode === "walkthrough" && readDone !== view; // is the current step still being read?
-  const voice = useVoice({ enabled: mode === "voice" && !!pkg, onClip: handleClip }); // push-to-talk, only in Think-aloud
+  const voice = useVoice({ enabled: mode === "voice" && !!pkg, onClip: handleClip, handsFree }); // the mic, only in Think-aloud
 
   // Walkthrough autoplay: reveal the next step every 2.5 seconds until the end.
   // With Read aloud on, it waits until the step has been read, then moves on a moment later.
@@ -179,6 +184,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   function goPractice(fromStep: number, target: "practice" | "voice" = "practice") {
     // Start Step practice (or Think-aloud) with the tutor's first `fromStep` lines already on the board.
     setProgress(steps.slice(0, fromStep).map((s) => ({ latex: s.latex, sympy: s.sympy, mark: "none" })));
+    history.current = []; // nothing of the student's to take back yet
     setExpected(fromStep);
     resetStepState();
     setOverlay(null);
@@ -300,6 +306,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     if (!workResult) return;
     const good = workResult.lines.filter((l) => l.verdict === "correct");
     setProgress(good.map((l) => ({ latex: l.latex, sympy: l.sympy, mark: "correct" })));
+    history.current = [];
     const from = Math.min(workResult.resumeIndex, total);
     setExpected(from);
     resetStepState();
@@ -369,6 +376,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       if (valid) {
         // Accept the line: it joins the board with a ✓ (or ⚠ if they needed help), and we move on.
         const mark: BoardLine["mark"] = hintUsed || attempt > 1 ? "hinted" : r.status === "correct_alternate" ? "alternate" : "correct";
+        history.current.push({ expected, stats }); // so "scratch that" can take this line back
         setProgress((p) => [...p, { latex: r.interpreted_latex, sympy: r.student_sympy, mark }]);
         if (!hintUsed && attempt === 1) setStats((s) => ({ ...s, firstTry: s.firstTry + 1 }));
         const matchedIndex = steps.findIndex((s) => s.id === r.matched_step_id);
@@ -405,6 +413,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   function showMeThisStep() {
     const step = steps[expected];
     if (!step) return;
+    history.current.push({ expected, stats }); // so "scratch that" can take this line back
     if (!hintUsed) setStats((s) => ({ ...s, hints: s.hints + 1 }));
     logAttempt({ ts: Date.now(), problemId, skills: pkg!.techniques, stepId: step.id, correct: false, hintUsed: true, mode: mode === "voice" ? "voice" : "practice" });
     setProgress((p) => [...p, { latex: step.latex, sympy: step.sympy, mark: "hinted" }]);
@@ -416,6 +425,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   // ---- Think-aloud (Mode D) ----
   // The tutor says something: it's shown in the Tutor card and spoken; the mic shows "tutor".
   async function say(text: string, shown?: string) {
+    lastSaid.current = { text, shown };
     setTutor(shown ?? text);
     voice.setPhase("speaking");
     await speak(speakable(text));
@@ -446,7 +456,35 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     say(r.spoken_feedback || r.hint || r.display_feedback);
   }
 
-  // One push-to-talk clip finished: find out what was said, then do it.
+  // "Scratch that": take back the last thing written, and return what to say about it.
+  // A misheard or misspoken line was never really an attempt, so it doesn't count as a wrong try.
+  function takeBack(): string {
+    if (options) {
+      setOptions(null); // the "Did you mean…?" choice goes away
+      setDraft("");
+      return "Okay, scratched that. Say it again.";
+    }
+    if (wrongLine !== null) {
+      setWrongLine(null); // the ringed line goes away
+      setDraft("");
+      setCheckedDraft("");
+      setResult(null);
+      setShowFix(false);
+      setAttempt((a) => Math.max(1, a - 1)); // give the try back
+      return "Okay, scratched that. Say the step again.";
+    }
+    const last = history.current.pop();
+    if (last && progress.length) {
+      setProgress((p) => p.slice(0, -1)); // the last accepted line comes off the board
+      setExpected(last.expected);
+      setStats(last.stats);
+      resetStepState();
+      return "Okay, I took that line back. Say it again.";
+    }
+    return "There's nothing of yours on the board to take back yet.";
+  }
+
+  // One spoken clip finished: find out what was said, then do it.
   async function handleClip(clip: Clip) {
     if (!pkg) return;
     let h;
@@ -457,6 +495,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         board: progress.slice(-2).map((l) => l.latex),
         choices: options?.length ?? 0,
         wrongStep: wrongLine !== null,
+        handsFree,
       });
     } catch (err) {
       voice.fail(messageOf(err, "I couldn't hear that. Try again, or type instead."));
@@ -511,6 +550,27 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         showMeThisStep(); // nothing to fix yet: "Stuck? Show me this step"
         say(`Here's step ${progress.length + 1}: ${latexToWords(step.plain_latex)}.`);
       }
+    } else if (h.intent === "undo") {
+      say(takeBack());
+    } else if (h.intent === "next") {
+      if (options) say("Pick one first: say the first one, or the second one.");
+      else if (wrongLine !== null && showFix && step) {
+        const last = expected + 1 >= total;
+        showMeThisStep(); // take the fix and move on (marked ⚠, like "Show me this step")
+        if (!last) say("Okay, I wrote the fix down. Say your next step.");
+      } else if (wrongLine !== null) say("Try that step once more, or say: show me the fix.");
+      else say("Go ahead, say your next step.");
+    } else if (h.intent === "repeat") {
+      const last = lastSaid.current;
+      if (last) say(last.text, last.shown);
+      else if (progress.length) say(`The last line is ${latexToWords(progress[progress.length - 1].latex)}.`);
+      else say("I haven't said anything yet. Say your first step when you're ready.");
+    } else if (h.intent === "pause") {
+      if (handsFree) voice.pause(); // stays paused until they tap the mic
+      else voice.setPhase("idle");
+      setTutor("Paused. Tap the mic (or press space) when you want to keep going.");
+    } else if (handsFree) {
+      voice.setPhase("idle"); // hands-free: thinking out loud and chit-chat get no reply (the words still show)
     } else {
       say("Sorry, I didn't catch that. Say your next step, or ask me why.", h.transcript ? `I heard “${h.transcript}”. Say your next step, or ask “why?”.` : undefined);
     }
@@ -775,7 +835,9 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               ) : heard ? (
                 <span className="min-h-0 overflow-y-auto font-mono text-sm leading-relaxed text-text">“{heard}”</span>
               ) : (
-                <span className="text-base leading-relaxed text-muted">Solve on paper and say each step out loud. Hold space (or the mic), talk, let go.</span>
+                <span className="text-base leading-relaxed text-muted">
+                  Solve on paper and say each step out loud. Hold space or the mic, or tap once. Slipped? Say “scratch that”.
+                </span>
               )}
               {showHint && <RichText className="text-base text-gold" text={`Hint: ${(wrongLine !== null && result?.hint) || steps[expected].hint}`} />}
               <div className="mt-auto flex flex-wrap gap-2">
@@ -791,7 +853,16 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
 
             {/* Center: the mic */}
             <Card center>
-              <MicButton phase={voice.phase} level={voice.level} onPress={voice.press} onRelease={voice.release} />
+              <MicButton
+                phase={voice.phase}
+                level={voice.level}
+                onPress={voice.press}
+                onRelease={voice.release}
+                handsFree={handsFree}
+                waiting={voice.waiting}
+                paused={voice.paused}
+              />
+              <VoiceTools handsFree={handsFree} onHandsFree={setHandsFree} onOpenGuide={() => handsFree && voice.pause()} />
             </Card>
 
             {/* Right: "Did you mean…?", or the tutor's message */}

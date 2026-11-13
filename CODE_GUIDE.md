@@ -142,6 +142,28 @@ state and the same `/api/check-step` as typing.
 5. **Read aloud** in Walkthrough reads each step with the same voice, with no AI calls; autoplay
    waits for each step to be read.
 
+**Talking like a person (voice pass 2).** People say "um", change their mind mid-sentence, and
+misspeak. How the app copes:
+- **Filler words and self-corrections** are handled in the prompt (`SPEECH_SYSTEM` in `lib/prompts.ts`):
+  fillers are dropped, and a restart ("x squared, no wait, x cubed") *replaces* what came before, so
+  only `x^3` is written. Math mistakes said with confidence are still kept, so the checker sees them.
+- **Spoken commands** are extra intents: `undo` ("scratch that", "go back"), `next` ("next",
+  "start"), `repeat` ("say that again") and `pause` ("stop listening"). In `Session.tsx`,
+  `takeBack()` removes a "Did you mean…?" choice, a ringed wrong line (and gives the try back, since
+  a misheard line isn't a real attempt), or the last accepted line (`history` remembers where each
+  line came from). The Talk it through sheet on the start screen understands the same commands.
+- **Tap mode stops by itself:** `lib/recorder.ts` watches the volume. After real speech (at least
+  0.25 s above the speech level), 1.4 s of quiet ends the clip. Holding the button ignores pauses.
+- **Hands-free** (`useVoice({ handsFree })`, the switch under the mic, remembered in `localStorage`):
+  the mic re-opens whenever it's free (the tutor finished, the step was checked), waits for speech,
+  and sends each clip at the next pause. Silent recordings are thrown away every 12 s, so nothing is
+  sent while nobody talks. Chit-chat ("hmm, let me think") gets no reply in hands-free. Tap the mic
+  or say "pause" to stop it.
+- **The guide** (`components/VoiceGuide.tsx`, "How talking works" under the mic) is a native
+  `<dialog>`: it traps keyboard focus, Esc closes it, focus returns to the button, and its keys don't
+  reach the page's mic shortcut. It lists the three mic modes, how slips work, spoken-math examples,
+  every command, and privacy notes.
+
 ### How the board animates (Phase 4)
 Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globals.css`.
 1. **Ink:** the current line has the CSS class `ink`, a short fade with a slight lift. The line is
