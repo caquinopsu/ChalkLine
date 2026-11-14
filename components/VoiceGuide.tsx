@@ -115,7 +115,7 @@ export function VoiceGuide({ onClose }: { onClose: () => void }) {
       // Keys typed here (Space, 1, 2, Esc) must not reach the page's mic and option shortcuts.
       onKeyDown={(e) => e.stopPropagation()}
       onKeyUp={(e) => e.stopPropagation()}
-      className="voice-guide m-auto max-h-[88vh] w-[min(760px,94vw)] overflow-y-auto rounded-[24px] border border-white/10 bg-panel p-0 text-text shadow-[0_30px_80px_rgba(60,45,30,.25)] backdrop:bg-[rgba(42,37,32,.4)] backdrop:backdrop-blur-[4px]"
+      className="voice-guide m-auto max-h-[calc(88dvh/var(--ui-zoom))] w-[min(760px,calc(94vw/var(--ui-zoom)))] overflow-y-auto rounded-[24px] border border-white/10 bg-panel p-0 text-text shadow-[0_30px_80px_rgba(60,45,30,.25)] backdrop:bg-[rgba(42,37,32,.4)] backdrop:backdrop-blur-[4px]"
     >
       <div className="flex flex-col gap-7 p-6 md:p-8">
         <div className="flex items-start gap-4">

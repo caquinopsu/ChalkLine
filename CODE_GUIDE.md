@@ -284,6 +284,8 @@ pick a mode the solution is often ready. The photo is sent once and never saved.
 
 ---
 
+- **CSS zoom for big screens**: `zoom: var(--ui-zoom)` on `<body>` scales everything (text, buttons, spacing) at once, so no per-component sizes are needed for large monitors. Watch out: `vh`/`vw` and media queries still refer to the real screen, hence the `calc(90dvh / var(--ui-zoom))` sizes and the `big:`/`short:` custom variants.
+
 ## 5. Commands
 
 | Command | What it does |

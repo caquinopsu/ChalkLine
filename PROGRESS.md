@@ -283,6 +283,11 @@ From the design critique (reviewer pass) and the user's 10 notes:
 - Phone layout set aside on purpose (laptop and iPad first).
 - Library solutions were generated with `npm run presets` (one AI call per problem, once).
 
+### Big-screen zoom (Nov 13)
+- On screens 1600px+ wide the whole app scales up (1.15x / 1.3x / 1.5x, like browser zoom) so a 2000px monitor shows it at laptop proportions instead of tiny and spread out. `--ui-zoom` in globals.css; the body height is divided by it so the app still fills one screen.
+- Media queries see the real screen, so the old `2xl:` sizes became `big:` (unzoomed 1536-1599px, tall) and a new `short:` variant tightens the home page on wide-and-short screens. Pop-up sizes divide vh/vw by the zoom.
+- Checked at 2000x1038 and 1440x900: home, library sheet, walkthrough, summary all fit with no scrolling.
+
 ## Next
 Test by hand before submitting: a real voice (Chrome, then Safari/iPhone), a real phone, a private
 window, and a real phone photo. Read the README's "How to test it" and fix anything that doesn't match.
