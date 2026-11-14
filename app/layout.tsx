@@ -18,7 +18,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${dmSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning // the script below may add data-theme="dark" before React starts
     >
+      <head>
+        {/* Dark mode, if this browser chose it: set before the first paint so the page never flashes light. */}
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem("chalkline.theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}` }} />
+      </head>
       <body className="h-dvh overflow-hidden font-sans">{children}</body>
     </html>
   );

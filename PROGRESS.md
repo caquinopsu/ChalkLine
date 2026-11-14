@@ -77,6 +77,18 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
 - Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
+## Dark mode, notebook margins, stronger borders ✅ (Nov 13, 2026)
+- **Dark mode** ("evening study"): warm espresso browns around the same oak-framed green board, with the
+  bright chalk accent colors. A sun/moon button in the header (home, library, every problem) switches;
+  light stays the default and the choice is remembered per browser (applied before the page paints).
+- **Home background redone for paper:** the margins of a math notebook. Faint graph-paper dots at
+  the edges, equations in pencil and colored ink (typeset with KaTeX), four small graphs that draw
+  themselves on (tangent line, area under a curve, sine wave, a series adding up), and a highlighter
+  swipe. In dark mode the same marks read as chalk. (The old doodles used light chalk colors, which
+  disappeared on the light page.)
+- **Stronger borders** on Upload a photo / Type it / Talk it through (2px, in each card's color) and on
+  the Problem library bar.
+
 ## Read aloud in sync with the board ✅ (Nov 13, 2026)
 - Walkthrough's **Read aloud** now reads each step in pieces and lights up what it's saying: the rule
   label, then the line part by part (each colored part, like $u$ or $dv$, gets a chalk highlight

@@ -204,6 +204,12 @@ Everything lives in `components/Board.tsx` and the "Phase 4" block of `app/globa
 - **If colors don't change in dev:** Turbopack can keep old CSS in `.next`; stop the server, delete
   `.next`, start again.
 
+### Dark mode
+`components/ThemeToggle.tsx` sets `<html data-theme="dark">` and saves the choice in `localStorage`; a
+tiny script in `app/layout.tsx` re-applies it before the first paint. `globals.css` has one
+`:root[data-theme="dark"]` block that swaps the color tokens, so every screen follows without
+component changes. The board keeps its own chalk tokens in both modes.
+
 ### Design pass 4: the dock, the summary, the library
 - **Labels:** `.eyebrow` (globals.css) shows labels in lowercase DM Sans. Code can still write them in capitals.
 - **Task line:** every package has `task` ("Find the antiderivative."); the board writes it in gold

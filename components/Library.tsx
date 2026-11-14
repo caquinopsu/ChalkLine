@@ -5,6 +5,7 @@
 // Pick a problem -> a sheet shows it big with the four ways to work on it.
 import { useEffect, useState } from "react";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { Tex, RichText } from "./Tex";
 import { BookIcon, ModeCards, ProblemCard, Sheet, type StartChoice } from "./StartScreen";
 import { PRESETS, type PresetMeta } from "@/lib/presets";
@@ -38,6 +39,7 @@ export function Library({ onStart, onHome, focus }: { onStart: (choice: StartCho
           <span className="font-display text-xl font-semibold">Chalkline</span>
         </button>
         <span className="ml-auto font-hand text-2xl text-muted">{done} of {PRESETS.length} solved</span>
+        <ThemeToggle />
       </header>
 
       <main className="fade-up mx-auto flex max-w-[1240px] flex-col gap-10 px-10 pb-16 pt-4">

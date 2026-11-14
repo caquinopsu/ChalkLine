@@ -23,6 +23,31 @@
   --color-pink: #d84b5a; /* errors */
 }
 
+/* Dark mode ("evening study"): the same notebook-and-chalkboard idea after dark. Warm espresso
+   browns (not cold gray or blue-black) so the oak frame and the green board still feel at home;
+   the accent colors switch to their bright chalk versions so they glow on the dark page. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-room: #18140f;
+  --color-panel: #221d17;
+  --color-panel-2: #2b251e;
+  --color-panel-3: #362f26;
+  --color-field: #1d1914;
+  --color-text: #f0e9dc;
+  --color-muted: #b5aa99;
+  --color-subtle: #8b8173;
+  --color-white: #fff; /* "white/10" borders and tints are light chalk lines again */
+  --color-board: #22362e;
+  --color-wood: #8f6a48; /* the oak frame, a touch deeper so it doesn't glare */
+  --color-ledge: #a17b55;
+  --color-blue: #58c4dd;
+  --color-blue-chalk: #6ccde3;
+  --color-gold: #f2c94c;
+  --color-teal: #4fd1b5;
+  --color-pink: #ff7a85;
+}
+:root[data-theme="dark"] .board-surface { box-shadow: 0 22px 50px rgba(0, 0, 0, 0.55), inset 0 0 90px rgba(0, 0, 0, 0.4); }
+
 /* The board (and the mini boards) keep bright chalk colors, whatever the page around them looks like:
    inside .board-surface (and the mode cards' ledge) the tokens switch back to the chalk versions. */
 .board-surface, .mode-card {
@@ -255,9 +280,28 @@ svg:has(> .check-draw) { animation: check-pulse 0.5s ease-out 0.35s 1; transform
 .fade-out { animation: fade-out 0.22s ease-in both; }
 @keyframes fold-up { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-12px) scale(0.96); } }
 .sheet.sheet-out { animation: fold-up 0.22s ease-in both; }
-/* Floating chalk doodles in the home-screen background: faint, slowly bobbing and tilting. */
-@keyframes doodle { 0%, 100% { transform: translateY(0) rotate(var(--rot)); } 50% { transform: translateY(-14px) rotate(calc(var(--rot) * -0.6)); } }
-.doodle { opacity: 0.12; animation: doodle 12s ease-in-out infinite; }
+/* Home-screen background: the margins of a math notebook. A faint dot grid that fades out toward the
+   middle, equations in pencil and colored ink, small hand-drawn graphs that draw themselves on,
+   and a highlighter swipe. They bob and tilt slowly. In dark mode the same marks read as chalk. */
+@keyframes doodle { 0%, 100% { transform: translateY(0) rotate(var(--rot)); } 50% { transform: translateY(-12px) rotate(calc(var(--rot) * -0.6)); } }
+.doodle { opacity: var(--doodle-ink, 0.42); animation: doodle 12s ease-in-out infinite; }
+:root[data-theme="dark"] .doodle { --doodle-ink: 0.26; }
+.notebook-grid {
+  background-image: radial-gradient(color-mix(in srgb, var(--color-text) 16%, transparent) 1.1px, transparent 1.4px);
+  background-size: 26px 26px;
+  /* only the edges of the page get the grid; the middle stays clean for the board and the cards */
+  mask-image: radial-gradient(ellipse 62% 70% at 50% 46%, transparent 55%, #000 92%);
+}
+:root[data-theme="dark"] .notebook-grid { background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1.1px, transparent 1.4px); }
+/* graphs draw themselves on (pathLength=1 on each path) */
+@keyframes sketch { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+.sketch path, .sketch line, .sketch polyline { stroke-dasharray: 1; animation: sketch 2.4s ease-out both; animation-delay: inherit; }
+/* a highlighter swipe behind an equation */
+.highlight { background: linear-gradient(100deg, transparent 2%, color-mix(in srgb, var(--color-gold) 38%, transparent) 6%, color-mix(in srgb, var(--color-gold) 30%, transparent) 94%, transparent 98%); padding: 0 0.25em; border-radius: 0.2em; }
+:root[data-theme="dark"] .highlight { background: none; text-decoration: underline wavy color-mix(in srgb, var(--color-gold) 60%, transparent); text-underline-offset: 0.3em; }
+@media (prefers-reduced-motion: reduce) {
+  .doodle, .sketch path, .sketch line, .sketch polyline { animation: none; stroke-dasharray: none; }
+}
 
 /* The start screen fades up when the app opens (and when you come back from a problem). */
 .fade-up { animation: rise 0.5s ease-out both; }

@@ -10,6 +10,7 @@ import type { ProblemSet } from "./StartScreen";
 import { KEYS_PRACTICE, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex, ringError } from "./Tex";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { WorkBoard } from "./WorkBoard";
 import { MicButton } from "./MicButton";
 import { VoiceTools, useHandsFree } from "./VoiceGuide";
@@ -742,7 +743,10 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           )}
           {mode === "voice" && <span className="font-mono text-[13px] text-muted" aria-label="Time in Think-aloud">{timer}</span>}
         </div>
-        <button className="btn h-10" onClick={onNewProblem}>New problem</button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button className="btn h-10" onClick={onNewProblem}>New problem</button>
+        </div>
       </header>
 
       {/* Board area: fills the remaining height */}

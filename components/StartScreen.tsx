@@ -9,6 +9,7 @@ import { messageOf } from "@/lib/errors"; // friendly error sentences (Phase 5)
 import { KEYS_PROBLEM, MathInput, type MathInputHandle } from "./MathInput";
 import { RichText, Tex } from "./Tex";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 import { MicButton } from "./MicButton";
 import { PRESETS, loadPreset } from "@/lib/presets";
 import { LEVELS, TOPICS, solvedIds } from "@/lib/library";
@@ -45,6 +46,7 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
           <Logo />
           <span className="font-display text-xl font-semibold">Chalkline</span>
         </div>
+        <ThemeToggle className="ml-auto" />
       </header>
 
       <main className="fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 pb-6 md:justify-start md:gap-7 md:pt-[2vh] 2xl:gap-9">
@@ -65,6 +67,7 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
           <EntryCard
             icon={<CameraIcon />}
             tint="bg-blue/15 text-blue"
+            edge="border-blue/45 hover:border-blue"
             title="Upload a photo"
             sub="A textbook page, screenshot or your work"
             onClick={() => setPanel("upload")}
@@ -72,6 +75,7 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
           <EntryCard
             icon={<span className="font-display text-[28px] leading-none">∫</span>}
             tint="bg-teal/15 text-teal"
+            edge="border-teal/45 hover:border-teal"
             title="Type it"
             sub="Math keys and a live chalk preview"
             onClick={() => setPanel("type")}
@@ -89,7 +93,7 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
         {/* The problem library: solved problems by concept, plus picks for your weak spots */}
         <button
           onClick={onLibrary}
-          className="group flex w-full max-w-md items-center gap-4 rounded-[20px] border border-white/10 bg-gradient-to-r from-panel to-panel-2 px-5 py-3.5 text-left transition duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_10px_36px_rgba(242,201,76,.14)] md:max-w-[1040px] 2xl:max-w-[1240px]"
+          className="group flex w-full max-w-md items-center gap-4 rounded-[20px] border-2 border-white/20 bg-gradient-to-r from-panel to-panel-2 px-5 py-3.5 shadow-[0_2px_0_color-mix(in_srgb,var(--color-text)_8%,transparent)] text-left transition duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_10px_36px_rgba(242,201,76,.14)] md:max-w-[1040px] 2xl:max-w-[1240px]"
         >
           <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold transition group-hover:scale-110"><BookIcon /></span>
           <span className="flex min-w-0 flex-col">
@@ -98,7 +102,7 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
           </span>
           <span className="ml-auto hidden items-center gap-2 xl:flex">
             {TOPICS.map((t) => (
-              <span key={t} className="whitespace-nowrap rounded-full border border-white/10 px-3 py-1 font-hand text-lg text-muted transition group-hover:border-white/20 group-hover:text-text">{t.toLowerCase()}</span>
+              <span key={t} className="whitespace-nowrap rounded-full border border-white/20 px-3 py-1 font-hand text-lg text-muted transition group-hover:border-white/35 group-hover:text-text">{t.toLowerCase()}</span>
             ))}
           </span>
           <span aria-hidden className="text-xl text-muted transition group-hover:translate-x-1 group-hover:text-text">→</span>
@@ -199,16 +203,17 @@ export function Sheet({ title, icon, tint, onClose, children }: { title: string;
 }
 
 // One of the three big "bring a problem" cards: an icon, a title, one line of help, an arrow.
-function EntryCard({ icon, tint, title, sub, badge, gold = false, onClick }: {
-  icon: ReactNode; tint: string; title: string; sub: string; badge?: string; gold?: boolean; onClick: () => void;
+function EntryCard({ icon, tint, edge = "border-white/20 hover:border-white/40", title, sub, badge, gold = false, onClick }: {
+  icon: ReactNode; tint: string; edge?: string; title: string; sub: string; badge?: string; gold?: boolean; onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`group relative flex h-[92px] items-center gap-4 rounded-[20px] border px-4 text-left transition duration-200 hover:-translate-y-1 md:h-[108px] md:px-5 2xl:h-[124px] ${
+      // a 2px colored edge per card (blue / teal / gold), like a tab in a notebook; it fills in on hover
+      className={`group relative flex h-[92px] items-center gap-4 rounded-[20px] border-2 px-4 text-left shadow-[0_2px_0_color-mix(in_srgb,var(--color-text)_8%,transparent)] transition duration-200 hover:-translate-y-1 md:h-[108px] md:px-5 2xl:h-[124px] ${
         gold
-          ? "border-gold/50 bg-panel shadow-[0_0_30px_rgba(242,201,76,.12)] hover:border-gold hover:shadow-[0_10px_40px_rgba(242,201,76,.22)]"
-          : "border-white/10 bg-panel hover:border-white/25 hover:bg-panel-2 hover:shadow-[0_10px_30px_rgba(60,45,30,.15)]"
+          ? "border-gold/80 bg-panel shadow-[0_0_30px_rgba(242,201,76,.14)] hover:border-gold hover:shadow-[0_10px_40px_rgba(242,201,76,.24)]"
+          : `${edge} bg-panel hover:bg-panel-2 hover:shadow-[0_10px_30px_rgba(60,45,30,.15)]`
       }`}
     >
       <span className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition group-hover:scale-110 2xl:h-[60px] 2xl:w-[60px] ${tint}`}>{icon}</span>
@@ -251,32 +256,101 @@ function MicIcon() {
 
 // Background decoration: faint chalk math scattered around the room, drifting slowly
 // (like old notes on a classroom wall). Purely decorative; screen readers skip it.
-const DOODLES: { t: string; x: string; y: string; size: number; rot: number; dur: number; color: string }[] = [
-  { t: "∫ f(x) dx", x: "2%", y: "14%", size: 46, rot: -8, dur: 11, color: "text-chalk" },
-  { t: "d/dx", x: "91%", y: "10%", size: 40, rot: 6, dur: 13, color: "text-blue-chalk" },
-  { t: "Σ 1/n²", x: "3%", y: "58%", size: 42, rot: 5, dur: 14, color: "text-gold" },
-  { t: "lim x→0", x: "88%", y: "52%", size: 38, rot: -5, dur: 12, color: "text-chalk" },
-  { t: "x² + y² = r²", x: "2%", y: "86%", size: 34, rot: -3, dur: 16, color: "text-teal" },
-  { t: "u = ln x", x: "89%", y: "84%", size: 36, rot: 4, dur: 10, color: "text-blue-chalk" },
-  { t: "π", x: "8%", y: "34%", size: 64, rot: 10, dur: 15, color: "text-gold" },
-  { t: "√2", x: "93%", y: "32%", size: 50, rot: -10, dur: 12, color: "text-teal" },
-  { t: "f′(x)", x: "5%", y: "74%", size: 38, rot: 7, dur: 13, color: "text-chalk" },
-  { t: "∞", x: "92%", y: "70%", size: 58, rot: -4, dur: 17, color: "text-chalk" },
+// The notebook margins: equations in pencil (text) and colored ink, set as real math (KaTeX), and
+// small hand-drawn graphs. Placed on the left and right edges so the middle stays clear.
+const DOODLES: { tex: string; x: string; y: string; size: number; rot: number; dur: number; color: string; mark?: boolean }[] = [
+  // left margin, top to bottom
+  { tex: "\\int f(x)\\,dx", x: "1.5%", y: "11%", size: 34, rot: -7, dur: 11, color: "text-text" },
+  { tex: "\\sum \\frac{1}{n^2}", x: "3%", y: "47%", size: 32, rot: 4, dur: 14, color: "text-pink" },
+  { tex: "f'(x)", x: "8%", y: "61%", size: 28, rot: 7, dur: 13, color: "text-blue" },
+  { tex: "x^2+y^2=r^2", x: "1.5%", y: "90%", size: 24, rot: -3, dur: 16, color: "text-teal" },
+  // right margin
+  { tex: "\\frac{d}{dx}e^x = e^x", x: "88%", y: "9%", size: 24, rot: 5, dur: 13, color: "text-blue" },
+  { tex: "e^{i\\pi}+1=0", x: "88.5%", y: "37%", size: 22, rot: -6, dur: 12, color: "text-teal" },
+  { tex: "\\lim_{x\\to 0}\\frac{\\sin x}{x}", x: "88%", y: "49%", size: 26, rot: -5, dur: 12, color: "text-text" },
+  { tex: "\\infty", x: "94%", y: "75%", size: 40, rot: -4, dur: 17, color: "text-text" },
+  { tex: "u = \\ln x", x: "88%", y: "88%", size: 28, rot: 4, dur: 10, color: "text-text", mark: true },
+  { tex: "\\pi", x: "11%", y: "38%", size: 40, rot: 10, dur: 15, color: "text-gold" },
 ];
+
+// Small graphs sketched in the margins (each path has pathLength=1 so it can draw itself on).
+const SKETCHES: { x: string; y: string; w: number; rot: number; dur: number; color: string; draw: ReactNode }[] = [
+  {
+    // a parabola with its tangent line and the point of contact
+    x: "2%", y: "20%", w: 110, rot: -4, dur: 14, color: "text-blue",
+    draw: (
+      <>
+        <path pathLength={1} d="M10 12 Q60 128 110 12" />
+        <line pathLength={1} x1="34" y1="96" x2="104" y2="40" strokeDasharray="1" />
+        <circle cx="72" cy="66" r="4" fill="currentColor" stroke="none" />
+      </>
+    ),
+  },
+  {
+    // the area under a curve, shaded with pencil hatching
+    x: "89%", y: "16%", w: 110, rot: 3, dur: 16, color: "text-gold",
+    draw: (
+      <>
+        <path pathLength={1} d="M8 100 H124 M12 104 V8" />
+        <path pathLength={1} d="M14 80 C40 20 80 20 118 60" />
+        <path pathLength={1} d="M40 100 V44 M52 100 V36 M64 100 V33 M76 100 V35 M88 100 V41 M100 100 V48" strokeWidth="1.2" />
+      </>
+    ),
+  },
+  {
+    // a sine wave on an axis
+    x: "1.5%", y: "72%", w: 120, rot: 2, dur: 13, color: "text-teal",
+    draw: (
+      <>
+        <path pathLength={1} d="M4 50 H136" />
+        <path pathLength={1} d="M4 50 C20 8 36 8 52 50 S84 92 100 50 S120 20 136 34" />
+      </>
+    ),
+  },
+  {
+    // bars of a series adding up toward a limit (dashed line)
+    x: "89%", y: "60%", w: 100, rot: -3, dur: 15, color: "text-pink",
+    draw: (
+      <>
+        <path pathLength={1} d="M10 22 H114" strokeDasharray="0.04 0.03" />
+        <path pathLength={1} d="M14 100 V50 M34 100 V36 M54 100 V29 M74 100 V26 M94 100 V24" strokeWidth="6" strokeLinecap="butt" />
+      </>
+    ),
+  },
+];
+
 function ChalkBackdrop() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden md:block">
-      {/* two soft colored lights so the room isn't flat */}
-      <div className="absolute -left-40 top-1/4 h-[520px] w-[520px] rounded-full bg-blue/[.05] blur-3xl" />
-      <div className="absolute -right-40 bottom-0 h-[520px] w-[520px] rounded-full bg-gold/[.05] blur-3xl" />
+      {/* the faint dot grid of graph paper, only at the edges */}
+      <div className="notebook-grid absolute inset-0" />
+      {/* two soft colored lights so the page isn't flat */}
+      <div className="absolute -left-40 top-1/4 h-[520px] w-[520px] rounded-full bg-blue/[.06] blur-3xl" />
+      <div className="absolute -right-40 bottom-0 h-[520px] w-[520px] rounded-full bg-gold/[.07] blur-3xl" />
       {DOODLES.map((d, i) => (
         <span
           key={i}
-          className={`doodle absolute whitespace-nowrap font-hand ${d.color}`}
+          className={`doodle absolute whitespace-nowrap ${d.color}`}
           style={{ left: d.x, top: d.y, fontSize: d.size, "--rot": `${d.rot}deg`, animationDuration: `${d.dur}s`, animationDelay: `${-i * 1.7}s` } as React.CSSProperties}
         >
-          {d.t}
+          <Tex latex={d.tex} className={d.mark ? "highlight" : undefined} />
         </span>
+      ))}
+      {SKETCHES.map((k, i) => (
+        <svg
+          key={`k${i}`}
+          viewBox="0 0 140 112"
+          width={k.w}
+          className={`doodle sketch absolute ${k.color}`}
+          style={{ left: k.x, top: k.y, "--rot": `${k.rot}deg`, animationDuration: `${k.dur}s`, animationDelay: `${0.3 + i * 0.5}s` } as React.CSSProperties}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          {k.draw}
+        </svg>
       ))}
     </div>
   );
