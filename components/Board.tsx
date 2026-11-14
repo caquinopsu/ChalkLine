@@ -36,6 +36,7 @@ type Props = {
   lines: BoardLine[]; // finished lines, oldest first
   current: CurrentLine | null;
   ghost?: string | null; // faint Caveat line under the current one ("next: ...")
+  note?: ReactNode; // a short explanation written right under the current line (the "why" of this step)
   overlay?: ReactNode; // the Why? / Side work panel, drawn over the right third
   speaking?: boolean; // the tutor is talking: the colored parts glow while it speaks
   children?: ReactNode; // anything extra (e.g. the finish layout)
@@ -47,7 +48,7 @@ type Props = {
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, overlay, speaking, children, firstNumber = 1, nav, task, tools }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, note, overlay, speaking, children, firstNumber = 1, nav, task, tools }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find lines to glide
   const spots = useRef(new Map<string, DOMRect>()); // where each step's line was drawn last time
@@ -137,6 +138,12 @@ export function Board({ problemLatex, status, lines, current, ghost, overlay, sp
             ))}
             {/* key = step number, so a new step mounts fresh and fades in (typing doesn't re-animate) */}
             {current && <Current key={current.number} line={current} />}
+            {/* The "why" of this step, like a teacher's note under the line (scrolls if it's long) */}
+            {note && (
+              <div key={`note-${current?.number ?? 0}`} className="board-note no-bar -mt-2 ml-12 max-h-[7.5em] max-w-[880px] overflow-y-auto border-l-[3px] border-gold/70 pl-4 text-[17px] leading-relaxed text-text md:text-[20px]">
+                {note}
+              </div>
+            )}
             {ghost && <span className="truncate pl-12 font-hand text-2xl text-[rgba(236,232,221,.38)] md:text-[32px]">{ghost}</span>}
           </div>
         )}

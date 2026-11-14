@@ -63,6 +63,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   const [wrongLine, setWrongLine] = useState<string | null>(null); // the rejected line (with its pink ring)
   const [checkedDraft, setCheckedDraft] = useState(""); // the text that was rejected (the ring shows until they edit it)
   const [showFix, setShowFix] = useState(false); // show the teal corrected line?
+  const [revealed, setRevealed] = useState(false); // "Show me this step": the step is written out and explained, waiting for "Got it"
   const [checking, setChecking] = useState(false); // waiting for /api/check-step
   const [checkError, setCheckError] = useState<string | null>(null);
   const [overlay, setOverlay] = useState<Overlay>(null);
@@ -203,6 +204,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     setShowFix(false);
     setCheckError(null);
     setOptions(null);
+    setRevealed(false);
   }
   function finish(from: WorkMode) {
     setFinishedFrom(from);
@@ -409,7 +411,28 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     setHintUsed(true);
   }
 
-  // "Stuck? Show me this step": the tutor writes the expected line (marked ⚠) and we move on.
+  // "Stuck? Show me this step": write the step on the board in gold with its rule, and explain it in
+  // the Focus card. The student reads it, then presses "Got it" (or types / says it back) to move on.
+  function revealStep() {
+    if (!steps[expected]) return;
+    if (!hintUsed) setStats((s) => ({ ...s, hints: s.hints + 1 }));
+    setHintUsed(true); // the line will get a ⚠ (they had help)
+    setRevealed(true);
+    setShowHint(false);
+    setResult(null);
+    setWrongLine(null);
+    setShowFix(false);
+    setDraft("");
+    input.current?.clear();
+  }
+
+  // What the tutor says when it shows a step (Think-aloud).
+  function explainAloud(i: number) {
+    const step = steps[i];
+    return `Here's step ${progress.length + 1}, ${step.rule}: ${latexToWords(step.plain_latex)}. ${speakable(step.why)} Say it back, or say next.`;
+  }
+
+  // "Got it": the shown step joins the board (marked ⚠, since they had help) and we move on.
   function showMeThisStep() {
     const step = steps[expected];
     if (!step) return;
@@ -547,14 +570,18 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         setShowFix(true); // the teal fix appears beside the ring
         say(`Here's the fix: ${latexToWords(step.plain_latex)}.`, "The fix is written in teal on the board. Say it back to keep going.");
       } else {
-        showMeThisStep(); // nothing to fix yet: "Stuck? Show me this step"
-        say(`Here's step ${progress.length + 1}: ${latexToWords(step.plain_latex)}.`);
+        revealStep(); // nothing to fix yet: "Stuck? Show me this step" writes it out and explains it
+        say(explainAloud(expected), `**${step.rule}.** ${step.why}`);
       }
     } else if (h.intent === "undo") {
       say(takeBack());
     } else if (h.intent === "next") {
       if (options) say("Pick one first: say the first one, or the second one.");
-      else if (wrongLine !== null && showFix && step) {
+      else if (revealed && step) {
+        const last = expected + 1 >= total;
+        showMeThisStep(); // "Got it": the shown step goes on the board
+        if (!last) say("Okay. Say your next step.");
+      } else if (wrongLine !== null && showFix && step) {
         const last = expected + 1 >= total;
         showMeThisStep(); // take the fix and move on (marked ⚠, like "Show me this step")
         if (!last) say("Okay, I wrote the fix down. Say your next step.");
@@ -594,17 +621,23 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   let current: CurrentLine | null = null;
   let status = "";
   let ghost: string | null = null;
+  let note: ReactNode = null; // the explanation written under the current line
   if (pkg && mode === "walkthrough") {
     lines = steps.slice(0, view - 1).map((s) => ({ latex: s.latex, mark: "none" }));
     const last = view === total; // the last step is the answer: teal frame + "the answer!"
     current = { latex: steps[view - 1].latex, number: view, badge: "gold", tag: steps[view - 1].rule, final: last }; // tag = rule label beside the line
     status = last ? "solved ✓" : `step ${view} of ${total}`;
-    ghost = last ? null : `next: ${steps[view].rule.toLowerCase()}`;
+    note = (
+      <>
+        <span className="mr-2 font-hand text-[1.25em] leading-none text-gold">why?</span>
+        <RichText text={steps[view - 1].why} />
+      </>
+    );
   } else if (pkg && mode === "practice") {
     lines = progress;
     const n = progress.length + 1;
     const wrongNow = wrongLine !== null && draft === checkedDraft; // show the ringed line until they edit it
-    current = {
+    current = revealed && !draft ? { latex: steps[expected].latex, number: n, badge: "gold", tag: steps[expected].rule } : { // shown step: in gold, with its rule
       latex: wrongNow ? wrongLine! : draft,
       number: n,
       badge: "pink",
@@ -619,13 +652,14 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       ) : null,
       fixLatex: wrongNow && showFix ? steps[expected]?.latex : null,
     };
-    status = `your turn · step ${n}`;
+    status = revealed ? `step ${n} · here's how` : `your turn · step ${n}`;
+    if (revealed && !draft) note = <><span className="mr-2 font-hand text-[1.25em] leading-none text-gold">here’s why:</span><RichText text={steps[expected].why} /></>;
   } else if (pkg && mode === "voice") {
     // Think-aloud: the same board as Step practice, but the line comes from your voice.
     lines = progress;
     const n = progress.length + 1;
     const wrongNow = wrongLine !== null && draft === checkedDraft;
-    current = {
+    current = revealed && !draft ? { latex: steps[expected].latex, number: n, badge: "gold", tag: steps[expected].rule } : { // shown step: in gold, with its rule
       latex: wrongNow ? wrongLine! : draft,
       number: n,
       badge: voice.phase === "listening" || voice.phase === "writing" || options ? "blue" : "pink", // blue = listening
@@ -644,6 +678,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       voice.phase === "listening" ? `step ${n} · listening`
       : voice.phase === "writing" ? `step ${n} · writing it down`
       : voice.phase === "checking" ? `step ${n} · checking`
+      : revealed ? `step ${n} · here's how`
       : wrongNow ? `step ${n} · take another look`
       : `step ${n} · your turn`;
     ghost = heard ? `“${heard}”` : null; // the words, under the line, so there's always text
@@ -723,6 +758,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           lines={lines}
           current={current}
           ghost={ghost}
+          note={note}
           speaking={reading || voice.phase === "speaking"} // colored parts glow while the tutor talks
           nav={pkg && mode === "walkthrough" ? { prev: view > 1 ? prevStep : undefined, next: view < total ? nextStep : undefined } : undefined}
           overlay={pkg && overlay ? <OverlayPanel pkg={pkg} overlay={overlay} onClose={() => setOverlay(null)} /> : null}
@@ -793,8 +829,17 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
         {pkg && mode === "practice" && steps[expected] && (
           <>
             <Card>
-              <span className="eyebrow text-pink">STEP {progress.length + 1} · YOUR TURN</span>
-              <PracticeFocus result={result} wrong={wrongLine !== null} showHint={showHint} hint={steps[expected].hint} summary={steps[expected].summary} error={checkError} />
+              {revealed ? (
+                <>
+                  <span className="eyebrow text-gold">STEP {progress.length + 1} · {steps[expected].rule.toUpperCase()}</span>
+                  <span className="text-base leading-relaxed text-text">The step and the reason for it are on the board. Copy it onto your paper, then press <strong>Got it</strong>, or type it yourself in the box for practice.</span>
+                </>
+              ) : (
+                <>
+                  <span className="eyebrow text-pink">STEP {progress.length + 1} · YOUR TURN</span>
+                  <PracticeFocus result={result} wrong={wrongLine !== null} showHint={showHint} hint={steps[expected].hint} summary={steps[expected].summary} error={checkError} />
+                </>
+              )}
               <div className="mt-auto flex gap-2">
                 <button className="btn h-10" onClick={revealHint} disabled={showHint}>Hint</button>
                 <button className="btn h-10" disabled={!steps[expected].side_work} onClick={() => setOverlay({ kind: "side", stepIndex: expected })}>Side work</button>
@@ -816,9 +861,13 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                   </button>
                 ))}
               </div>
-              <button className="mt-auto h-10 text-left text-sm font-medium text-muted hover:text-text" onClick={showMeThisStep}>
-                Stuck? Show me this step →
-              </button>
+              {revealed ? (
+                <button className="btn btn-primary mt-auto h-10" onClick={showMeThisStep}>Got it, next step →</button>
+              ) : (
+                <button className="mt-auto h-10 text-left text-sm font-medium text-muted hover:text-text" onClick={revealStep}>
+                  Stuck? Show me this step →
+                </button>
+              )}
             </Card>
           </>
         )}
@@ -897,9 +946,19 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                     className="min-h-0 overflow-y-auto text-base leading-relaxed text-text"
                     text={tutor ?? (progress.length ? "✓ Keep going. Say your next step." : "Correct steps get a quiet ✓. If something's off, I'll say so.")}
                   />
-                  <button className="mt-auto h-8 text-left text-sm font-medium text-muted hover:text-text" onClick={showMeThisStep}>
-                    Stuck? Show me this step →
-                  </button>
+                  {revealed ? (
+                    <button className="btn btn-primary mt-auto h-9 self-start" onClick={() => { showMeThisStep(); setTutor(null); }}>Got it, next step →</button>
+                  ) : (
+                    <button
+                      className="mt-auto h-8 text-left text-sm font-medium text-muted hover:text-text"
+                      onClick={() => {
+                        revealStep();
+                        say(explainAloud(expected), `**${steps[expected].rule}.** ${steps[expected].why}`);
+                      }}
+                    >
+                      Stuck? Show me this step →
+                    </button>
+                  )}
                 </>
               )}
             </Card>
@@ -1228,7 +1287,7 @@ function WhyCard({ pkg, stepIndex, onSideWork }: { pkg: SolutionPackage; stepInd
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2.5">
       <div className="flex items-center gap-3">
-        <span className="font-hand text-[28px] leading-none text-gold">why step {stepIndex + 1}?</span>
+        <span className="font-hand text-[28px] leading-none text-gold">questions about step {stepIndex + 1}?</span>
         <span className="truncate text-[17px] font-semibold text-text">{step.rule}</span>
         {step.side_work && (
           <button className="ml-auto shrink-0 rounded-full border border-white/15 px-3.5 py-1.5 text-sm font-semibold text-muted transition hover:border-white/35 hover:text-text" onClick={onSideWork}>
@@ -1238,7 +1297,12 @@ function WhyCard({ pkg, stepIndex, onSideWork }: { pkg: SolutionPackage; stepInd
       </div>
       {/* the explanation (and any follow-up answer) scroll inside the card if they're long */}
       <div className="no-bar flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto border-l-[3px] border-gold/70 pl-4">
-        <RichText className="text-[19px] leading-relaxed text-text" text={step.why} />
+        {/* The "why" itself is written on the board under the line; this card is for follow-up questions. */}
+        {!answer && (
+          <span className="text-[17px] leading-relaxed text-muted">
+            The reason for this step is on the board, right under the line. Still unsure? Ask anything about it here, like “why not pick u = x?”
+          </span>
+        )}
         {answer && (
           <div className="fade-in rounded-xl bg-white/[.05] px-3.5 py-2">
             <span className="font-hand text-lg text-blue">you asked: {answer.q}</span>

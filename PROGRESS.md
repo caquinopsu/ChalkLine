@@ -77,6 +77,16 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
 - Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
+## Library complete + explain-don't-skip + why on the board ✅ (Nov 13, 2026)
+- **The 4 missing library problems** (quotient rule, logarithmic differentiation, by parts twice,
+  alternating series) are generated with `npm run presets -- <ids>`, checked by SymPy (3 of 4; the
+  series one can't be) and proofread by hand. All 29 library problems now open.
+- **"Stuck? Show me this step"** no longer skips ahead: the step is written on the board in gold with
+  its rule and a "here's why" note under it. The student copies it, then presses **Got it, next step**
+  (or types/says it back, or says "next" in Think-aloud, where the tutor also reads the explanation).
+- **Why on the board:** in Walkthrough the explanation is now a gold-edged note right under the
+  current line (it scrolls if long). The dock card below is just for follow-up questions.
+
 ## Voice pass 2: slips, commands, hands-free, guide ✅ (Nov 12, 2026)
 - **Tutor voice:** Cartesia (Sonic 3.6) through `/api/tts` when `CARTESIA_API_KEY` is set (replaces
   ElevenLabs); the browser voice is still the fallback.

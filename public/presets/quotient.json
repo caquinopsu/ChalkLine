@@ -1,0 +1,139 @@
+{
+  "problem_latex": "\\frac{d}{dx}\\left[\\frac{x^2+1}{x-1}\\right]",
+  "task": "Find the derivative.",
+  "problem_sympy": "Derivative((x**2 + 1)/(x - 1), x)",
+  "topic": "Derivatives",
+  "techniques": [
+    "Quotient Rule"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\frac{\\htmlClass{role-a}{\\frac{d}{dx}[x^2+1]}\\cdot \\htmlClass{role-b}{(x-1)} - \\htmlClass{role-a}{(x^2+1)}\\cdot \\htmlClass{role-b}{\\frac{d}{dx}[x-1]}}{\\htmlClass{role-b}{(x-1)^2}}",
+      "plain_latex": "\\frac{\\frac{d}{dx}[x^2+1]\\cdot (x-1) - (x^2+1)\\cdot \\frac{d}{dx}[x-1]}{(x-1)^2}",
+      "sympy": "Derivative(x**2 + 1, x)*(x - 1)/(x - 1)**2 - (x**2 + 1)*Derivative(x - 1, x)/(x - 1)**2",
+      "chain": true,
+      "rule": "Quotient Rule",
+      "comment": "apply low d-high minus high d-low over low squared",
+      "summary": "Apply the quotient rule to express the derivative.",
+      "why": "The function is a quotient of two polynomials, so we use the quotient rule: $\\frac{d}{dx}\\left[\\frac{f}{g}\\right] = \\frac{f'g - fg'}{g^2}$. Here $f(x) = x^2+1$ and $g(x) = x-1$.",
+      "hint": "Use the quotient rule formula: low $d$-high minus high $d$-low over low squared.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Flipping the numerator terms to write $fg' - f'g$.",
+          "hint": "Remember that the quotient rule starts with the derivative of the top: low $d$-high minus high $d$-low."
+        },
+        {
+          "mistake": "Adding instead of subtracting in the numerator.",
+          "hint": "The quotient rule uses subtraction in the numerator, unlike the product rule."
+        }
+      ],
+      "parts": [
+        {
+          "id": "num",
+          "latex": "\\frac{d}{dx}[x^2+1]",
+          "role": "a"
+        },
+        {
+          "id": "den",
+          "latex": "(x-1)",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\frac{\\htmlClass{role-a}{(2x)}(x-1) - (x^2+1)\\htmlClass{role-b}{(1)}}{(x-1)^2}",
+      "plain_latex": "\\frac{(2x)(x-1) - (x^2+1)(1)}{(x-1)^2}",
+      "sympy": "(2*x*(x - 1) - (x**2 + 1)*1)/(x - 1)**2",
+      "chain": true,
+      "rule": "Power Rule",
+      "comment": "take the individual derivatives",
+      "summary": "Evaluate the derivatives of the top and bottom expressions.",
+      "why": "The derivative of $x^2+1$ is $2x$, and the derivative of $x-1$ is $1$.",
+      "hint": "Differentiate $x^2+1$ and $x-1$ using the power rule.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing the derivative of $x^2+1$ as $2x+1$.",
+          "hint": "The derivative of a constant term like $1$ is $0$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "d_top",
+          "latex": "(2x)",
+          "role": "a"
+        },
+        {
+          "id": "d_bot",
+          "latex": "(1)",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\frac{\\htmlClass{role-a}{2x^2 - 2x} - \\htmlClass{role-b}{x^2 - 1}}{(x-1)^2}",
+      "plain_latex": "\\frac{2x^2 - 2x - x^2 - 1}{(x-1)^2}",
+      "sympy": "(2*x**2 - 2*x - x**2 - 1)/(x - 1)**2",
+      "chain": true,
+      "rule": "Expand numerator",
+      "comment": "distribute to clear parentheses in numerator",
+      "summary": "Distribute terms in the numerator.",
+      "why": "Expanding $2x(x-1)$ gives $2x^2 - 2x$, and subtracting $(x^2+1)$ distributes the negative sign to get $-x^2 - 1$.",
+      "hint": "Distribute $2x$ through $(x-1)$ and distribute the negative sign through $(x^2+1)$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to distribute the minus sign to $+1$, writing $- x^2 + 1$.",
+          "hint": "Make sure the negative sign is applied to every term inside $(x^2+1)$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "first_expanded",
+          "latex": "2x^2 - 2x",
+          "role": "a"
+        },
+        {
+          "id": "second_expanded",
+          "latex": "x^2 - 1",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{\\htmlClass{role-c}{x^2 - 2x - 1}}{(x-1)^2}",
+      "plain_latex": "\\frac{x^2 - 2x - 1}{(x-1)^2}",
+      "sympy": "(x**2 - 2*x - 1)/(x - 1)**2",
+      "chain": true,
+      "rule": "Combine like terms",
+      "comment": "combine like terms in the numerator",
+      "summary": "Combine like terms in the numerator to get the final answer.",
+      "why": "Combine $2x^2 - x^2 = x^2$, leaving $x^2 - 2x - 1$ in the numerator.",
+      "hint": "Subtract $x^2$ from $2x^2$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Attempting to cancel $(x-1)$ terms incorrectly without factoring properly.",
+          "hint": "Check if the numerator factors first before trying to cancel with the denominator."
+        }
+      ],
+      "parts": [
+        {
+          "id": "final_num",
+          "latex": "x^2 - 2x - 1",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\frac{x^2 - 2x - 1}{(x-1)^2}",
+  "final_answer_sympy": "(x**2 - 2*x - 1)/(x - 1)**2"
+}

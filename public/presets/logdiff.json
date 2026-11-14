@@ -1,0 +1,159 @@
+{
+  "problem_latex": "\\frac{d}{dx}\\left[x^{x}\\right]",
+  "task": "Find the derivative.",
+  "problem_sympy": "Derivative(x**x, x)",
+  "topic": "Logarithmic Differentiation",
+  "techniques": [
+    "Logarithmic Differentiation",
+    "Implicit Differentiation",
+    "Product Rule"
+  ],
+  "check_mode": "value",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\ln \\htmlClass{role-a}{y} = \\htmlClass{role-b}{x \\ln x}",
+      "plain_latex": "\\ln y = x \\ln x",
+      "sympy": null,
+      "chain": false,
+      "rule": "Take the logarithm",
+      "comment": "take ln of both sides to bring the exponent down",
+      "summary": "Set $y = x^x$ and take the natural logarithm of both sides.",
+      "why": "When a function has a variable in both the base and exponent, taking the natural logarithm allows us to bring the exponent down using the property $\\ln(a^b) = b \\ln a$.",
+      "hint": "Let $y = x^x$ and take the natural log $\\ln$ of both sides.",
+      "side_work": {
+        "title": "Log Rule",
+        "lines": [
+          "y = x^x",
+          "\\ln y = \\ln(x^x) = x \\ln x"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Using the power rule incorrectly to get x \\cdot x^{x-1} = x^x.",
+          "hint": "The power rule only applies when the exponent is a constant, not a variable."
+        }
+      ],
+      "parts": [
+        {
+          "id": "y_var",
+          "latex": "y",
+          "role": "a"
+        },
+        {
+          "id": "rhs_ln",
+          "latex": "x \\ln x",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\frac{1}{\\htmlClass{role-a}{y}} \\frac{dy}{dx} = \\htmlClass{role-b}{\\ln x + 1}",
+      "plain_latex": "\\frac{1}{y} \\frac{dy}{dx} = \\ln x + 1",
+      "sympy": null,
+      "chain": false,
+      "rule": "Implicit differentiation",
+      "comment": "differentiate both sides with respect to x",
+      "summary": "Differentiate both sides with respect to $x$, using the chain rule on the left and the product rule on the right.",
+      "why": "The left side $\\ln y$ requires the chain rule: $\\frac{d}{dx}[\\ln y] = \\frac{1}{y} \\frac{dy}{dx}$. The right side $x \\ln x$ requires the product rule: $(1)\\ln x + x(\\frac{1}{x}) = \\ln x + 1$.",
+      "hint": "Apply implicit differentiation to the left side and the product rule to $x \\ln x$ on the right side.",
+      "side_work": {
+        "title": "Product Rule",
+        "lines": [
+          "\\frac{d}{dx}[x \\ln x] = (1)\\ln x + x \\cdot \\frac{1}{x}",
+          "= \\ln x + 1"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting \\frac{dy}{dx} on the left side and writing \\frac{1}{y}.",
+          "hint": "Since $y$ is a function of $x$, apply the chain rule when taking the derivative of $\\ln y$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "y_var",
+          "latex": "y",
+          "role": "a"
+        },
+        {
+          "id": "rhs_diff",
+          "latex": "\\ln x + 1",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\frac{dy}{dx} = \\htmlClass{role-a}{y} (\\htmlClass{role-b}{\\ln x + 1})",
+      "plain_latex": "\\frac{dy}{dx} = y (\\ln x + 1)",
+      "sympy": null,
+      "chain": false,
+      "rule": "Solve for dy/dx",
+      "comment": "multiply both sides by y to isolate the derivative",
+      "summary": "Multiply both sides by $y$ to solve for $\\frac{dy}{dx}$.",
+      "why": "We want to isolate $\\frac{dy}{dx}$, so we multiply both sides of the equation by $y$.",
+      "hint": "Multiply both sides of the equation by $y$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Leaving the answer in terms of both x and y.",
+          "hint": "Remember to substitute the original expression for $y$ back in to get a final answer in terms of $x$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "y_var",
+          "latex": "y",
+          "role": "a"
+        },
+        {
+          "id": "rhs_diff",
+          "latex": "\\ln x + 1",
+          "role": "b"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\frac{dy}{dx} = \\htmlClass{role-a}{x^x} (\\htmlClass{role-b}{\\ln x + 1})",
+      "plain_latex": "\\frac{dy}{dx} = x^x (\\ln x + 1)",
+      "sympy": "x**x*(log(x) + 1)",
+      "chain": true,
+      "rule": "Substitute y",
+      "comment": "replace y with original expression x^x",
+      "summary": "Substitute $y = x^x$ back into the formula.",
+      "why": "The original problem asked for the derivative with respect to $x$, so we express the final answer solely in terms of $x$.",
+      "hint": "Replace $y$ with $x^x$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting parentheses around \\ln x + 1.",
+          "hint": "Make sure $x^x$ multiplies the entire sum $\\ln x + 1$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "y_var",
+          "latex": "x^x",
+          "role": "a"
+        },
+        {
+          "id": "rhs_diff",
+          "latex": "\\ln x + 1",
+          "role": "b"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Exponential re-writing",
+      "summary": "Rewrite $x^x$ as $e^{x \\ln x}$ and differentiate directly using the chain rule."
+    }
+  ],
+  "final_answer_latex": "x^x (\\ln x + 1)",
+  "final_answer_sympy": "x**x*(log(x) + 1)"
+}

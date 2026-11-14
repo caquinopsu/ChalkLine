@@ -1,0 +1,119 @@
+{
+  "problem_latex": "\\sum_{n=1}^{\\infty}\\frac{(-1)^{n+1}}{n}",
+  "task": "Decide whether the series converges.",
+  "problem_sympy": null,
+  "topic": "Infinite Series",
+  "techniques": [
+    "Alternating Series Test"
+  ],
+  "check_mode": "value",
+  "variable": "n",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "b_n = \\htmlClass{role-a}{\\frac{1}{n}}",
+      "plain_latex": "b_n = \\frac{1}{n}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Identify positive terms",
+      "comment": "strip the alternating factor to find b_n",
+      "summary": "Identify the non-alternating part $b_n$.",
+      "why": "The alternating series test applies to series of the form $\\sum (-1)^{n+1} b_n$ or $\\sum (-1)^n b_n$. We must isolate the positive sequence $b_n$.",
+      "hint": "What is the positive sequence left over when you remove $(-1)^{n+1}$?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Including $(-1)^{n+1}$ inside $b_n$.",
+          "hint": "$b_n$ must be strictly positive."
+        }
+      ],
+      "parts": [
+        {
+          "id": "b_n",
+          "latex": "\\frac{1}{n}",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "b_{n+1} = \\frac{1}{n+1} \\le \\frac{1}{n} = b_n \\quad \\text{for all } n \\ge 1",
+      "plain_latex": "b_{n+1} = \\frac{1}{n+1} \\le \\frac{1}{n} = b_n \\quad \\text{for all } n \\ge 1",
+      "sympy": null,
+      "chain": false,
+      "rule": "Check monotonicity",
+      "comment": "verify that b_n is decreasing",
+      "summary": "Check that $b_n$ is a decreasing sequence.",
+      "why": "The first condition of the alternating series test requires that $b_{n+1} \\le b_n$ for all $n$. Since $n+1 > n$, taking reciprocals gives $\\frac{1}{n+1} < \\frac{1}{n}$.",
+      "hint": "Compare $\\frac{1}{n+1}$ to $\\frac{1}{n}$. Which one is smaller?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to show $b_n$ is decreasing.",
+          "hint": "The alternating series test requires demonstrating that terms get smaller."
+        }
+      ],
+      "parts": []
+    },
+    {
+      "id": "s3",
+      "latex": "\\lim_{n\\to\\infty} \\htmlClass{role-a}{\\frac{1}{n}} = \\htmlClass{role-c}{0}",
+      "plain_latex": "\\lim_{n\\to\\infty} \\frac{1}{n} = 0",
+      "sympy": null,
+      "chain": false,
+      "rule": "Check limit at infinity",
+      "comment": "terms must approach zero",
+      "summary": "Evaluate the limit of $b_n$ as $n \\to \\infty$.",
+      "why": "The second condition of the alternating series test requires $\\lim_{n\\to\\infty} b_n = 0$. Here $\\frac{1}{n} \\to 0$ as $n \\to \\infty$.",
+      "hint": "What happens to $\\frac{1}{n}$ as $n$ grows without bound?",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Evaluating the limit with $(-1)^{n+1}$ present.",
+          "hint": "Check the limit of just the positive sequence $b_n$."
+        }
+      ],
+      "parts": [
+        {
+          "id": "b_n",
+          "latex": "\\frac{1}{n}",
+          "role": "a"
+        },
+        {
+          "id": "zero",
+          "latex": "0",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "\\text{The series } \\sum_{n=1}^{\\infty} \\frac{(-1)^{n+1}}{n} \\text{ } \\htmlClass{role-c}{\\text{converges}} \\text{ by the Alternating Series Test.}",
+      "plain_latex": "\\text{The series } \\sum_{n=1}^{\\infty} \\frac{(-1)^{n+1}}{n} \\text{ converges by the Alternating Series Test.}",
+      "sympy": null,
+      "chain": false,
+      "rule": "Conclusion",
+      "comment": "both conditions met, so series converges",
+      "summary": "Conclude convergence based on the Alternating Series Test.",
+      "why": "Since $b_n > 0$, $b_n$ is decreasing, and $\\lim_{n\\to\\infty} b_n = 0$, both conditions of the alternating series test are satisfied.",
+      "hint": "Combine your results to make a final statement.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Claiming absolute convergence instead of conditional convergence.",
+          "hint": "The test only guarantees convergence; further testing is needed if absolute convergence is asked, but here we just need convergence."
+        }
+      ],
+      "parts": [
+        {
+          "id": "result",
+          "latex": "\\text{converges}",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [],
+  "final_answer_latex": "\\text{Converges by the Alternating Series Test}",
+  "final_answer_sympy": null
+}

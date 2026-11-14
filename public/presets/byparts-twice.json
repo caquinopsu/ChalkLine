@@ -1,0 +1,172 @@
+{
+  "problem_latex": "\\int x^2e^{x}\\,dx",
+  "task": "Find the antiderivative.",
+  "problem_sympy": "Integral(x**2*exp(x), x)",
+  "topic": "Integration by Parts",
+  "techniques": [
+    "Integration by Parts"
+  ],
+  "check_mode": "antiderivative",
+  "variable": "x",
+  "steps": [
+    {
+      "id": "s1",
+      "latex": "\\htmlClass{role-a}{x^2}\\htmlClass{role-b}{e^x} - \\int \\htmlClass{role-a}{2x}\\htmlClass{role-b}{e^x}\\,dx",
+      "plain_latex": "x^2 e^x - \\int 2x e^x\\,dx",
+      "sympy": "x**2*exp(x) - Integral(2*x*exp(x), x)",
+      "chain": true,
+      "rule": "Integration by parts",
+      "comment": "differentiate $x^2$ to reduce its power",
+      "summary": "Apply integration by parts with $u = x^2$ and $dv = e^x\\,dx$.",
+      "why": "Using $\\int u\\,dv = uv - \\int v\\,du$, differentiating $x^2$ reduces the polynomial power from $2$ to $1$, making the integral simpler.",
+      "hint": "Set $u = x^2$ so that its derivative lowers the power of $x$.",
+      "side_work": {
+        "title": "First integration by parts setup",
+        "lines": [
+          "u = x^2 \\implies du = 2x\\,dx",
+          "dv = e^x\\,dx \\implies v = e^x"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Choosing $u = e^x$ instead of $u = x^2$.",
+          "hint": "If you differentiate $e^x$, the exponent stays the same while $x^2$ gets integrated into $x^3/3$, making the integral harder."
+        }
+      ],
+      "parts": [
+        {
+          "id": "u1",
+          "latex": "x^2",
+          "role": "a"
+        },
+        {
+          "id": "v1",
+          "latex": "e^x",
+          "role": "b"
+        },
+        {
+          "id": "du1",
+          "latex": "2x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "latex": "\\htmlClass{role-a}{x^2}\\htmlClass{role-b}{e^x} - 2\\left(\\htmlClass{role-a}{x}\\htmlClass{role-b}{e^x} - \\int \\htmlClass{role-b}{e^x}\\,dx\\right)",
+      "plain_latex": "x^2 e^x - 2\\left(x e^x - \\int e^x\\,dx\\right)",
+      "sympy": "x**2*exp(x) - 2*(x*exp(x) - Integral(exp(x), x))",
+      "chain": true,
+      "rule": "Integration by parts",
+      "comment": "apply integration by parts a second time",
+      "summary": "Factor out the 2 and apply integration by parts to $\\int x e^x\\,dx$.",
+      "why": "The new integral still contains a product of $x$ and $e^x$. Applying integration by parts a second time eliminates $x$ completely.",
+      "hint": "Apply integration by parts to the remaining integral $\\int x e^x\\,dx$ with $u = x$.",
+      "side_work": {
+        "title": "Second integration by parts setup",
+        "lines": [
+          "u = x \\implies du = dx",
+          "dv = e^x\\,dx \\implies v = e^x"
+        ]
+      },
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting to distribute the negative sign or factor of $2$ across both terms of the second integration by parts formula.",
+          "hint": "Use parentheses around the entire result of the second integration by parts."
+        }
+      ],
+      "parts": [
+        {
+          "id": "u1",
+          "latex": "x^2",
+          "role": "a"
+        },
+        {
+          "id": "v1",
+          "latex": "e^x",
+          "role": "b"
+        },
+        {
+          "id": "u2",
+          "latex": "x",
+          "role": "a"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "latex": "\\htmlClass{role-a}{x^2}\\htmlClass{role-b}{e^x} - 2\\left(\\htmlClass{role-a}{x}\\htmlClass{role-b}{e^x} - \\htmlClass{role-b}{e^x}\\right) + \\htmlClass{role-c}{C}",
+      "plain_latex": "x^2 e^x - 2\\left(x e^x - e^x\\right) + C",
+      "sympy": "x**2*exp(x) - 2*(x*exp(x) - exp(x)) + C",
+      "chain": true,
+      "rule": "Evaluate remaining integral",
+      "comment": "integrate $e^x$ directly and add $C$",
+      "summary": "Integrate $\\int e^x\\,dx = e^x$ and add the constant of integration $+ C$.",
+      "why": "The antiderivative of $e^x$ is simply $e^x$. All integral signs are now evaluated.",
+      "hint": "Evaluate the basic integral $\\int e^x\\,dx$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Forgetting the constant of integration $+ C$.",
+          "hint": "Always add $+ C$ when completing an indefinite integral."
+        }
+      ],
+      "parts": [
+        {
+          "id": "u1",
+          "latex": "x^2",
+          "role": "a"
+        },
+        {
+          "id": "v1",
+          "latex": "e^x",
+          "role": "b"
+        },
+        {
+          "id": "u2",
+          "latex": "x",
+          "role": "a"
+        },
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    },
+    {
+      "id": "s4",
+      "latex": "x^2 e^x - 2x e^x + 2e^x + \\htmlClass{role-c}{C}",
+      "plain_latex": "x^2 e^x - 2x e^x + 2e^x + C",
+      "sympy": "x**2*exp(x) - 2*x*exp(x) + 2*exp(x) + C",
+      "chain": true,
+      "rule": "Simplify",
+      "comment": "distribute the constant to finalize",
+      "summary": "Distribute the $-2$ into the parentheses to simplify the expression.",
+      "why": "Distributing $-2$ through $(x e^x - e^x)$ gives $-2x e^x + 2e^x$.",
+      "hint": "Expand $-2(x e^x - e^x)$ by distributing $-2$.",
+      "side_work": null,
+      "common_mistakes": [
+        {
+          "mistake": "Writing $-2 e^x$ instead of $+2 e^x$ when distributing $-2 \\cdot (-e^x)$.",
+          "hint": "Multiplying two negative signs yields a positive term."
+        }
+      ],
+      "parts": [
+        {
+          "id": "C",
+          "latex": "C",
+          "role": "c"
+        }
+      ]
+    }
+  ],
+  "alternates": [
+    {
+      "label": "Tabular Integration",
+      "summary": "Set up a table repeatedly differentiating $x^2$ down to $0$ and integrating $e^x$, then combine terms along the diagonals with alternating signs."
+    }
+  ],
+  "final_answer_latex": "x^2 e^x - 2x e^x + 2e^x + C",
+  "final_answer_sympy": "x**2*exp(x) - 2*x*exp(x) + 2*exp(x) + C"
+}
