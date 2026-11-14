@@ -49,21 +49,21 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
         <ThemeToggle className="ml-auto" />
       </header>
 
-      <main className="fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 pb-6 md:justify-start md:gap-7 md:pt-[2vh] short:gap-5 short:pt-2 big:gap-9">
+      <main className="fade-up flex min-h-0 flex-1 flex-col items-center justify-center gap-6 overflow-hidden px-4 pb-6 md:justify-start md:gap-7 md:pt-[2vh] 2xl:gap-9">
         {/* Laptop: a live chalkboard that solves a demo problem on its own (hidden on phones) */}
-        <div className="hidden w-full max-w-[1040px] md:block big:max-w-[1240px] short:max-w-[760px]" aria-hidden>
+        <div className="hidden w-full max-w-[1040px] md:block 2xl:max-w-[1240px]" aria-hidden>
           <DemoBoard />
         </div>
 
         <div className="relative text-center">
           {/* a soft gold glow behind the title */}
           <div aria-hidden className="absolute left-1/2 top-1/2 -z-10 h-40 w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gold/[.06] blur-3xl" />
-          <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[50px] short:text-[44px] big:text-[62px]">What are we solving today?</h1>
-          <p className="mt-1 font-hand text-2xl text-gold md:text-[32px] big:text-[38px]">See the math move.</p>
+          <h1 className="font-display text-[34px] font-semibold leading-tight md:text-[50px] 2xl:text-[62px]">What are we solving today?</h1>
+          <p className="mt-1 font-hand text-2xl text-gold md:text-[32px] 2xl:text-[38px]">See the math move.</p>
         </div>
 
         {/* Three ways to bring a problem */}
-        <div className="grid w-full max-w-md grid-cols-1 gap-3 md:max-w-[1040px] md:grid-cols-3 md:gap-4 big:max-w-[1240px] big:gap-5">
+        <div className="grid w-full max-w-md grid-cols-1 gap-3 md:max-w-[1040px] md:grid-cols-3 md:gap-4 2xl:max-w-[1240px] 2xl:gap-5">
           <EntryCard
             icon={<CameraIcon />}
             tint="bg-blue/15 text-blue"
@@ -93,12 +93,12 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
         {/* The problem library: solved problems by concept, plus picks for your weak spots */}
         <button
           onClick={onLibrary}
-          className="group flex w-full max-w-md items-center gap-4 rounded-[20px] border-2 border-white/20 bg-gradient-to-r from-panel to-panel-2 px-5 py-3.5 shadow-[0_2px_0_color-mix(in_srgb,var(--color-text)_8%,transparent)] text-left transition duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_10px_36px_rgba(242,201,76,.14)] md:max-w-[1040px] big:max-w-[1240px]"
+          className="group flex w-full max-w-md items-center gap-4 rounded-[20px] border-2 border-white/20 bg-gradient-to-r from-panel to-panel-2 px-5 py-3.5 shadow-[0_2px_0_color-mix(in_srgb,var(--color-text)_8%,transparent)] text-left transition duration-200 hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_10px_36px_rgba(242,201,76,.14)] md:max-w-[1040px] 2xl:max-w-[1240px]"
         >
           <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold transition group-hover:scale-110"><BookIcon /></span>
           <span className="flex min-w-0 flex-col">
-            <span className="text-[17px] font-semibold big:text-xl">Problem library</span>
-            <span className="text-sm text-muted big:text-base">{PRESETS.length} solved problems by concept, and picks for the steps you miss</span>
+            <span className="text-[17px] font-semibold 2xl:text-xl">Problem library</span>
+            <span className="text-sm text-muted 2xl:text-base">{PRESETS.length} solved problems by concept, and picks for the steps you miss</span>
           </span>
           <span className="ml-auto hidden items-center gap-2 xl:flex">
             {TOPICS.map((t) => (
@@ -109,7 +109,7 @@ export function StartScreen({ onStart, onLibrary }: { onStart: (choice: StartCho
         </button>
       </main>
 
-      <footer className="hidden shrink-0 pb-4 text-center text-sm text-subtle md:block short:hidden">
+      <footer className="hidden shrink-0 pb-4 text-center text-sm text-subtle md:block">
         Talk it through: hold space (or the mic) and say the problem
       </footer>
 
@@ -179,7 +179,7 @@ export function Sheet({ title, icon, tint, onClose, children }: { title: string;
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className={`sheet ${leaving ? "sheet-out" : ""} no-bar flex max-h-[calc(90dvh/var(--ui-zoom))] w-[min(1080px,calc(94vw/var(--ui-zoom)))] flex-col gap-6 overflow-y-auto rounded-[28px] border border-white/10 bg-panel p-6 shadow-[0_30px_80px_rgba(60,45,30,.25)] md:p-9`}
+        className={`sheet ${leaving ? "sheet-out" : ""} no-bar flex max-h-[90vh] w-[min(1080px,94vw)] flex-col gap-6 overflow-y-auto rounded-[28px] border border-white/10 bg-panel p-6 shadow-[0_30px_80px_rgba(60,45,30,.25)] md:p-9`}
         onClick={(e) => e.stopPropagation()} // clicks inside don't close it
       >
         <div className="flex items-center gap-4">
@@ -210,16 +210,16 @@ function EntryCard({ icon, tint, edge = "border-white/20 hover:border-white/40",
     <button
       onClick={onClick}
       // a 2px colored edge per card (blue / teal / gold), like a tab in a notebook; it fills in on hover
-      className={`group relative flex h-[92px] items-center gap-4 rounded-[20px] border-2 px-4 text-left shadow-[0_2px_0_color-mix(in_srgb,var(--color-text)_8%,transparent)] transition duration-200 hover:-translate-y-1 md:h-[108px] md:px-5 big:h-[124px] ${
+      className={`group relative flex h-[92px] items-center gap-4 rounded-[20px] border-2 px-4 text-left shadow-[0_2px_0_color-mix(in_srgb,var(--color-text)_8%,transparent)] transition duration-200 hover:-translate-y-1 md:h-[108px] md:px-5 2xl:h-[124px] ${
         gold
           ? "border-gold/80 bg-panel shadow-[0_0_30px_rgba(242,201,76,.14)] hover:border-gold hover:shadow-[0_10px_40px_rgba(242,201,76,.24)]"
           : `${edge} bg-panel hover:bg-panel-2 hover:shadow-[0_10px_30px_rgba(60,45,30,.15)]`
       }`}
     >
-      <span className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition group-hover:scale-110 big:h-[60px] big:w-[60px] ${tint}`}>{icon}</span>
+      <span className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition group-hover:scale-110 2xl:h-[60px] 2xl:w-[60px] ${tint}`}>{icon}</span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-[17px] font-semibold big:text-xl">{title}</span>
-        <span className="text-sm leading-snug text-muted big:text-base">{sub}</span>
+        <span className="text-[17px] font-semibold 2xl:text-xl">{title}</span>
+        <span className="text-sm leading-snug text-muted 2xl:text-base">{sub}</span>
       </span>
       {badge && <span className="absolute -top-2.5 right-5 rounded-full bg-gold px-2.5 py-0.5 text-[10px] font-bold tracking-wide text-[#14181D]">{badge}</span>}
       <span aria-hidden className="text-xl text-muted transition group-hover:translate-x-1 group-hover:text-text">→</span>

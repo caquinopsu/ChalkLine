@@ -820,7 +820,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
       <section
         ref={tray}
         aria-label="Tray"
-        className={`tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] big:h-[268px] ${pkg && (mode === "walkthrough" || mode === "finished") ? "md:grid-cols-[1.9fr_1fr]" : "md:grid-cols-[1.15fr_1fr_1fr]"} md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(60,45,30,.12)]`}
+        className={`tray tray-in relative flex h-[262px] shrink-0 snap-x snap-mandatory gap-3 overflow-x-auto px-3 pb-3 pt-2 md:mx-10 md:mb-5 md:mt-4 md:grid md:h-[236px] 2xl:h-[268px] ${pkg && (mode === "walkthrough" || mode === "finished") ? "md:grid-cols-[1.9fr_1fr]" : "md:grid-cols-[1.15fr_1fr_1fr]"} md:gap-0 md:overflow-hidden md:rounded-[26px] md:border md:border-white/[.09] md:bg-gradient-to-b md:from-panel-2 md:to-panel md:p-0 md:shadow-[0_18px_40px_rgba(60,45,30,.12)]`}
       >
         <span aria-hidden className={`absolute inset-x-0 top-0 hidden h-[3px] md:block ${dockLine}`} />
         {pkg && mode === "walkthrough" && (
@@ -1110,7 +1110,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               <div className="flex flex-wrap items-center gap-2">
                 <span className="eyebrow mr-1 text-teal">techniques used</span>
                 {pkg.techniques.map((t) => (
-                  <span key={t} className="rounded-full bg-teal/15 px-3.5 py-1 text-base font-semibold text-teal big:text-lg">{t}</span>
+                  <span key={t} className="rounded-full bg-teal/15 px-3.5 py-1 text-base font-semibold text-teal 2xl:text-lg">{t}</span>
                 ))}
                 {(finishedFrom === "practice" || finishedFrom === "voice") && (
                   // how it went, in one handwritten line
@@ -1123,9 +1123,9 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
               <ol className="no-bar grid min-h-0 grid-flow-col grid-cols-2 gap-x-8 gap-y-2.5 overflow-y-auto pt-2" style={{ gridTemplateRows: `repeat(${Math.ceil(steps.length / 2)}, auto)` }}>
                 {steps.map((st, i) => (
                   <li key={i} className="flex min-w-0 items-baseline gap-3">
-                    <span className="w-6 shrink-0 text-center font-hand text-[26px] leading-none text-gold big:text-[30px]">{i + 1}</span>
+                    <span className="w-6 shrink-0 text-center font-hand text-[26px] leading-none text-gold 2xl:text-[30px]">{i + 1}</span>
                     {/* one line per step: the rule, then the takeaway from the board */}
-                    <span className="min-w-0 truncate text-[17px] big:text-xl">
+                    <span className="min-w-0 truncate text-[17px] 2xl:text-xl">
                       <span className="font-semibold text-text">{st.rule}</span>
                       {st.comment && <span className="text-muted"> · <RichText text={st.comment} /></span>}
                     </span>
@@ -1148,24 +1148,24 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
                 <>
                   {nextPart !== null && set && (
                     // the next part of the worksheet, already solving in the background
-                    <button className="btn btn-primary h-[52px] w-full text-[16px] big:h-[60px] big:text-lg" onClick={() => onPickPart(nextPart, finishedFrom)}>
+                    <button className="btn btn-primary h-[52px] w-full text-[16px] 2xl:h-[60px] 2xl:text-lg" onClick={() => onPickPart(nextPart, finishedFrom)}>
                       Next: part {set.parts[nextPart].label} →
                     </button>
                   )}
                   {finishedFrom === "walkthrough" && nextPart === null && (
-                    <button className="btn btn-primary h-[52px] w-full text-[16px] big:h-[60px] big:text-lg" onClick={() => goPractice(0)}>✎ Now solve it yourself</button>
+                    <button className="btn btn-primary h-[52px] w-full text-[16px] 2xl:h-[60px] 2xl:text-lg" onClick={() => goPractice(0)}>✎ Now solve it yourself</button>
                   )}
-                  <button className={`btn h-[48px] w-full big:h-[56px] big:text-lg ${nextPart === null && finishedFrom !== "walkthrough" ? "btn-primary" : ""}`} disabled={similar.state === "loading"} onClick={askSimilar}>
+                  <button className={`btn h-[48px] w-full 2xl:h-[56px] 2xl:text-lg ${nextPart === null && finishedFrom !== "walkthrough" ? "btn-primary" : ""}`} disabled={similar.state === "loading"} onClick={askSimilar}>
                     {similar.state === "loading" ? "Writing a new problem…" : "Give me a similar problem"}
                   </button>
-                  <span className={`text-center text-sm big:text-base ${similar.state === "error" ? "text-pink" : "text-muted"}`}>
+                  <span className={`text-center text-sm 2xl:text-base ${similar.state === "error" ? "text-pink" : "text-muted"}`}>
                     {similar.state === "loading"
                       ? "Solving and double-checking it first (about 30 s)."
                       : similar.state === "error"
                         ? similar.error
                         : "Same technique, new numbers."}
                   </span>
-                  <button className="text-sm font-semibold text-blue hover:underline big:text-base" onClick={() => onLibrary(pkg.techniques[0])}>
+                  <button className="text-sm font-semibold text-blue hover:underline 2xl:text-base" onClick={() => onLibrary(pkg.techniques[0])}>
                     More {pkg.techniques[0] ?? "practice"} problems in the library →
                   </button>
                 </>
