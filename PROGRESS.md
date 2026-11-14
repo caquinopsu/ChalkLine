@@ -77,6 +77,11 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
 - Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
+## Bigger summary ✅ (Nov 13, 2026)
+- The summary board's `// comments` now sit under each line instead of in a side column, so long
+  lines no longer force everything small: the solution scales up to fill the board's height
+  (about 1.5x on a wide screen). The summary dock's text and buttons are larger on big screens.
+
 ## Dark mode, notebook margins, stronger borders ✅ (Nov 13, 2026)
 - **Dark mode** ("evening study"): warm espresso browns around the same oak-framed green board, with the
   bright chalk accent colors. A sun/moon button in the header (home, library, every problem) switches;
