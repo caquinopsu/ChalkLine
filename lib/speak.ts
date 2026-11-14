@@ -1,11 +1,12 @@
 // Browser helpers for the tutor's voice.
-// speak() tries Cartesia through our /api/tts route (only if the server has a key), and falls back
-// to the browser's built-in voice (speechSynthesis) on ANY problem. latexToWords() turns math into
+// speak() / speakSequence() try Cartesia through our /api/tts route (only if the server has a key), and
+// fall back to the browser's built-in voice (speechSynthesis) on ANY problem. latexToWords() turns math into
 // something a voice can read: "\frac{x^2}{2}" -> "x squared over 2".
 
 let ttsOff = false; // set once /api/tts says Cartesia isn't set up, so we stop asking
 let audio: HTMLAudioElement | null = null; // the Cartesia clip that's playing, if any
 let finishCurrent: (() => void) | null = null; // ends the promise of whatever is speaking now
+let token = 0; // goes up every time speech is stopped, so a running sequence knows to quit
 
 // Can this browser speak at all?
 export function canSpeak(): boolean {
@@ -14,6 +15,7 @@ export function canSpeak(): boolean {
 
 // Stops whatever the tutor is saying (the "tap to interrupt" button, or leaving the screen).
 export function stopSpeaking() {
+  token++; // any sequence in progress stops after the current piece
   if (audio) {
     audio.pause(); // stop the Cartesia clip
     audio = null;
@@ -25,15 +27,60 @@ export function stopSpeaking() {
 
 // Says `text` out loud. The promise resolves when it's done (or was interrupted). Never throws.
 export async function speak(text: string): Promise<void> {
-  stopSpeaking(); // one voice at a time
-  const clean = text.trim();
-  if (!clean) return;
-  if (!ttsOff && (await speakCartesia(clean))) return; // the nicer voice, when it's available
-  await speakBrowser(clean);
+  return speakSequence([{ text }]);
 }
 
-// Cartesia via our server route. Returns false if it couldn't play (the caller then uses the browser voice).
-async function speakCartesia(text: string): Promise<boolean> {
+// One piece of a longer reading, and what to light up on screen while it's being said.
+export type SpeechPiece = { text: string; onStart?: () => void };
+
+// Says several pieces one after another, calling each piece's onStart just as it begins
+// (Read aloud uses this to light up the part of the board being talked about).
+// With Cartesia, every piece is requested at once up front, so there are no gaps between them.
+export async function speakSequence(pieces: SpeechPiece[]): Promise<void> {
+  stopSpeaking(); // one voice at a time
+  const mine = token; // if this changes, someone stopped us
+  const list = pieces.map((p) => ({ ...p, text: p.text.trim() })).filter((p) => p.text);
+  if (!list.length) return;
+  // The nicer voice: fetch the pieces' audio ahead of time, 2 at a time (Cartesia's free plan allows
+  // 2 requests at once). Each is null if it failed.
+  const clips = ttsOff ? null : fetchAhead(list.map((p) => p.text), 2);
+  for (let i = 0; i < list.length; i++) {
+    if (token !== mine) break; // stopped
+    const url = clips ? await clips[i] : null;
+    if (token !== mine) break;
+    list[i].onStart?.();
+    if (url) await playClip(url);
+    else await speakBrowser(list[i].text); // this piece failed (or no Cartesia): the browser voice says it
+  }
+  clips?.forEach((c) => c.then((u) => u && URL.revokeObjectURL(u))); // free the audio memory
+}
+
+// Starts fetching every text's audio, at most `limit` at a time, in order. Returns one promise per text.
+function fetchAhead(texts: string[], limit: number): Promise<string | null>[] {
+  const starters: (() => void)[] = [];
+  let running = 0;
+  const next = () => {
+    while (running < limit && starters.length) starters.shift()!();
+  };
+  const promises = texts.map(
+    (t) =>
+      new Promise<string | null>((resolve) => {
+        starters.push(() => {
+          running++;
+          fetchClip(t).then((url) => {
+            running--;
+            resolve(url);
+            next(); // a slot is free: start the next piece
+          });
+        });
+      }),
+  );
+  next();
+  return promises;
+}
+
+// Asks our server route for one piece of Cartesia audio. Returns a temporary local link, or null.
+async function fetchClip(text: string): Promise<string | null> {
   try {
     const res = await fetch("/api/tts", {
       method: "POST",
@@ -42,25 +89,27 @@ async function speakCartesia(text: string): Promise<boolean> {
       signal: AbortSignal.timeout(9000), // don't keep the student waiting
     });
     if (res.status === 501) ttsOff = true; // no Cartesia key on the server: never ask again this visit
-    if (!res.ok) return false;
-    const url = URL.createObjectURL(await res.blob()); // the MP3 as a temporary local link
-    const clip = new Audio(url);
-    audio = clip;
-    await new Promise<void>((resolve) => {
-      const done = () => {
-        URL.revokeObjectURL(url); // free the memory
-        if (audio === clip) audio = null;
-        resolve();
-      };
-      finishCurrent = done;
-      clip.onended = done;
-      clip.onerror = done;
-      clip.play().catch(done); // autoplay can be blocked; then we just end
-    });
-    return true;
+    if (!res.ok) return null;
+    return URL.createObjectURL(await res.blob()); // the MP3 as a temporary local link
   } catch {
-    return false; // network error, timeout, ...: fall back
+    return null; // network error, timeout, ...: the browser voice takes over
   }
+}
+
+// Plays one clip; resolves when it ends or is stopped.
+function playClip(url: string): Promise<void> {
+  const clip = new Audio(url);
+  audio = clip;
+  return new Promise<void>((resolve) => {
+    const done = () => {
+      if (audio === clip) audio = null;
+      resolve();
+    };
+    finishCurrent = done;
+    clip.onended = done;
+    clip.onerror = done;
+    clip.play().catch(done); // autoplay can be blocked; then we just end
+  });
 }
 
 // The voices we like best, in order (names differ per browser and operating system).
@@ -290,4 +339,30 @@ export function speakable(text: string): string {
     .replace(/[*_`#]/g, "") // markdown symbols
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Splits a step's LaTeX at its colored parts (\htmlClass{role-a}{...}), in reading order:
+// "u = \htmlClass{role-a}{\ln x}" -> [{ latex: "u = ", role: null }, { latex: "\ln x", role: "a" }].
+// Read aloud says each piece separately and lights up that piece on the board.
+export function splitParts(latex: string): { latex: string; role: "a" | "b" | "c" | null }[] {
+  const out: { latex: string; role: "a" | "b" | "c" | null }[] = [];
+  const tag = "\\htmlClass{";
+  let i = 0;
+  let plain = "";
+  while (i < latex.length) {
+    if (latex.startsWith(tag, i)) {
+      const close = latex.indexOf("}", i + tag.length);
+      const cls = latex.slice(i + tag.length, close); // "role-a"
+      const [inner, end] = readArg(latex, close + 1); // the colored math itself
+      const role = /^role-([abc])$/.exec(cls)?.[1] as "a" | "b" | "c" | undefined;
+      if (role) {
+        if (plain) out.push({ latex: plain, role: null });
+        plain = "";
+        out.push({ latex: inner, role });
+      } else plain += inner; // some other class (e.g. the error ring): just math
+      i = end;
+    } else plain += latex[i++];
+  }
+  if (plain) out.push({ latex: plain, role: null });
+  return out;
 }

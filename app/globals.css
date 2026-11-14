@@ -163,6 +163,42 @@ math-field::part(virtual-keyboard-toggle) { display: none; }
 .board-speaking [data-current] .role-b,
 .board-speaking [data-current] .role-c { animation: role-glow 1.6s ease-in-out infinite; }
 
+/* Read aloud spotlight (data-spot on the step stack, see Board.tsx): what's being said lights up,
+   the rest steps back. rule = the rule label, line = the whole line, part-a/b/c = one colored part,
+   note = the "why" under the line. */
+[data-spot] [data-n]:not([data-current]) { opacity: 0.28 !important; } /* earlier lines step back */
+[data-spot] [data-current] .ink,
+[data-spot] [data-current] .tag-in,
+[data-spot] .board-note { transition: opacity 0.35s ease, background-color 0.35s ease, text-shadow 0.35s ease; }
+[data-spot] [data-current] .role-a,
+[data-spot] [data-current] .role-b,
+[data-spot] [data-current] .role-c { animation: none; border-radius: 6px; transition: background-color 0.3s ease, box-shadow 0.3s ease, text-shadow 0.3s ease; }
+/* the rule label */
+[data-spot="rule"] [data-current] .tag-in { text-shadow: 0 0 16px currentColor; }
+[data-spot="rule"] [data-current] .ink,
+[data-spot="rule"] .board-note { opacity: 0.4; }
+/* the line (and its parts) */
+[data-spot="line"] [data-current] .ink { text-shadow: 0 0 14px rgba(236, 232, 221, 0.35); }
+[data-spot="line"] [data-current] .tag-in,
+[data-spot^="part"] [data-current] .tag-in,
+[data-spot="line"] .board-note,
+[data-spot^="part"] .board-note { opacity: 0.35; }
+/* one colored part: a soft chalk highlight box around it */
+[data-spot="part-a"] [data-current] .role-a,
+[data-spot="part-b"] [data-current] .role-b,
+[data-spot="part-c"] [data-current] .role-c {
+  text-shadow: 0 0 14px currentColor, 0 0 2px currentColor;
+  background-color: color-mix(in srgb, currentColor 16%, transparent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, currentColor 16%, transparent);
+}
+/* the why note */
+[data-spot="note"] .board-note { background-color: rgba(242, 201, 76, 0.08); }
+[data-spot="note"] [data-current] .ink,
+[data-spot="note"] [data-current] .tag-in { opacity: 0.45; }
+@media (prefers-reduced-motion: reduce) {
+  [data-spot] * { transition: none !important; }
+}
+
 /* ✓ marks draw on (the SVG path has pathLength=1, so a dash of length 1 covers it), then pulse once. */
 @keyframes check-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 .check-draw { stroke-dasharray: 1; animation: check-draw 0.45s ease-out both; }

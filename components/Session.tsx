@@ -16,7 +16,7 @@ import { VoiceTools, useHandsFree } from "./VoiceGuide";
 import { logAttempt } from "@/lib/attempts";
 import { preparePhoto, readPhoto } from "@/lib/photo";
 import { hear, type Clip } from "@/lib/recorder";
-import { latexToWords, speak, speakable, stopSpeaking } from "@/lib/speak";
+import { latexToWords, speak, speakSequence, speakable, splitParts, stopSpeaking } from "@/lib/speak";
 import { useVoice } from "@/lib/useVoice";
 import { guessTask } from "@/lib/task";
 import type { CheckResult, SolutionPackage, Submission, WorkResult } from "@/lib/schemas";
@@ -107,6 +107,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
   const [readAloud, setReadAloud] = useState(false); // the toggle
   const [readDone, setReadDone] = useState(0); // the last step number that finished being read
   const readToken = useRef(0); // which reading is the latest (older ones finishing late are ignored)
+  const [spot, setSpot] = useState<string | null>(null); // Read aloud: the part of the board being read right now
 
   const steps = pkg?.steps ?? [];
   const total = steps.length;
@@ -125,16 +126,28 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
     return () => clearTimeout(timer); // cancel if the user pauses or leaves
   }, [playing, view, total, mode, readAloud, reading]);
 
-  // Walkthrough "Read aloud": read each step when it appears (the browser voice; no AI calls).
+  // Walkthrough "Read aloud": read each step when it appears, in pieces, lighting up each piece on
+  // the board as it's said: the rule label, then the line part by part (each colored part glows when
+  // it's named), then the "why" note under the line. No AI calls (just the voice).
   useEffect(() => {
     if (!readAloud || mode !== "walkthrough" || !pkg) return;
     const step = pkg.steps[view - 1];
     if (!step) return;
     const token = ++readToken.current; // this reading's number
-    speak(`Step ${view}. ${step.rule}. ${latexToWords(step.plain_latex)}. ${speakable(step.summary)}`).then(() => {
-      if (readToken.current === token) setReadDone(view); // only the latest reading counts
+    const light = (s: string | null) => () => readToken.current === token && setSpot(s);
+    const last = view === total;
+    const pieces = [
+      { text: last ? `Step ${view}, the answer.` : `Step ${view}. ${step.rule}.`, onStart: light("rule") },
+      // the line, one piece per colored part (plain pieces light the whole line)
+      ...splitParts(step.latex).map((p) => ({ text: latexToWords(p.latex), onStart: light(p.role ? `part-${p.role}` : "line") })),
+      { text: speakable(step.why), onStart: light("note") },
+    ];
+    speakSequence(pieces).then(() => {
+      if (readToken.current !== token) return; // only the latest reading counts
+      setSpot(null);
+      setReadDone(view);
     });
-  }, [readAloud, mode, view, pkg]);
+  }, [readAloud, mode, view, pkg]); // eslint-disable-line react-hooks/exhaustive-deps -- total follows pkg
 
   // Stop talking when leaving a mode (each mode starts quiet). Solving by voice ends with a spoken cheer.
   useEffect(() => {
@@ -759,6 +772,7 @@ export function Session({ pkg, problemId, problemLatex, initialMode, initialWork
           current={current}
           ghost={ghost}
           note={note}
+          spot={readAloud && mode === "walkthrough" ? spot : null}
           speaking={reading || voice.phase === "speaking"} // colored parts glow while the tutor talks
           nav={pkg && mode === "walkthrough" ? { prev: view > 1 ? prevStep : undefined, next: view < total ? nextStep : undefined } : undefined}
           overlay={pkg && overlay ? <OverlayPanel pkg={pkg} overlay={overlay} onClose={() => setOverlay(null)} /> : null}

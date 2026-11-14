@@ -12,6 +12,7 @@ import "server-only";
 const LIMITS = {
   heavy: { perMinute: 6, perDay: 60 },
   light: { perMinute: 30, perDay: 500 },
+  tts: { perMinute: 90, perDay: 1500 }, // the tutor's voice: Read aloud sends a few short pieces per step
 } as const;
 export type Cost = keyof typeof LIMITS;
 

@@ -77,6 +77,16 @@ Plan: `docs/phase3-plan.md`. ElevenLabs is blocked (401), so Gemini listens and 
   Fixed: Gemini sometimes doubled backslashes (`\\ln`); `lib/speechToMath.ts` now repairs them.
 - Merged to `main` from the cloud session's branch `claude/ecstatic-franklin-lcuuk5`.
 
+## Read aloud in sync with the board ✅ (Nov 13, 2026)
+- Walkthrough's **Read aloud** now reads each step in pieces and lights up what it's saying: the rule
+  label, then the line part by part (each colored part, like $u$ or $dv$, gets a chalk highlight
+  when it's named), then the "why" note. Earlier lines dim while it reads.
+- `speakSequence()` in `lib/speak.ts` fetches the Cartesia pieces ahead, 2 at a time (the free plan's
+  concurrency limit), so there are no gaps; any piece that fails is read by the browser voice.
+  `/api/tts` has its own rate-limit budget (90/min) because one step is ~6 short requests.
+- Tested in the browser with the real voice: all pieces 200, first sound after ~0.8 s, highlights
+  in order rule -> line -> part a -> line -> part b -> note.
+
 ## Library complete + explain-don't-skip + why on the board ✅ (Nov 13, 2026)
 - **The 4 missing library problems** (quotient rule, logarithmic differentiation, by parts twice,
   alternating series) are generated with `npm run presets -- <ids>`, checked by SymPy (3 of 4; the

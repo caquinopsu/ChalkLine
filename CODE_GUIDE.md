@@ -140,7 +140,10 @@ state and the same `/api/check-step` as typing.
    a `CARTESIA_API_KEY`, it tries `/api/tts` first and falls back to the browser voice on any error.
    `latexToWords()` turns math into speech: `\frac{x^2}{2}` → "x squared, over 2".
 5. **Read aloud** in Walkthrough reads each step with the same voice, with no AI calls; autoplay
-   waits for each step to be read.
+   waits for each step to be read. It reads in pieces (`speakSequence` + `splitParts` in
+   `lib/speak.ts`): the rule, each piece of the line, then the why. As each piece starts, Session
+   sets `spot`, the Board puts it on the step stack as `data-spot`, and CSS in `globals.css` ("Read
+   aloud spotlight") lights up that piece and dims the rest.
 
 **Talking like a person (voice pass 2).** People say "um", change their mind mid-sentence, and
 misspeak. How the app copes:

@@ -37,6 +37,7 @@ type Props = {
   current: CurrentLine | null;
   ghost?: string | null; // faint Caveat line under the current one ("next: ...")
   note?: ReactNode; // a short explanation written right under the current line (the "why" of this step)
+  spot?: string | null; // Read aloud: what's being said right now ("rule", "line", "part-a/b/c", "note")
   overlay?: ReactNode; // the Why? / Side work panel, drawn over the right third
   speaking?: boolean; // the tutor is talking: the colored parts glow while it speaks
   children?: ReactNode; // anything extra (e.g. the finish layout)
@@ -48,7 +49,7 @@ type Props = {
 
 const BADGE = { gold: "bg-gold", pink: "bg-pink", blue: "bg-blue" };
 
-export function Board({ problemLatex, status, lines, current, ghost, note, overlay, speaking, children, firstNumber = 1, nav, task, tools }: Props) {
+export function Board({ problemLatex, status, lines, current, ghost, note, spot, overlay, speaking, children, firstNumber = 1, nav, task, tools }: Props) {
   const [expanded, setExpanded] = useState(false); // is the "earlier steps" overlay open?
   const stack = useRef<HTMLDivElement>(null); // the step stack, to find lines to glide
   const spots = useRef(new Map<string, DOMRect>()); // where each step's line was drawn last time
@@ -111,7 +112,7 @@ export function Board({ problemLatex, status, lines, current, ghost, note, overl
         </div>
 
         {children ?? (
-          <div ref={stack} className={`flex min-h-0 flex-1 flex-col justify-center gap-5 pb-4 ${speaking ? "board-speaking" : ""}`}>
+          <div ref={stack} data-spot={spot ?? undefined} className={`flex min-h-0 flex-1 flex-col justify-center gap-5 pb-4 ${speaking ? "board-speaking" : ""}`}>
             {hidden.length > 0 && (
               <div className="relative">
                 <button

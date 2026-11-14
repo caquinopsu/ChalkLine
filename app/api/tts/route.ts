@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const key = process.env.CARTESIA_API_KEY; // secret: only ever read on the server
   if (!key) return Response.json({ ok: false, off: true }, { status: 501 }); // switched off: the browser voice is used
   try {
-    const limited = rateLimit(req, "light"); // too many requests from this visitor?
+    const limited = rateLimit(req, "tts"); // too many requests from this visitor?
     if (limited) return limited;
     const body = await req.json().catch(() => ({}));
     const text = typeof body.text === "string" ? body.text.trim() : "";
